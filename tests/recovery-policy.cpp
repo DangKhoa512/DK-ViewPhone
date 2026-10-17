@@ -1,4 +1,5 @@
 #include "../src/DKRecoveryPolicy.h"
+#include "../src/DKClipboardPolicy.h"
 #include <cassert>
 #include <iostream>
 
@@ -22,5 +23,14 @@ int main() {
     assert(b.fail(200) == 2 && b.failures == 1); // Clock correction cannot underflow.
     auto persisted = b;
     assert(!persisted.canStart(201) && persisted.canStart(202));
+    long echoes = 2;
+    assert(dkviewphone::consumeClipboardEcho(true, echoes) && echoes == 1);
+    assert(!dkviewphone::consumeClipboardEcho(false, echoes) && echoes == 0);
+    assert(!dkviewphone::consumeClipboardEcho(false, echoes));
+    echoes = 2;
+    assert(dkviewphone::consumeClipboardEcho(true, echoes));
+    assert(dkviewphone::consumeClipboardEcho(true, echoes) && echoes == 0);
+    assert(!dkviewphone::consumeClipboardEcho(true, echoes));
+    std::cout << "clipboard: duplicate echo suppression and first new local value passed\n";
     std::cout << "recovery budget: backoff, latch, persistence and manual-off passed\n";
 }

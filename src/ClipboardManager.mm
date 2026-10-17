@@ -23,12 +23,14 @@
 #import <notify.h>
 
 #import "ClipboardManager.h"
+#import "DKClipboardPolicy.h"
 #import "Logging.h"
 
 static NSString *const kPasteboardDarwinNotification = @"com.apple.pasteboard.notify.changed";
 
 @interface ClipboardManager ()
 @property(nonatomic, assign) int notifyToken;
+@property(nonatomic, strong) dispatch_source_t pollTimer;
 @property(nonatomic, assign, getter=isStarted) BOOL started;
 @property(nonatomic, copy) NSString *_Nullable lastSetValue;
 @property(nonatomic, assign) NSInteger lastObservedChangeCount;   // last seen changeCount from UIPasteboard
@@ -96,6 +98,15 @@ static NSString *const kPasteboardDarwinNotification = @"com.apple.pasteboard.no
         self.lastObservedChangeCount = pb.changeCount;
         TVLog("Initial pasteboard changeCount=%ld", (long)self.lastObservedChangeCount);
     });
+    // Darwin notifications can be coalesced or absent for background producers.
+    // Poll only the count, once per second and only while viewers are present.
+    self.pollTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
+    dispatch_source_set_timer(self.pollTimer, dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC), NSEC_PER_SEC, NSEC_PER_SEC / 5);
+    dispatch_source_set_event_handler(self.pollTimer, ^{
+        __strong __typeof(weakSelf) owner = weakSelf;
+        if (owner.isStarted) [owner handlePasteboardChangeFromSystem];
+    });
+    dispatch_resume(self.pollTimer);
 }
 
 - (void)stop {
@@ -105,6 +116,7 @@ static NSString *const kPasteboardDarwinNotification = @"com.apple.pasteboard.no
     }
 
     self.started = NO;
+    if (self.pollTimer) { dispatch_source_cancel(self.pollTimer); self.pollTimer = nil; }
     TVLog("Stopping clipboard monitoring");
 
     if (self.notifyToken != 0) {
@@ -181,12 +193,11 @@ static NSString *const kPasteboardDarwinNotification = @"com.apple.pasteboard.no
 - (void)dispatchChangeIfNeededFromLocal:(BOOL)local {
     NSString *current = [self currentString];
 
-    // If suppression is active, consume one token and skip
-    if (self.suppressNextCallbacks > 0) {
-        self.suppressNextCallbacks -= 1;
-        TVLog("Suppression active (%ld left); skipping callback", (long)self.suppressNextCallbacks);
-        return;
-    }
+    NSInteger remaining = self.suppressNextCallbacks;
+    BOOL sameValue = self.lastSetValue && [self.lastSetValue isEqualToString:current];
+    BOOL isEcho = dkviewphone::consumeClipboardEcho(sameValue, remaining);
+    self.suppressNextCallbacks = remaining;
+    if (isEcho) return;
 
     // Avoid loop: If this matches the value we just set and this call is from the system notification, ignore it.
     // If it’s a local setString call, allow the callback so the remote can be updated.

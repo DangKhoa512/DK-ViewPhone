@@ -20,6 +20,8 @@ short device tests, with assistance for unlock and rotation.
 | Allocation failure could crash during rotation | Check realloc before memset; rotation/scaling and input coordinate algorithms otherwise remain unchanged. |
 | Unbounded text output and potentially broad log messages | Launch stdout/stderr go to /dev/null. Watchdog writes fixed-schema JSONL: current plus three rotated files, each at most 256 KiB, private directory 0700/files 0600. No preferences, passwords, clipboard or key text enter the event schema. |
 | Release builds lack useful performance evidence | Every 30 seconds log changed-frame FPS, completed client update count, callback processing time, process CPU percentage and resident memory. Raw frame contents are never logged. |
+| A remote clipboard write can suppress the next different local value | Consume suppression tokens only for matching echo content; clear stale tokens for a different value. A deterministic policy test covers fewer system notifications than anticipated. |
+| Background clipboard change notification is missed/coalesced | While viewers are present, a one-second changeCount poll supplements Darwin notifications. Stop the timer with the last viewer; read content only when the count changes. |
 
 The existing ScreenCapturer dirty-frame optimization and zero-viewer capture
 stop remain intact. No frame queue is added; LibVNCServer coalesces modified
@@ -71,3 +73,8 @@ pasteboard rights to verify/restore clipboard content; these test permissions
 are not added to either production executable. Generic Python could not access
 these services on the test device. The helper never prints clipboard contents
 or queries Wi-Fi network names/passwords. Delete it after the device session.
+For a copied standalone helper, create its `.jbroot` link from the resolved
+`/usr/bin/.jbroot` link before execution; package installation normally supplies
+this loader support. Use the helper as mobile for clipboard operations. Wi-Fi
+tests use the global AllowEnable property; the first device-level power API
+trial lost association and required the owner to reconnect, so it did not pass.

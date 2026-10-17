@@ -33,8 +33,9 @@ static int wifi(NSString *mode) {
     auto schedule = (void (*)(CFTypeRef,CFRunLoopRef,CFStringRef))dlsym(library,"WiFiManagerClientScheduleWithRunLoop");
     auto copy = (CFArrayRef (*)(CFTypeRef))dlsym(library,"WiFiManagerClientCopyDevices");
     auto get = (int (*)(CFTypeRef))dlsym(library,"WiFiDeviceClientGetPower");
-    auto set = (void (*)(CFTypeRef,int))dlsym(library,"WiFiDeviceClientSetPower");
-    if (!create || !schedule || !copy || !get || !set) return 3;
+    auto set = (void (*)(CFTypeRef,CFStringRef,CFTypeRef))dlsym(library,"WiFiManagerClientSetProperty");
+    auto property = (CFTypeRef (*)(CFTypeRef,CFStringRef))dlsym(library,"WiFiManagerClientCopyProperty");
+    if (!create || !schedule || !copy || !get || !set || !property) return 3;
     CFTypeRef manager = create(NULL,0);
     if (!manager) return 4;
     schedule(manager,CFRunLoopGetCurrent(),kCFRunLoopDefaultMode); pump(.3);
@@ -42,13 +43,20 @@ static int wifi(NSString *mode) {
     if (!devices || CFArrayGetCount(devices)!=1) { printJSON(@{@"error":@"wifi_device_unavailable"}); return 5; }
     CFTypeRef device = CFArrayGetValueAtIndex(devices,0);
     int initial = get(device);
-    if ([mode isEqual:@"wifi-status"]) { printJSON(@{@"power":@(initial),@"ipv4":ipv4() ?: NSNull.null}); return 0; }
-    if (!initial) { printJSON(@{@"error":@"wifi_initially_off"}); return 6; }
+    CFTypeRef allow = property(manager,CFSTR("AllowEnable"));
+    bool valid = allow && CFGetTypeID(allow)==CFBooleanGetTypeID();
+    bool initiallyAllowed = valid && CFBooleanGetValue((CFBooleanRef)allow);
+    if (allow) CFRelease(allow);
+    if ([mode isEqual:@"wifi-status"]) { printJSON(@{@"power":@(initial),@"allow_enable":valid ? @(initiallyAllowed) : NSNull.null,@"ipv4":ipv4() ?: NSNull.null}); return 0; }
+    if (!initial || !valid || !initiallyAllowed) { printJSON(@{@"error":@"wifi_power_state_not_verifiable"}); return 6; }
     bool off = false, on = false;
     @try {
-        set(device,0); pump(4); off = !get(device);
+        set(manager,CFSTR("AllowEnable"),kCFBooleanFalse); pump(4);
+        CFTypeRef state = property(manager,CFSTR("AllowEnable"));
+        off = state && CFGetTypeID(state)==CFBooleanGetTypeID() && !CFBooleanGetValue((CFBooleanRef)state) && !ipv4();
+        if (state) CFRelease(state);
         printJSON(@{@"power_off_confirmed":@(off),@"ipv4_when_off":ipv4() ?: NSNull.null});
-    } @finally { set(device,initial); }
+    } @finally { set(manager,CFSTR("AllowEnable"),kCFBooleanTrue); }
     for (int i=0;i<50;i++) { pump(.5); if (get(device) && ipv4()) { on=true; break; } }
     pump(4);
     printJSON(@{@"power_on_confirmed":@(on),@"ipv4":ipv4() ?: NSNull.null});
@@ -76,13 +84,13 @@ int main(int argc,char **argv) {
             NSData *data = [NSData dataWithContentsOfFile:backup];
             NSArray *items = data ? [NSPropertyListSerialization propertyListWithData:data options:NSPropertyListImmutable format:NULL error:nil] : nil;
             if (![items isKindOfClass:NSArray.class]) return 12;
-            board.items = items; printJSON(@{@"clipboard_restored":@YES});
+            board.items = items; pump(.3); printJSON(@{@"clipboard_restored":@([board.items isEqual:items])});
         } else if ([command isEqual:@"clipboard-set"] || [command isEqual:@"clipboard-compare"]) {
             NSData *data = [NSFileHandle.fileHandleWithStandardInput readDataToEndOfFile];
             NSDictionary *input = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
             NSString *text = input[@"text"];
             if (![text isKindOfClass:NSString.class] || text.length>256) return 13;
-            if ([command isEqual:@"clipboard-set"]) { board.string=text; printJSON(@{@"clipboard_test_value_set":@YES}); }
+            if ([command isEqual:@"clipboard-set"]) { board.string=text; pump(.3); printJSON(@{@"clipboard_test_value_set":@([board.string isEqualToString:text])}); }
             else printJSON(@{@"matches":@([board.string isEqualToString:text])});
         } else return 14;
     }

@@ -49,8 +49,8 @@ class SourceTests(unittest.TestCase):
             self.assertEqual(info['CFBundleExecutable'], executable)
             self.assertEqual(info['CFBundleDisplayName'], 'ĐK ViewPhone')
 
-    def test_core_engine_unchanged(self):
-        for name in ('ScreenCapturer.mm','STHIDEventGenerator.mm','ClipboardManager.mm'):
+    def test_capture_and_input_engine_unchanged(self):
+        for name in ('ScreenCapturer.mm','STHIDEventGenerator.mm'):
             # Compare with the exact audited upstream commit, ignoring checkout EOL.
             original = subprocess.check_output(['git','show',f'cfdb737e72977d961eb7d0a8110d2fe1a58551d7:src/{name}'], cwd=ROOT)
             actual = (ROOT / 'src' / name).read_bytes().replace(b'\r\n', b'\n')
