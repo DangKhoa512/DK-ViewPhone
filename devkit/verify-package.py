@@ -59,6 +59,7 @@ def tar_members(raw):
 
 
 def check_signature(binary, offset, size):
+    require(offset >= 32 and size >= 12 and offset + size <= len(binary), 'Invalid signature range')
     blob = binary[offset:offset + size]
     magic, length, count = struct.unpack_from('>III', blob)
     require(magic == 0xfade0cc0 and length <= len(blob), 'Missing embedded signature superblob')
@@ -74,7 +75,7 @@ def check_signature(binary, offset, size):
             continue
         fields = struct.unpack_from('>9I4B', directory)
         magic, _, _, _, hash_offset, _, specials, slots, limit, hash_size, hash_type, _, page = fields
-        require(magic == 0xfade0c02 and limit <= offset, 'Invalid CodeDirectory')
+        require(magic == 0xfade0c02 and limit == offset, 'Invalid CodeDirectory coverage')
         require(page <= 30, 'Invalid signature page size')
         algorithm = {1: 'sha1', 2: 'sha256', 3: 'sha256', 4: 'sha384'}.get(hash_type)
         require(algorithm is not None, f'Unsupported signature hash {hash_type}')
@@ -145,6 +146,8 @@ def validate(path):
         info, content = controls[script]
         require(info.mode & 0o111 and content.startswith(b'#!/usr/bin/env bash\n'), f'Invalid script {script}')
         require(b'\r' not in content and b'/var/jb' not in re.sub(rb'#.*', b'', content), f'Invalid script path/line endings: {script}')
+        expected = (Path(__file__).resolve().parents[1] / 'layout/DEBIAN' / script).read_bytes().replace(b'\r\n', b'\n')
+        require(content == expected, f'Unexpected maintainer script content: {script}')
     daemon_name = 'Library/LaunchDaemons/com.82flex.trollvnc.plist'
     daemon = plistlib.loads(payload[daemon_name][1])
     require(daemon['Label'] == 'com.82flex.trollvnc', 'Daemon label mismatch')

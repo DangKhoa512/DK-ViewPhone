@@ -15,7 +15,11 @@ foreach ($resource in $resources) {
     $graphics = [Drawing.Graphics]::FromImage($bitmap)
     $graphics.SmoothingMode = [Drawing.Drawing2D.SmoothingMode]::AntiAlias
     $graphics.ScaleTransform($resource.Size / 100.0, $resource.Size / 100.0)
-    $graphics.Clear([Drawing.Color]::FromArgb(17,105,168))
+    if ($resource.Directory -like '*CCTrollVNC*' -and $resource.Name -like 'icon*') {
+        $graphics.Clear([Drawing.Color]::Transparent) # Control Center uses an alpha glyph
+    } else {
+        $graphics.Clear([Drawing.Color]::FromArgb(17,105,168))
+    }
     $pen = New-Object Drawing.Pen([Drawing.Color]::White, 5)
     $pen.StartCap = $pen.EndCap = [Drawing.Drawing2D.LineCap]::Round
     $graphics.DrawRectangle($pen, 33,13,34,63)

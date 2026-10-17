@@ -7,7 +7,7 @@
 <HTML>
 <head> 
 <TITLE>
-$USER's $DESKTOP desktop ($DISPLAY)
+ĐK ViewPhone — $DESKTOP ($DISPLAY)
 </TITLE>
 </head> 
 <br/>
@@ -31,7 +31,7 @@ fire up an instance of the <a href="https://novnc.com/">noVNC</a> HTML5 viewer.
     -->
 </script>
 <form name="novnc_button_form">
-  <input type="button" name="novnc_button" value="Click here to connect using noVNC" onClick='start_novnc(false)'>
+  <input type="button" name="novnc_button" value="ĐK ViewPhone — connect with WSS" onClick='start_novnc(true)'>
 </form>
 <form name="novnc_button_form">
   <input type="button" name="novnc_button" value="Click here to connect using noVNC using an encrypted connection" onClick='start_novnc(true)'>

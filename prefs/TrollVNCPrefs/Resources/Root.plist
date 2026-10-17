@@ -746,7 +746,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Logs key events to syslog for debugging. Do not leave enabled in normal use.</string>
+			<string>Keyboard logging is disabled in ĐK ViewPhone to keep typed information out of logs.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -755,6 +755,8 @@
 			<string>com.82flex.trollvnc</string>
 			<key>key</key>
 			<string>KeyLogging</string>
+			<key>enabled</key>
+			<false/>
 			<key>label</key>
 			<string>Log Keyboard Events</string>
 			<key>default</key>

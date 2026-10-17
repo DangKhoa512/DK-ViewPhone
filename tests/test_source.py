@@ -2,6 +2,8 @@ import importlib.util
 import plistlib
 from pathlib import Path
 import subprocess
+import struct
+import hashlib
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -57,6 +59,18 @@ class SourceTests(unittest.TestCase):
     def test_macho_parser_rejects_nonbinary(self):
         with self.assertRaises(ValueError):
             validator.check_macho(b'fake binary')
+
+    def test_signature_verifier_detects_code_tampering(self):
+        # Synthetic signed data checks the verifier; no fake DEB is generated.
+        code = bytes(range(64))
+        directory = struct.pack('>9I4BI', 0xfade0c02, 76, 0x20200, 2, 44, 0,
+                                0, 1, 64, 32, 2, 0, 6, 0) + hashlib.sha256(code).digest()
+        signature = struct.pack('>5I', 0xfade0cc0, 96, 1, 0, 20) + directory
+        self.assertEqual(validator.check_signature(code + signature, 64, 96), {})
+        changed = bytearray(code + signature)
+        changed[40] ^= 1
+        with self.assertRaisesRegex(ValueError, 'signature mismatch'):
+            validator.check_signature(changed, 64, 96)
 
 
 if __name__ == '__main__':

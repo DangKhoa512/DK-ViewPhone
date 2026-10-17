@@ -100,8 +100,6 @@ static NSData *ZTExtendedKeyUsageDER(void) {
 }
 
 - (BOOL)_generateWithCommonName:(NSString *)commonName {
-    OSStatus status = errSecSuccess;
-
     SecKeyRef publicKey = NULL;
     SecKeyRef privateKey = NULL;
     SecCertificateRef cert = NULL;
@@ -131,10 +129,15 @@ static NSData *ZTExtendedKeyUsageDER(void) {
 
         CFDictionaryAddValue(keyParams, kSecAttrLabel, cfCommonName);
 
-        status = SecKeyGeneratePair(keyParams, &publicKey, &privateKey);
+        // SecKeyGeneratePair is deprecated at our iOS 15 deployment target.
+        // Keep RSA-2048 exportable in-memory keys without storing a credential.
+        CFErrorRef generationError = NULL;
+        privateKey = SecKeyCreateRandomKey(keyParams, &generationError);
+        if (generationError) CFRelease(generationError);
+        if (privateKey) publicKey = SecKeyCopyPublicKey(privateKey);
         CFRelease(keyParams);
 
-        if (status != errSecSuccess || !publicKey || !privateKey) {
+        if (!publicKey || !privateKey) {
             goto cleanup;
         }
     }

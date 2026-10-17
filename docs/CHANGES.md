@@ -16,6 +16,9 @@ Baseline: owngoal-dev/TrollVNC cfdb737e72977d961eb7d0a8110d2fe1a58551d7.
   private/loopback IPv4 bind, disable wildcard IPv6 listener, TLS configuration
   for web access, no keyboard logging, per-client input/clipboard protections.
 - `src/BulletinManager.mm`: notification display title only.
+- `app/TrollVNC/TrollVNC/ZTSelfSignedCertificate.m`: replace the iOS 15 deprecated
+  SecKeyGeneratePair with SecKeyCreateRandomKey/SecKeyCopyPublicKey, retaining
+  RSA-2048 generation and certificate export.
 - `app/TrollVNC/TrollVNC/{TVNCRootListController.m,TVNCUtil.h}` and
   `prefs/CCTrollVNC/CCTrollVNC.mm`: shared Settings/CC password checks and stop
   behavior. The DEB compiles these through the existing source symlinks.
@@ -25,6 +28,10 @@ Baseline: owngoal-dev/TrollVNC cfdb737e72977d961eb7d0a8110d2fe1a58551d7.
 - `devkit/verify-package.py`, `tests/*`: source consistency, engine preservation,
   security policy, real DEB and Mach-O signature checks.
 - `.gitattributes`, `.gitignore`: portable shell line endings and build exclusions.
+- `Artworks/DKViewPhone.svg`, `devkit/generate-icons.ps1`, preference/CC PNGs:
+  native brand artwork and transparent Control Center glyphs.
+- `layout/usr/share/trollvnc/webclients/index.vnc`: display branding and WSS as
+  the default browser connection action; noVNC engine files are unchanged.
 - `README.md`, `docs/*`: setup, provenance, limitations, device test checklist.
 
 Internal identifiers intentionally preserved: executable `trollvncserver`,
