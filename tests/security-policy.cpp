@@ -5,6 +5,11 @@
 
 int main() {
     using namespace dkviewphone;
+    assert(containsCurrentRoot("/var/containers/.jbroot-123/var/cert.pem", "/var/containers/.jbroot-123/"));
+    assert(containsCurrentRoot("/private/var/mobile/.jbroot-123/var/cert.pem", "/var/containers/.jbroot-123/"));
+    assert(!containsCurrentRoot("/var/cert.pem", "/var/containers/.jbroot-123/"));
+    assert(!containsCurrentRoot("/var/.jbroot-1234/cert.pem", "/var/containers/.jbroot-123/"));
+    assert(!containsCurrentRoot("/var/.jbroot-123/cert.pem", "/"));
     assert(!allowWeb(false, false, true, false, false, 5801, 5901));
     assert(!allowWeb(true, false, false, true, true, 5801, 5901));
     assert(allowWeb(true, false, true, false, false, 5801, 5901));

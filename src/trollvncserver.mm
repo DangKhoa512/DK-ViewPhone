@@ -4265,7 +4265,9 @@ int main(int argc, const char *argv[]) {
         }
         for (char **path : {&gSslCertPath, &gSslKeyPath, &gHttpDirOverride}) {
             if (!*path) continue;
-            const char *physical = jbroot(*path);
+            // jbroot() prepends its root even for an already physical path.
+            // Existing Settings certificate generation stores physical paths.
+            const char *physical = dkviewphone::containsCurrentRoot(*path, jbroot("/")) ? *path : jbroot(*path);
             char *copy = physical ? strdup(physical) : NULL;
             if (!copy) { TVPrintError("Could not resolve web resource path"); return EXIT_FAILURE; }
             free(*path); *path = copy;
