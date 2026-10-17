@@ -137,7 +137,7 @@ def validate(path):
     payload = tar_members(members[data_names[0]])
     control = controls['control'][1].decode('utf-8')
     fields = dict(line.split(': ', 1) for line in control.splitlines() if ': ' in line and not line.startswith(' '))
-    for name, expected in {'Package':'com.dk.viewphone', 'Version':'1.1.0', 'Architecture':'iphoneos-arm64e',
+    for name, expected in {'Package':'com.dk.viewphone', 'Version':'1.1.1', 'Architecture':'iphoneos-arm64e',
                            'Name':'ĐK ViewPhone', 'Conflicts':'com.82flex.trollvnc',
                            'Replaces':'com.82flex.trollvnc', 'Provides':'com.82flex.trollvnc'}.items():
         require(fields.get(name) == expected, f'Invalid {name}: {fields.get(name)}')
@@ -159,6 +159,8 @@ def validate(path):
                 'Library/ControlCenter/Bundles/CCTrollVNC.bundle/CCTrollVNC',
                 'Library/PreferenceLoader/Preferences/TrollVNCPrefs/Root.plist',
                 'usr/share/trollvnc/webclients/novnc/vnc.html', 'usr/share/doc/com.dk.viewphone/COPYING',
+                'usr/share/trollvnc/webclients/index.vnc', 'usr/share/trollvnc/webclients/viewer.css',
+                'usr/share/trollvnc/webclients/viewer.js', 'usr/share/trollvnc/webclients/viewer.bundle.js',
                 'usr/share/doc/com.dk.viewphone/third-party/OpenSSL-LICENSE',
                 'usr/share/doc/com.dk.viewphone/third-party/noVNC-MPL-2.0', 'usr/bin/dkviewphone-watchdog']
     for name in required:
@@ -190,12 +192,24 @@ def validate(path):
     defaults = {item['key']:item.get('default') for item in root['items'] if 'key' in item}
     require(defaults.get('Enabled') is False and defaults.get('BindHost') == '127.0.0.1', 'Unsafe startup defaults')
     require(not defaults.get('FullPassword') and not defaults.get('ViewOnlyPassword'), 'Bundled password in Settings')
+    require(defaults.get('LANWebViewerEnabled') is False and defaults.get('WebViewerTrustedLAN') is False,
+            'Web access must default off and require consent for plaintext LAN')
+    require(defaults.get('HttpPort') == 5801 and defaults.get('RemoteControlEnabled') is True,
+            'Unexpected web defaults')
+    web = 'usr/share/trollvnc/webclients/'
+    source_root = Path(__file__).resolve().parents[1]
+    assets = {}
+    for name in ('index.vnc', 'viewer.css', 'viewer.js', 'viewer.bundle.js', 'novnc/core/rfb.js'):
+        content = payload[web + name][1]
+        require(content.replace(b'\r\n', b'\n') == (source_root / 'layout' / web / name).read_bytes().replace(b'\r\n', b'\n'),
+                f'Packaged web asset differs from source: {name}')
+        assets[name] = hashlib.sha256(content).hexdigest()
     entitlements_path = Path(__file__).resolve().parents[1] / 'app/TrollVNC/TrollVNC/TrollVNC.entitlements'
     expected_entitlements = plistlib.loads(entitlements_path.read_bytes())
     require(binaries[required[0]]['entitlements'] == expected_entitlements, 'Server entitlements differ from upstream source')
     return {'status':'passed', 'package': fields, 'sha256':hashlib.sha256(raw).hexdigest(),
             'payload_entries':len(payload), 'binaries':binaries, 'signature_check':'CodeDirectory code-page and embedded special-slot hashes',
-            'runtime_tested':False, 'apple_trust_tested':False}
+            'web_assets':assets, 'runtime_tested':False, 'apple_trust_tested':False}
 
 
 def main():

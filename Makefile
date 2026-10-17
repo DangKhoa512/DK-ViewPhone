@@ -1,4 +1,4 @@
-export PACKAGE_VERSION := 1.1.0
+export PACKAGE_VERSION := 1.1.1
 THEOS_PACKAGE_SCHEME ?= roothide
 export THEOS_PACKAGE_SCHEME
 
@@ -32,6 +32,7 @@ trollvncserver_USE_MODULES := 0
 
 trollvncserver_FILES += src/trollvncserver.mm
 trollvncserver_FILES += src/DKRuntime.mm
+trollvncserver_FILES += src/DKWebTLS.mm
 trollvncserver_FILES += src/BulletinManager.mm
 trollvncserver_FILES += src/ClipboardManager.mm
 trollvncserver_FILES += src/ScreenCapturer.mm

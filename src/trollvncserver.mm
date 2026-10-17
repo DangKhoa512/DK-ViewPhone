@@ -48,6 +48,8 @@
 #import "Control.h"
 #import "DKViewPhonePolicy.h"
 #import "DKRuntime.h"
+#import "DKWebTLS.h"
+#import "DKWebPolicy.h"
 #import "FBSOrientationObserver.h"
 #import "IOKitSPI.h"
 #import "Logging.h"
@@ -111,6 +113,9 @@ static char *gAuthViewOnlyPasswdStr = NULL; // optional view-only password strin
 
 // HTTP server (LibVNCServer built-in web client)
 static int gHttpPort = 0;
+static BOOL gLANWebEnabled = NO;
+static BOOL gWebTLS = NO;
+static BOOL gTrustedLAN = NO;
 static char *gHttpDirOverride = NULL;
 static char *gSslCertPath = NULL;
 static char *gSslKeyPath = NULL;
@@ -558,6 +563,11 @@ static void parseDaemonOptions(void) {
     }
 
     // Booleans
+    gLANWebEnabled = [prefs[@"LANWebViewerEnabled"] boolValue];
+    gWebTLS = [prefs[@"WebViewerTLS"] boolValue];
+    gTrustedLAN = [prefs[@"WebViewerTrustedLAN"] boolValue];
+    if (!prefs[@"HttpPort"] && gLANWebEnabled) gHttpPort = 5801;
+    if (!gLANWebEnabled) gHttpPort = 0;
     NSNumber *enableN = [prefs objectForKey:@"Enabled"];
     if ([enableN isKindOfClass:[NSNumber class]])
         gEnabled = enableN.boolValue;
@@ -567,6 +577,7 @@ static void parseDaemonOptions(void) {
     NSNumber *viewOnlyN = [prefs objectForKey:@"ViewOnly"];
     if ([viewOnlyN isKindOfClass:[NSNumber class]])
         gViewOnly = viewOnlyN.boolValue;
+    if (prefs[@"RemoteControlEnabled"] && ![prefs[@"RemoteControlEnabled"] boolValue]) gViewOnly = YES;
     NSNumber *orientN = [prefs objectForKey:@"OrientationSync"];
     if ([orientN isKindOfClass:[NSNumber class]])
         gOrientationSyncEnabled = orientN.boolValue;
@@ -3710,9 +3721,10 @@ static BOOL validateSecurityConfiguration(void) {
             return NO;
         }
     }
-    if (gHttpPort > 0 && (!gSslCertPath || !*gSslCertPath || !gSslKeyPath || !*gSslKeyPath)) {
-        TVPrintError("Web access requires a TLS certificate and private key. Use WSS or an encrypted tunnel.");
-        return NO;
+    if (gHttpPort > 0 && !dkviewphone::allowWeb(gLANWebEnabled, gWebTLS, gTrustedLAN,
+            gSslCertPath && *gSslCertPath, gSslKeyPath && *gSslKeyPath, gHttpPort, gPort)) {
+        TVPrintError("Web viewer disabled: opt in to trusted LAN HTTP or provide a TLS certificate/key and a separate valid web port.");
+        gHttpPort = 0; // optional web config must not disable the working VNC service
     }
     // Keyboard events may contain credentials; this distribution never logs them.
     gKeyEventLogging = NO;
@@ -3829,7 +3841,7 @@ static void setupRfbServerSideCursor(void) {
 
 static void setupRfbHttpServer(void) {
     // Built-in HTTP server settings (see rfb.h http* fields)
-    gScreen->httpEnableProxyConnect = TRUE; // always allow CONNECT if HTTP is enabled
+    gScreen->httpEnableProxyConnect = FALSE; // native WebSockets stay on the RFB port
     if (gHttpPort > 0) {
         gScreen->httpPort = gHttpPort; // enable HTTP on specified port
         gScreen->http6Port = -1;
@@ -3859,6 +3871,14 @@ static void setupRfbHttpServer(void) {
     } else {
         gScreen->httpPort = 0;   // disabled
         gScreen->httpDir = NULL; // do not set dir to avoid default startup
+    }
+
+    if (gWebTLS && gHttpPort > 0) {
+        if (!DKWebTLSStart(gBindHost.UTF8String, gHttpPort, gScreen->httpDir,
+                gSslCertPath, gSslKeyPath, gPort))
+            TVPrintError("HTTPS listener unavailable; check certificate/key and web port. VNC remains active.");
+        gScreen->httpPort = 0;
+        free(gScreen->httpDir); gScreen->httpDir = NULL; // no plaintext fallback
     }
 
     // SSL certificate and key (optional)
@@ -4105,6 +4125,7 @@ static void cleanupAndExit(int code) {
     }
 
     if (gScreen) {
+        DKWebTLSStop();
         rfbShutdownServer(gScreen, YES);
         rfbScreenCleanup(gScreen);
         gScreen = NULL;
@@ -4234,6 +4255,10 @@ int main(int argc, const char *argv[]) {
         DKStartRuntime();
         installSignalHandlers();
         parseCLI(argc, argv);
+        if (!gIsDaemonMode && gHttpPort > 0) {
+            gLANWebEnabled = YES;
+            gWebTLS = gSslCertPath && *gSslCertPath && gSslKeyPath && *gSslKeyPath;
+        }
         // Supervisor follows only the previously selected private interface.
         // Saved 1.0 preferences are never rewritten to the temporary runtime IP.
         const char *runtimeBind = getenv("DK_VIEWPHONE_BIND");

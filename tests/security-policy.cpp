@@ -1,9 +1,19 @@
 #include "../src/DKViewPhonePolicy.h"
+#include "../src/DKWebPolicy.h"
 #include <cassert>
 #include <iostream>
 
 int main() {
     using namespace dkviewphone;
+    assert(!allowWeb(false, false, true, false, false, 5801, 5901));
+    assert(!allowWeb(true, false, false, true, true, 5801, 5901));
+    assert(allowWeb(true, false, true, false, false, 5801, 5901));
+    assert(!allowWeb(true, true, true, false, true, 5801, 5901));
+    assert(!allowWeb(true, true, true, true, false, 5801, 5901));
+    assert(allowWeb(true, true, false, true, true, 5801, 5901));
+    for (int p : {-1, 0, 80, 1023, 5901, 65536})
+        assert(!allowWeb(true, false, true, false, false, p, 5901));
+    for (int p : {1024, 5801, 65535}) assert(validWebPort(p, 5901));
     // Synthetic test fixtures, never deployment credentials.
     assert(strongPassword("Az3!pR8?"));
     assert(!strongPassword(nullptr));

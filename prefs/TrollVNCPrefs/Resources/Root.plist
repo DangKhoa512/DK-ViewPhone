@@ -533,15 +533,90 @@
 			<true/>
 		</dict>
 
-		<!-- HTTP Port (advanced) -->
-		<dict>
-			<key>cell</key>
-			<string>PSGroupCell</string>
-			<key>label</key>
-			<string></string>
-			<key>footerText</key>
-			<string>Serve the built-in web VNC client on this port. 0 disables.</string>
-		</dict>
+<dict>
+	<key>cell</key>
+	<string>PSGroupCell</string>
+	<key>label</key>
+	<string>LAN Web Viewer</string>
+	<key>footerText</key>
+	<string>Default off. HTTP/WS exposes screen and input without encryption: use trusted LAN only. Both services use the configured concrete Bind Address. Apply changes reconnects sessions. HTTPS/WSS requires a matching PEM certificate/key trusted by your browser.</string>
+</dict>
+<dict>
+	<key>cell</key>
+	<string>PSSwitchCell</string>
+	<key>defaults</key>
+	<string>com.82flex.trollvnc</string>
+	<key>key</key>
+	<string>LANWebViewerEnabled</string>
+	<key>label</key>
+	<string>Enable LAN Web Viewer</string>
+	<key>default</key>
+	<false/>
+</dict>
+<dict>
+	<key>cell</key>
+	<string>PSSwitchCell</string>
+	<key>defaults</key>
+	<string>com.82flex.trollvnc</string>
+	<key>key</key>
+	<string>WebViewerTrustedLAN</string>
+	<key>label</key>
+	<string>Allow HTTP/WS on Trusted LAN</string>
+	<key>default</key>
+	<false/>
+</dict>
+<dict>
+	<key>cell</key>
+	<string>PSSwitchCell</string>
+	<key>defaults</key>
+	<string>com.82flex.trollvnc</string>
+	<key>key</key>
+	<string>WebViewerTLS</string>
+	<key>label</key>
+	<string>Use HTTPS / WSS</string>
+	<key>default</key>
+	<false/>
+</dict>
+<dict>
+	<key>cell</key>
+	<string>PSSwitchCell</string>
+	<key>defaults</key>
+	<string>com.82flex.trollvnc</string>
+	<key>key</key>
+	<string>RemoteControlEnabled</string>
+	<key>label</key>
+	<string>Enable Remote Control</string>
+	<key>default</key>
+	<true/>
+</dict>
+<dict>
+	<key>cell</key>
+	<string>PSStaticTextCell</string>
+	<key>label</key>
+	<string>Local IP Address</string>
+	<key>id</key>
+	<string>DKWebInfoIP</string>
+	<key>get</key>
+	<string>dkLocalIPAddress:</string>
+</dict>
+<dict>
+	<key>cell</key>
+	<string>PSStaticTextCell</string>
+	<key>label</key>
+	<string>Web Viewer URL</string>
+	<key>id</key>
+	<string>DKWebInfoURL</string>
+	<key>get</key>
+	<string>dkWebViewerURL:</string>
+</dict>
+<dict>
+	<key>cell</key>
+	<string>PSButtonCell</string>
+	<key>label</key>
+	<string>Copy URL</string>
+	<key>action</key>
+	<string>dkCopyWebURL</string>
+</dict>
 		<dict>
 			<key>cell</key>
 			<string>PSEditTextCell</string>
@@ -552,13 +627,13 @@
 			<key>label</key>
 			<string>HTTP Port</string>
 			<key>default</key>
-			<integer>0</integer>
+			<integer>5801</integer>
 			<key>isNumeric</key>
 			<true/>
 			<key>noAutoCorrect</key>
 			<true/>
 			<key>placeholder</key>
-			<string>0</string>
+			<string>5801</string>
 		</dict>
 
  		<!-- HTTP Document Root (advanced) -->
@@ -592,7 +667,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>PEM-encoded X.509 certificate path for TLS. Used by HTTP/WebSocket if both cert and key are set.</string>
+			<string>PEM-encoded X.509 certificate path for TLS. Used by HTTPS/WSS when Use HTTPS / WSS is enabled.</string>
 		</dict>
 		<dict>
 			<key>cell</key>

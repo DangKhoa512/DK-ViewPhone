@@ -1,46 +1,20 @@
-<!-- index.vnc - VNC viewer template page.  On any file ending in .vnc,
-     the HTTP server embedded in LibVNCServer will substitute the
-     following variables when preceded by a dollar: USER, DESKTOP, DISPLAY,
-     APPLETWIDTH, APPLETHEIGHT, WIDTH, HEIGHT, PORT, PARAMS.  Use two dollar
-     signs ($$) to get a dollar sign in the generated html. -->
-
-<HTML>
-<head> 
-<meta charset="utf-8">
-<TITLE>
-ĐK ViewPhone — $DESKTOP ($DISPLAY)
-</TITLE>
-</head> 
-<br/>
-This page shows how to connect to a VNC server with a web browser. The buttons below
-fire up an instance of the <a href="https://novnc.com/">noVNC</a> HTML5 viewer.
-<br/>
-<br/>
-<script language="JavaScript">
-    <!--
-    function start_novnc(do_encrypt){
-	var host = document.location.hostname;
-	// If there are at least two colons in there, it is likely an IPv6 address. Check for square brackets and add them if missing.
-	if(host.search(/^.*:.*:.*$/) != -1) {
-	   if(host.charAt(0) != "[")
-	      host = "[" + host;
-	   if(host.charAt(host.length-1) != "]")
-	      host = host + "]";
-	}
-	open("novnc/vnc.html?autoconnect=true&host=" + host + "&port=$PORT&encrypt=" + (do_encrypt ? "1" : "0"));
-    }
-    -->
-</script>
-<form name="novnc_button_form">
-  <input type="button" name="novnc_button" value="ĐK ViewPhone — connect with WSS" onClick='start_novnc(true)'>
-</form>
-<form name="novnc_button_form">
-  <input type="button" name="novnc_button" value="Click here to connect using noVNC using an encrypted connection" onClick='start_novnc(true)'>
-</form>
-
-
-<br/>
-<br/>
-<br/>
-<A href="https://libvnc.github.io/">LibVNCServer/LibVNCClient Homepage</A>
-</HTML>
+<!doctype html>
+<html lang="vi"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
+<title>?K ViewPhone ? LAN Viewer</title><style id="dk-theme">:root{font-family:Segoe UI,system-ui,sans-serif;color:#203452;background:#f3f7fc;color-scheme:light;--blue:#2563eb;--line:#dce5f1}*{box-sizing:border-box}body{margin:0;height:100dvh;display:flex;flex-direction:column}button,input{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:10px;background:white;color:#304767;padding:10px 15px;font-weight:600}button:hover{background:#eef4ff}button:focus-visible,input:focus-visible{outline:3px solid #86b4ff;outline-offset:2px}button:disabled{opacity:.45;cursor:default}.primary{background:var(--blue);color:white;border-color:var(--blue)}.primary:hover{background:#1d4ed8}header{display:flex;align-items:center;gap:20px;background:white;padding:16px 28px;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:10px;font-weight:750;white-space:nowrap}.logo{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;color:white;background:var(--blue)}.device{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px}.device strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.device span{color:#71819a;font-size:12px}.status{display:flex;align-items:center;gap:7px;white-space:nowrap;font-size:13px;color:#697c97}.dot{width:8px;height:8px;background:#94a3b8;border-radius:50%}.online .dot{background:#16a979}.online{color:#158166}.notice{padding:9px 28px;font-size:12px;color:#785518;background:#fff8e7;border-bottom:1px solid #f3e3b5}.notice.secure{color:#22765d;background:#effaf5;border-color:#d7efe2}.workspace{flex:1;min-height:0;position:relative;overflow:hidden;margin:20px 28px;border:1px solid var(--line);border-radius:18px;background:#eaf0f8;background-image:radial-gradient(#ccd9ea .8px,transparent .8px);background-size:16px 16px;box-shadow:0 5px 30px #2c497608}.screen{width:100%;height:100%;overflow:auto}.empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:none}.empty>div{max-width:340px;padding:25px}.empty .phone{margin:0 auto 18px;border:3px solid #9bb4d6;border-radius:15px;width:55px;height:88px}.empty h1{font-size:22px;font-weight:650}.empty p{font-size:14px;color:#71819a;line-height:1.7}.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:15px;padding:0 28px 20px}.toolbar label{font-size:13px;display:flex;align-items:center;gap:7px}.toolbar input{accent-color:var(--blue)}.metrics{margin-left:auto;font-size:12px;color:#71819a}.message{margin:0 28px 10px;min-height:20px;color:#526b8b;font-size:13px}dialog{border:1px solid var(--line);border-radius:18px;padding:28px;max-width:410px;width:calc(100% - 30px);box-shadow:0 24px 80px #162d5a30}dialog::backdrop{background:#14284555;backdrop-filter:blur(3px)}dialog h2{margin:0 0 12px;font-size:21px}dialog p{font-size:13px;line-height:1.7;color:#667d9b}dialog input[type=password]{display:block;width:100%;border:1px solid var(--line);padding:12px;border-radius:9px;margin:12px 0 18px}dialog .actions{display:flex;justify-content:flex-end;gap:10px}[hidden]{display:none!important}#workspace:fullscreen{margin:0;border:0;border-radius:0;background:#101c2e}@media(max-width:650px){header{gap:12px;padding:12px 15px}.brand .wordmark{display:none}.workspace{margin:12px}.toolbar{padding:0 12px 12px;gap:10px}.notice{padding:8px 15px}.message{margin:0 15px 8px}.metrics{width:100%;margin-left:0}}
+</style><script defer src="viewer.bundle.js"></script>
+</head><body data-rfb-port="$PORT">
+<header><div class="brand"><span class="logo" aria-hidden="true">?K</span><span class="wordmark">?K ViewPhone</span></div>
+<div class="device"><strong id="deviceName">iPhone ? LAN Viewer</strong><span id="address"></span></div>
+<div id="status" class="status" role="status"><span class="dot"></span><span id="state">Ch?a k?t n?i</span></div><button id="headerDisconnect" disabled>Disconnect</button></header>
+<div class="notice" id="transport"></div>
+<main class="workspace" id="workspace"><div id="screen" class="screen" aria-label="M?n h?nh iPhone"></div>
+<div id="empty" class="empty"><div><div class="phone"></div><h1>iPhone, ngay tr?n m?y t?nh.</h1><p>M? m?n h?nh, gi? nguy?n t? l? v? ?i?u khi?n b?ng chu?t. D?ng m?t kh?u VNC c?a b?n ?? k?t n?i.</p></div></div></main>
+<div id="message" class="message" role="status"></div>
+<footer class="toolbar"><button class="primary" id="connect">Connect</button><button id="disconnect" disabled>Disconnect</button><button id="fullscreen">Fullscreen</button>
+<label><input id="viewOnly" type="checkbox">View-only</label><label><input id="autoScale" type="checkbox" checked>Auto Scale</label><label><input id="reconnect" type="checkbox" checked>Reconnect</label>
+<span class="metrics" title="noVNC hi?n t?i kh?ng xu?t s? ?o FPS v? ?? tr? ch?nh x?c; kh?ng hi?n th? s? ??c ?o?n.">FPS ? ? Latency ?</span></footer>
+<dialog id="login"><form id="loginForm"><h2>K?t n?i iPhone</h2><p>Nh?p m?t kh?u VNC trong Settings ? ?K ViewPhone. D?ng m?t kh?u ch? xem n?u b?n kh?ng c?n ?i?u khi?n.</p>
+<label for="password">M?t kh?u VNC</label><input id="password" type="password" required autocomplete="off" spellcheck="false" maxlength="8">
+<div class="actions"><button type="button" id="cancel">H?y</button><button type="submit" class="primary">K?t n?i</button></div></form></dialog>
+</body></html>

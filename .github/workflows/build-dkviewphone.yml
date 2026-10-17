@@ -99,6 +99,11 @@ jobs:
           xcrun clang++ -std=c++20 -Wall -Wextra -Werror tests/recovery-policy.cpp -o "$RUNNER_TEMP/dk-recovery-test"
           "$RUNNER_TEMP/dk-recovery-test" | tee artifacts/logs/recovery-policy.log
 
+      - name: Verify offline web bundle is reproducible
+        run: |
+          python3 devkit/build-webviewer.py
+          git diff --exit-code -- layout/usr/share/trollvnc/webclients/index.vnc layout/usr/share/trollvnc/webclients/viewer.bundle.js
+
       - name: Phase 2 - build DK ViewPhone for roothide
         run: |
           set -euo pipefail
@@ -109,12 +114,12 @@ jobs:
         run: |
           set -euo pipefail
           shopt -s nullglob
-          packages=(packages/com.dk.viewphone_1.1.0_iphoneos-arm64e.deb)
+          packages=(packages/com.dk.viewphone_1.1.1_iphoneos-arm64e.deb)
           test "${#packages[@]}" -eq 1
           python3 devkit/verify-package.py "${packages[0]}" --report artifacts/package-validation.json 2>&1 | tee artifacts/logs/package-validation.log
-          cp "${packages[0]}" artifacts/packages/DKViewPhone_1.1.0_roothide.deb
+          cp "${packages[0]}" artifacts/packages/DKViewPhone_1.1.1_roothide.deb
           shasum -a 256 artifacts/packages/*.deb > artifacts/packages/SHA256SUMS
-          git archive --format=tar.gz --output=artifacts/packages/DKViewPhone_1.1.0_source.tar.gz HEAD
+          git archive --format=tar.gz --output=artifacts/packages/DKViewPhone_1.1.1_source.tar.gz HEAD
 
       - name: Build isolated device test helper (excluded from DEB)
         run: |
@@ -128,14 +133,14 @@ jobs:
       - name: Upload device test helper
         uses: actions/upload-artifact@v4
         with:
-          name: DKViewPhone-1.1.0-device-test-helper
+          name: DKViewPhone-1.1.1-device-test-helper
           path: artifacts/device-tests/
           if-no-files-found: error
 
       - name: Upload validated DEB and corresponding project source
         uses: actions/upload-artifact@v4
         with:
-          name: DKViewPhone_1.1.0_roothide
+          name: DKViewPhone_1.1.1_roothide
           path: |
             artifacts/packages/
             artifacts/package-validation.json

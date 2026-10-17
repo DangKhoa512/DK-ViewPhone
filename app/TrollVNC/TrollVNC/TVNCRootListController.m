@@ -303,6 +303,7 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     __weak typeof(self) weakSelf = self;
     nw_path_monitor_set_update_handler(self.monitor, ^(nw_path_t _Nonnull path) {
         [weakSelf updateFirstGroupAndReload:YES];
+        [weakSelf dkReloadWebInfo];
     });
     nw_path_monitor_start(self.monitor);
 
@@ -315,6 +316,7 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     [super viewWillAppear:animated];
 
     [self updateFirstGroupAndReload:YES];
+    [self dkReloadWebInfo];
 }
 
 - (void)showClients {
@@ -412,6 +414,37 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 
 #pragma mark - Actions
 
+- (NSString *)dkLocalIPAddress:(PSSpecifier *)specifier {
+    return TVNCGetEn0IPAddress() ?: @"Wi-Fi unavailable";
+}
+
+- (NSString *)dkWebViewerURL:(PSSpecifier *)specifier {
+    if (![[self dkPreferenceValueForKey:@"LANWebViewerEnabled"] boolValue]) return @"Web Viewer is off";
+    NSString *bind = [self dkPreferenceValueForKey:@"BindHost"];
+    NSString *ip = TVNCGetEn0IPAddress();
+    if (!bind.length || [bind hasPrefix:@"127."] || !ip || !TVNCIsValidBindHostLiteral(ip))
+        return @"Set Bind Address to the iPhone Wi-Fi IPv4";
+    int port = [[self dkPreferenceValueForKey:@"HttpPort"] intValue];
+    if (port < 1024 || port > 65535) return @"Set HTTP Port to 5801";
+    BOOL tls = [[self dkPreferenceValueForKey:@"WebViewerTLS"] boolValue];
+    return [NSString stringWithFormat:@"%@://%@:%d/", tls ? @"https" : @"http", ip, port];
+}
+
+- (void)dkCopyWebURL {
+    NSString *url = [self dkWebViewerURL:nil];
+    if ([url hasPrefix:@"http://"] || [url hasPrefix:@"https://"]) {
+        UIPasteboard.generalPasteboard.string = url;
+        [_notificationGenerator notificationOccurred:UINotificationFeedbackTypeSuccess];
+    }
+}
+
+- (void)dkReloadWebInfo {
+    for (PSSpecifier *sp in _specifiers) {
+        if ([[sp propertyForKey:@"id"] hasPrefix:@"DKWebInfo"])
+            [self reloadSpecifier:sp animated:NO];
+    }
+}
+
 - (id)dkPreferenceValueForKey:(NSString *)key {
     for (PSSpecifier *specifier in self.specifiers) {
         if ([[specifier propertyForKey:@"key"] isEqualToString:key])
@@ -439,6 +472,12 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
         return;
     }
     [super setPreferenceValue:value specifier:specifier];
+    if ([[specifier propertyForKey:@"key"] isEqualToString:@"LANWebViewerEnabled"] && [value boolValue] &&
+        [[self dkPreferenceValueForKey:@"HttpPort"] intValue] == 0) {
+        for (PSSpecifier *sp in self.specifiers)
+            if ([[sp propertyForKey:@"key"] isEqualToString:@"HttpPort"]) [super setPreferenceValue:@5801 specifier:sp];
+    }
+    [self dkReloadWebInfo];
     if (isEnabled) {
         TVNCRestartVNCService();
         notify_post(TVNC_NOTIFY_PREFS_CHANGED);
@@ -497,7 +536,8 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     }
 
     BOOL portInvalid = (port < 1024 || port > 65535);
-    BOOL httpInvalid = (httpPort != 0 && (httpPort < 1024 || httpPort > 65535));
+    BOOL webEnabled = [[self dkPreferenceValueForKey:@"LANWebViewerEnabled"] boolValue];
+    BOOL httpInvalid = webEnabled && (httpPort < 1024 || httpPort > 65535 || httpPort == port);
     if (portInvalid || httpInvalid) {
         NSString *t = NSLocalizedStringFromTableInBundle(@"Invalid Port", @"Localizable", self.bundle, nil);
         NSString *msg = NSLocalizedStringFromTableInBundle(
@@ -528,6 +568,17 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 
         [self presentViewController:alert animated:YES completion:nil];
         return; // do not restart now
+    }
+
+    BOOL tls = [[self dkPreferenceValueForKey:@"WebViewerTLS"] boolValue];
+    if (webEnabled && ((tls && (![[self dkPreferenceValueForKey:@"SslCertFile"] length] ||
+                               ![[self dkPreferenceValueForKey:@"SslKeyFile"] length])) ||
+                        (!tls && ![[self dkPreferenceValueForKey:@"WebViewerTrustedLAN"] boolValue]))) {
+        UIAlertController *webAlert = [UIAlertController alertControllerWithTitle:@"LAN Web Viewer"
+            message:@"For HTTP/WS, explicitly enable Trusted LAN: screen and input are unencrypted. For HTTPS/WSS, configure a matching PEM certificate and key trusted by the browser, including the iPhone IP in the certificate SAN. Use different VNC and web ports."
+            preferredStyle:UIAlertControllerStyleAlert];
+        [webAlert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+        [self presentViewController:webAlert animated:YES completion:nil]; return;
     }
 
     NSString *title = NSLocalizedStringFromTableInBundle(@"Apply Changes", @"Localizable", self.bundle, nil);

@@ -1,4 +1,7 @@
-# ĐK ViewPhone 1.1.0
+# ĐK ViewPhone 1.1.1
+
+Bổ sung [LAN Web Viewer tích hợp trong DEB](docs/LAN-WEB-VIEWER.md), mặc định tắt.
+Giữ các tính năng Stability 1.1.0. Xem [kết quả kiểm thử Web Viewer](docs/WEB-VIEWER-RESULTS.md).
 
 Bản tùy biến từ [TrollVNC](https://github.com/owngoal-dev/TrollVNC), dành riêng cho **Dopamine roothide**, iOS 15+, binary arm64 (iPhone 6s/7). Giữ engine capture và điều khiển gốc. Giấy phép GPLv2; xem [COPYING](COPYING) và [nguồn/ghi công](docs/ATTRIBUTION.md).
 
@@ -16,7 +19,7 @@ Build thủ công trên macOS với Xcode 16.2, `roothide/theos` cùng submodule
 export THEOS="$HOME/theos-roothide"
 source devkit/roothide.sh
 FINALPACKAGE=1 gmake clean package
-python3 devkit/verify-package.py packages/com.dk.viewphone_1.1.0_iphoneos-arm64e.deb
+python3 devkit/verify-package.py packages/com.dk.viewphone_1.1.1_iphoneos-arm64e.deb
 ```
 
 Metadata `iphoneos-arm64e` là quy ước **package scheme roothide**, không có nghĩa binary chỉ chạy trên CPU arm64e. Binary trong bản này là arm64. Không dùng DEB này trên rootless thông thường hoặc TrollStore.
