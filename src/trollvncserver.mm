@@ -46,6 +46,7 @@
 #import "BulletinManager.h"
 #import "ClipboardManager.h"
 #import "Control.h"
+#import "DKViewPhonePolicy.h"
 #import "FBSOrientationObserver.h"
 #import "IOKitSPI.h"
 #import "Logging.h"
@@ -68,18 +69,18 @@ int gOrientationFixQuad = 0; // 0=0°, 1=90°CW, 2=180°, 3=270°CW
 static BOOL gEnabled = YES;
 static int gPort = 5901;
 static int gTvCtlPort = 0;        // port for control connections (0 = disabled)
-static NSString *gBindHost = nil; // optional bind address from CLI/config
-static NSString *gDesktopName = @"TrollVNC";
+static NSString *gBindHost = @"127.0.0.1"; // explicitly choose a LAN IPv4 address in Settings
+static NSString *gDesktopName = @"ĐK ViewPhone";
 static BOOL gViewOnly = NO;
 static double gKeepAliveSec = 0.0; // 15..86400
 static BOOL gClipboardEnabled = YES;
 static BOOL gIsDaemonMode = NO; // set when launched with -daemon
 
-static double gScale = 1.0; // 0 < scale <= 1.0, 1.0 = no scaling
+static double gScale = 0.75; // 0 < scale <= 1.0, 1.0 = no scaling
 // Preferred frame rate range (0 = unspecified)
-static int gFpsMin = 0;
-static int gFpsPref = 0;
-static int gFpsMax = 0;
+static int gFpsMin = 15;
+static int gFpsPref = 30;
+static int gFpsMax = 30;
 
 // Wheel scroll coalescing state (async, non-blocking)
 static double gWheelStepPx = 48.0;        // base pixels per wheel tick (lower = slower)
@@ -114,7 +115,7 @@ static char *gSslCertPath = NULL;
 static char *gSslKeyPath = NULL;
 
 // Bonjour / mDNS Auto-Discovery
-static BOOL gBonjourEnabled = YES; // publish _rfb._tcp (and optional _http._tcp)
+static BOOL gBonjourEnabled = NO; // opt in to local discovery
 
 // TightVNC 1.x file transfer extension (deprecated)
 static BOOL gFileTransferEnabled = NO;
@@ -290,7 +291,7 @@ static void printUsageAndExit(const char *prog) {
     static const char *sPackageScheme = MYSTRINGIFY(THEOS_PACKAGE_SCHEME);
     static const char *sPackageVersion = MYSTRINGIFY(PACKAGE_VERSION);
 
-    fprintf(stderr, "TrollVNC (%s) v%s\n", sPackageScheme, sPackageVersion);
+    fprintf(stderr, "ĐK ViewPhone (%s) v%s\n", sPackageScheme, sPackageVersion);
     fprintf(stderr, "Usage: %s [-p port] [-n name] [options]\n\n", prog);
 
     fprintf(stderr, "Basic:\n");
@@ -311,7 +312,7 @@ static void printUsageAndExit(const char *prog) {
             "  -w k=v,.. Wheel tuning keys: step,coalesce,max,clamp,amp,cap,minratio,durbase,durk,durmin,durmax\n");
     fprintf(stderr, "  -N         Natural scroll direction (invert wheel)\n");
     fprintf(stderr, "  -M scheme  Modifier mapping: std|altcmd (default: std)\n");
-    fprintf(stderr, "  -K         Log keyboard events to stderr\n\n");
+    fprintf(stderr, "  -K         Accepted for compatibility; keyboard logging is disabled\n\n");
 
     fprintf(stderr, "HTTP/WebSockets:\n");
     fprintf(stderr, "  -H port    Enable built-in HTTP server on port (0=off, default: 0)\n");
@@ -320,7 +321,7 @@ static void printUsageAndExit(const char *prog) {
     fprintf(stderr, "  -k file    Path to SSL private key file\n\n");
 
     fprintf(stderr, "Bonjour/mDNS:\n");
-    fprintf(stderr, "  -B on|off  Advertise on local network via Bonjour (_rfb._tcp, _http._tcp) (default: on)\n\n");
+    fprintf(stderr, "  -B on|off  Advertise on local network via Bonjour (_rfb._tcp, _http._tcp) (default: off)\n\n");
 
     fprintf(stderr, "Accessibility:\n");
     fprintf(stderr, "  -O on|off  Observe iOS interface orientation and sync (default: on)\n");
@@ -350,7 +351,7 @@ static void printUsageAndExit(const char *prog) {
     fprintf(stderr, "Environment:\n");
     fprintf(
         stderr,
-        "  TROLLVNC_PASSWORD                 Classic VNC password (enables VNC auth when set; first 8 chars used)\n");
+        "  TROLLVNC_PASSWORD                 Required: exactly 8 mixed visible ASCII characters\n");
     fprintf(stderr,
             "  TROLLVNC_VIEWONLY_PASSWORD        View-only password; passwords stored as [full..., view-only...]\n");
     fprintf(stderr, "  TROLLVNC_REPEATER_RETRY_INTERVAL  Repeater retry interval (default: 0)\n\n");
@@ -474,8 +475,8 @@ static void parseDaemonOptions(void) {
             gBindHost = bindHost;
             TVLog(@"-daemon: BindHost=%@", gBindHost);
         } else {
-            gBindHost = nil;
-            TVLog(@"-daemon: BindHost empty; cleared to default (any)");
+            gBindHost = @"127.0.0.1";
+            TVLog(@"-daemon: BindHost empty; using loopback");
         }
     }
 
@@ -788,20 +789,17 @@ static void parseDaemonOptions(void) {
         TVLog(@"-daemon: Reverse enabled -> overriding: port=-1, http=0, bonjour=off");
     }
 
-    // Passwords via environment (leveraging existing setupRfbClassicAuthentication).
-    // Classic VNC authentication uses only first 8 chars; truncate here for clarity.
+    // Preserve the complete credential for validation; never silently truncate.
     NSString *fullPwd = [prefs objectForKey:@"FullPassword"];
     BOOL hasFullPwd = NO, hasViewPwd = NO;
     if ([fullPwd isKindOfClass:[NSString class]]) {
-        NSString *trunc = (fullPwd.length > 8) ? [fullPwd substringToIndex:8] : fullPwd;
-        setenv("TROLLVNC_PASSWORD", trunc.UTF8String ?: "", 1);
-        hasFullPwd = (trunc.length > 0);
+        setenv("TROLLVNC_PASSWORD", fullPwd.UTF8String ?: "", 1);
+        hasFullPwd = (fullPwd.length > 0);
     }
     NSString *viewPwd = [prefs objectForKey:@"ViewOnlyPassword"];
     if ([viewPwd isKindOfClass:[NSString class]]) {
-        NSString *trunc = (viewPwd.length > 8) ? [viewPwd substringToIndex:8] : viewPwd;
-        setenv("TROLLVNC_VIEWONLY_PASSWORD", trunc.UTF8String ?: "", 1);
-        hasViewPwd = (trunc.length > 0);
+        setenv("TROLLVNC_VIEWONLY_PASSWORD", viewPwd.UTF8String ?: "", 1);
+        hasViewPwd = (viewPwd.length > 0);
     }
 
     // Single-line summary using NSMutableString; include reverse-connection fields and new options
@@ -854,6 +852,7 @@ static void parseCLI(int argc, const char *argv[]) {
     }
     if (isDaemon) {
         gIsDaemonMode = YES;
+        gEnabled = NO; // installation never enables remote access without setup
         gTvCtlPort = kTvDefaultCtlPort;
         parseDaemonOptions();
         return;
@@ -1052,7 +1051,7 @@ static void parseCLI(int argc, const char *argv[]) {
             break;
         }
         case 'n': {
-            gDesktopName = [NSString stringWithUTF8String:optarg ?: "TrollVNC"];
+            gDesktopName = [NSString stringWithUTF8String:optarg ?: "ĐK ViewPhone"];
             TVLog(@"CLI: Desktop name set to '%@'", gDesktopName);
             break;
         }
@@ -1947,8 +1946,7 @@ NS_INLINE NSString *keysymToString(rfbKeySym ks) {
 }
 
 static void kbdAddEvent(rfbBool down, rfbKeySym keySym, rfbClientPtr cl) {
-    (void)cl;
-    if (gViewOnly)
+    if (gViewOnly || !cl || cl->viewOnly)
         return;
 
     STHIDEventGenerator *gen = [STHIDEventGenerator sharedGenerator];
@@ -2275,7 +2273,7 @@ static void wheelScheduleFlush(rfbClientPtr cl, CGPoint anchorPoint, double dela
 }
 
 static void ptrAddEvent(int buttonMask, int x, int y, rfbClientPtr cl) {
-    if (gViewOnly)
+    if (gViewOnly || !cl || cl->viewOnly)
         return;
 
     STHIDEventGenerator *gen = [STHIDEventGenerator sharedGenerator];
@@ -2394,7 +2392,7 @@ static NSString *tvBootHash8(void) {
 
 // Compose Bonjour service name as gDesktopName + 8-char boot hash, clamped to 63 bytes
 static NSString *tvBonjourServiceName(NSString *baseName) {
-    NSString *name = baseName ?: @"TrollVNC";
+    NSString *name = baseName ?: @"ĐK ViewPhone";
     NSString *suffix = tvBootHash8();
     // mDNS single-label length limit is 63 bytes (UTF-8). We reserve suffix bytes.
     const NSUInteger maxBytes = 63;
@@ -3255,7 +3253,8 @@ static enum rfbNewClientAction newClientHook(rfbClientPtr cl) {
 static std::atomic<int> gClipboardSuppressSend(0); // >0 means suppress sending clipboard to clients
 
 static void setXCutTextLatin1(char *str, int len, rfbClientPtr cl) {
-    (void)cl;
+    if (gViewOnly || !cl || cl->viewOnly)
+        return;
     if (!str || len < 0)
         len = 0;
 
@@ -3277,7 +3276,8 @@ static void setXCutTextLatin1(char *str, int len, rfbClientPtr cl) {
 }
 
 static void setXCutTextUTF8(char *str, int len, rfbClientPtr cl) {
-    (void)cl;
+    if (gViewOnly || !cl || cl->viewOnly)
+        return;
     if (!str || len < 0)
         len = 0;
 
@@ -3632,7 +3632,9 @@ static void setupRfbScreen(int argc, const char *argv[]) {
 
     // Server ports
     gScreen->port = gPort;
-    gScreen->ipv6port = gPort;
+    // LibVNCServer otherwise opens a second wildcard IPv6 listener even when
+    // listenInterface is an explicit IPv4 address.
+    gScreen->ipv6port = -1;
 
     // Server bind addresses
     in_addr_t v4Addr = INADDR_ANY;
@@ -3664,6 +3666,34 @@ static void setupRfbScreen(int argc, const char *argv[]) {
     gScreen->displayFinishedHook = displayFinishedHook;
 #endif
     gScreen->setDesktopSizeHook = setDesktopSizeHook;
+}
+
+static BOOL validateSecurityConfiguration(void) {
+    const char *full = getenv("TROLLVNC_PASSWORD");
+    const char *view = getenv("TROLLVNC_VIEWONLY_PASSWORD");
+    if (!dkviewphone::strongPassword(full)) {
+        TVPrintError("Set a full-access password: exactly 8 visible ASCII characters including uppercase, lowercase, digit and symbol.");
+        return NO;
+    }
+    if (view && *view && (!dkviewphone::strongPassword(view) || strcmp(full, view) == 0)) {
+        TVPrintError("The optional view-only password must meet the same policy and differ from the full-access password.");
+        return NO;
+    }
+    if (!isRepeaterEnabled()) {
+        in_addr_t address = 0;
+        if (tvClassifyBindHost(gBindHost, &address, NULL) != kTVBindHostKindIPv4 ||
+            !dkviewphone::privateIPv4(ntohl(address))) {
+            TVPrintError("Choose a concrete loopback or private LAN IPv4 bind address. Wildcard, public and IPv6 binds are disabled in this release.");
+            return NO;
+        }
+    }
+    if (gHttpPort > 0 && (!gSslCertPath || !*gSslCertPath || !gSslKeyPath || !*gSslKeyPath)) {
+        TVPrintError("Web access requires a TLS certificate and private key. Use WSS or an encrypted tunnel.");
+        return NO;
+    }
+    // Keyboard events may contain credentials; this distribution never logs them.
+    gKeyEventLogging = NO;
+    return YES;
 }
 
 static void setupRfbEventHandlers(void) {
@@ -3723,15 +3753,21 @@ static void setupRfbClassicAuthentication(void) {
         // Vector size = number of passwords + 1 for NULL terminator
         int vecCount = fullCount + viewCount + 1;
         gAuthPasswdVec = (char **)calloc((size_t)vecCount, sizeof(char *));
+        if (!gAuthPasswdVec) {
+            TVPrintError("Failed to allocate authentication state");
+            exit(EXIT_FAILURE);
+        }
 
         int idx = 0;
         if (fullCount) {
             gAuthPasswdStr = strdup(envPwd);
+            if (!gAuthPasswdStr) exit(EXIT_FAILURE);
             gAuthPasswdVec[idx++] = gAuthPasswdStr;
         }
 
         if (viewCount) {
             gAuthViewOnlyPasswdStr = strdup(envViewPwd);
+            if (!gAuthViewOnlyPasswdStr) exit(EXIT_FAILURE);
             gAuthPasswdVec[idx++] = gAuthViewOnlyPasswdStr;
         }
 
@@ -3773,7 +3809,7 @@ static void setupRfbHttpServer(void) {
     gScreen->httpEnableProxyConnect = TRUE; // always allow CONNECT if HTTP is enabled
     if (gHttpPort > 0) {
         gScreen->httpPort = gHttpPort; // enable HTTP on specified port
-        gScreen->http6Port = gHttpPort;
+        gScreen->http6Port = -1;
         if (gHttpDirOverride) {
             // Use override absolute path
             gScreen->httpDir = strdup(gHttpDirOverride);
@@ -4176,6 +4212,18 @@ int main(int argc, const char *argv[]) {
 
     @autoreleasepool {
         parseCLI(argc, argv);
+
+        // Validate before capture, socket creation, or LibVNCServer startup.
+        if (gEnabled && !validateSecurityConfiguration()) {
+            if (!gIsDaemonMode)
+                return EXIT_FAILURE;
+            gEnabled = NO;
+            NSUserDefaults *preferences = [[NSUserDefaults alloc] initWithSuiteName:@"com.82flex.trollvnc"];
+            [preferences setBool:NO forKey:@"Enabled"];
+            [preferences synchronize];
+            CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
+                CFSTR("com.82flex.trollvnc.prefs-changed"), NULL, NULL, true);
+        }
 
 #ifdef THEBOOTSTRAP
         monitorParentProcess();

@@ -1,9 +1,13 @@
-Package: com.82flex.trollvnc
-Name: TrollVNC
-Version: 1.0
+Package: com.dk.viewphone
+Name: ĐK ViewPhone
+Version: 1.0.0
 Section: Tweaks
-Depends: firmware (>= 14.0), preferenceloader
-Architecture: iphoneos-arm
+Depends: firmware (>= 15.0), preferenceloader
+Conflicts: com.82flex.trollvnc
+Replaces: com.82flex.trollvnc
+Provides: com.82flex.trollvnc
+Architecture: iphoneos-arm64e
 Author: 82Flex <82flex@gmail.com>
-Maintainer: 82Flex <82flex@gmail.com>
-Description: TrollVNC is a VNC server for iOS devices, allowing remote access and control of the device’s screen.
+Maintainer: DangKhoa512 <DangKhoa512@users.noreply.github.com>
+Homepage: https://github.com/DangKhoa512/DK-ViewPhone
+Description: ĐK ViewPhone provides authenticated iPhone screen viewing and control over VNC, based on TrollVNC. For Dopamine roothide on iOS 15+.

@@ -1,23 +1,20 @@
 #!/usr/bin/env bash
+set -eu
 
-exec 3>&1 &>/dev/null
-
-if [ "$DPKG_MAINTSCRIPT_ARCH" == "iphoneos-arm64" ]; then
-    DPKG_ROOT="/var/jb"
+# RootHide's bootstrap tools interpret these paths relative to jbroot and
+# launchctl patches the plist on load. Never prepend a random jbroot or /var/jb.
+case "${1:-}" in
+  configure|abort-upgrade|abort-remove|abort-deconfigure) ;;
+  *) exit 0 ;;
+esac
+if [ "${DPKG_MAINTSCRIPT_ARCH:-}" != "iphoneos-arm64e" ]; then
+  echo "ĐK ViewPhone requires the Dopamine roothide bootstrap." >&2
+  exit 1
 fi
-
-SERV_AGENT="$DPKG_ROOT/Library/LaunchDaemons/com.82flex.trollvnc.plist"
-
-if [ -f "$SERV_AGENT" ]; then
-    launchctl unload "$SERV_AGENT" || true
-else
-    launchctl remove system/com.82flex.trollvnc || true
+SERV_AGENT="/Library/LaunchDaemons/com.82flex.trollvnc.plist"
+if [ ! -f "$SERV_AGENT" ]; then
+  echo "ĐK ViewPhone LaunchDaemon is missing." >&2
+  exit 1
 fi
-
-sleep 2
-
-if [ -f "$SERV_AGENT" ]; then
-    launchctl load -w -F "$SERV_AGENT" || true
-fi
-
-exit 0
+launchctl unload "$SERV_AGENT" >/dev/null 2>&1 || true
+launchctl load -w -F "$SERV_AGENT"

@@ -123,32 +123,12 @@ NS_INLINE NSString *TVNCGetEn0IPAddress(void) {
 }
 
 NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
-    if (!host)
-        return YES;
-
-    NSString *trimmed = [host stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-    if (trimmed.length == 0)
-        return YES; // Empty means bind any interface
-
-    const char *cstr = trimmed.UTF8String;
-    if (!cstr || cstr[0] == '\0')
-        return YES;
-
+    if (!host.length) return YES; // runtime uses loopback for an empty field
     struct in_addr v4;
-    if (inet_pton(AF_INET, cstr, &v4) == 1)
-        return YES;
-
-    // Allow optional IPv6 scope suffix (e.g. fe80::1%en0)
-    char addrBuf[INET6_ADDRSTRLEN + 1] = {0};
-    const char *pct = strchr(cstr, '%');
-    size_t copyLen = pct ? (size_t)(pct - cstr) : strlen(cstr);
-    if (copyLen >= sizeof(addrBuf))
-        copyLen = sizeof(addrBuf) - 1;
-    memcpy(addrBuf, cstr, copyLen);
-    addrBuf[copyLen] = '\0';
-
-    struct in6_addr v6;
-    return inet_pton(AF_INET6, addrBuf, &v6) == 1;
+    if (inet_pton(AF_INET, host.UTF8String, &v4) != 1) return NO;
+    uint32_t address = ntohl(v4.s_addr);
+    return (address >> 24) == 127 || (address >> 24) == 10 ||
+        (address & 0xfff00000u) == 0xac100000u || (address & 0xffff0000u) == 0xc0a80000u;
 }
 
 @interface TVNCRootListController ()
@@ -276,7 +256,7 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     ]] setMinimumTrackTintColor:_primaryColor];
     [self.view setTintColor:_primaryColor];
 
-    self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"TrollVNC"
+    self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"ĐK ViewPhone"
                                                                              style:UIBarButtonItemStylePlain
                                                                             target:nil
                                                                             action:nil];
@@ -361,7 +341,7 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 #endif
 
         NSString *footerText = [NSString
-            stringWithFormat:NSLocalizedStringFromTableInBundle(@"TrollVNC (%@) v%@", @"Localizable", self.bundle, nil),
+            stringWithFormat:NSLocalizedStringFromTableInBundle(@"ĐK ViewPhone (%@) v%@", @"Localizable", self.bundle, nil),
                              packageScheme, versionString];
         _defaultFooterText = footerText;
     }
@@ -432,9 +412,48 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 
 #pragma mark - Actions
 
+- (id)dkPreferenceValueForKey:(NSString *)key {
+    for (PSSpecifier *specifier in self.specifiers) {
+        if ([[specifier propertyForKey:@"key"] isEqualToString:key])
+            return [self readPreferenceValue:specifier];
+    }
+    return nil;
+}
+
+- (BOOL)dkValidateAuthentication {
+    NSString *full = [self dkPreferenceValueForKey:@"FullPassword"];
+    NSString *view = [self dkPreferenceValueForKey:@"ViewOnlyPassword"];
+    if (TVNCHasValidVNCPasswords(full, view)) return YES;
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"ĐK ViewPhone"
+        message:@"Set a unique random full-access password: exactly 8 visible ASCII characters including uppercase, lowercase, digit and symbol. The optional view-only password must meet the same rules and be different. Classic VNC uses only 8 bytes; use an encrypted tunnel on untrusted networks."
+        preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+    [self presentViewController:alert animated:YES completion:nil];
+    return NO;
+}
+
+- (void)setPreferenceValue:(id)value specifier:(PSSpecifier *)specifier {
+    BOOL isEnabled = [[specifier propertyForKey:@"key"] isEqualToString:@"Enabled"];
+    if (isEnabled && [value boolValue] && ![self dkValidateAuthentication]) {
+        [self reloadSpecifier:specifier animated:NO];
+        return;
+    }
+    [super setPreferenceValue:value specifier:specifier];
+    if (isEnabled) {
+        TVNCRestartVNCService();
+        notify_post(TVNC_NOTIFY_PREFS_CHANGED);
+    }
+}
+
 - (void)applyChanges {
     // Resign first responder status
     [self.view endEditing:YES];
+
+    if (![[self dkPreferenceValueForKey:@"Enabled"] boolValue]) {
+        TVNCRestartVNCService(); // stopping must work even with invalid fields
+        return;
+    }
+    if (![self dkValidateAuthentication]) return;
 
     // Validate ports before restarting service, using -readPreferenceValue: to get live edits
     int port = 5901;
@@ -498,7 +517,7 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     if (!TVNCIsValidBindHostLiteral(bindHost)) {
         NSString *t = NSLocalizedStringFromTableInBundle(@"Invalid Bind Address", @"Localizable", self.bundle, nil);
         NSString *msg = NSLocalizedStringFromTableInBundle(
-            @"Bind address must be a valid IPv4/IPv6 literal, or empty to listen on all interfaces.",
+            @"Use loopback or this iPhone’s private LAN IPv4 address. Empty means 127.0.0.1. Wildcard, public and IPv6 binds are disabled.",
             @"Localizable", self.bundle, nil);
         NSString *ok = NSLocalizedStringFromTableInBundle(@"OK", @"Localizable", self.bundle, nil);
 
@@ -691,7 +710,7 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 
 - (void)_reallyGenerateKeys {
     NSString *randomUUID = [[[NSUUID UUID] UUIDString] substringFromIndex:28];
-    NSString *commonName = [NSString stringWithFormat:@"TrollVNC %@", randomUUID];
+    NSString *commonName = [NSString stringWithFormat:@"ĐK ViewPhone %@", randomUUID];
 
     ZTSelfSignedCertificate *ca = [ZTSelfSignedCertificate generateWithCommonName:commonName];
     if (!ca) {
@@ -818,7 +837,7 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 }
 
 - (void)source {
-    NSURL *url = [NSURL URLWithString:@"https://github.com/owngoal-dev/TrollVNC"];
+    NSURL *url = [NSURL URLWithString:@"https://github.com/DangKhoa512/DK-ViewPhone"];
     if ([[UIApplication sharedApplication] canOpenURL:url]) {
         [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
     }

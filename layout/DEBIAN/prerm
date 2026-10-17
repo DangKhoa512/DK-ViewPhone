@@ -1,17 +1,14 @@
 #!/usr/bin/env bash
-
-exec 3>&1 &>/dev/null
-
-if [ "$DPKG_MAINTSCRIPT_ARCH" == "iphoneos-arm64" ]; then
-    DPKG_ROOT="/var/jb"
-fi
-
-SERV_AGENT="$DPKG_ROOT/Library/LaunchDaemons/com.82flex.trollvnc.plist"
-
+set -eu
+case "${1:-}" in
+  remove|upgrade|deconfigure) ;;
+  *) exit 0 ;;
+esac
+# Use RootHide's bootstrap launchctl and its virtual jbroot paths.
+SERV_AGENT="/Library/LaunchDaemons/com.82flex.trollvnc.plist"
 if [ -f "$SERV_AGENT" ]; then
-    launchctl unload "$SERV_AGENT" || true
+  launchctl unload "$SERV_AGENT" >/dev/null 2>&1 ||
+    launchctl remove com.82flex.trollvnc >/dev/null 2>&1 || true
 else
-    launchctl remove system/com.82flex.trollvnc || true
+  launchctl remove com.82flex.trollvnc >/dev/null 2>&1 || true
 fi
-
-exit 0

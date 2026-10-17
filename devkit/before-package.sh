@@ -2,6 +2,17 @@
 
 set -e
 
+if [ "$THEOS_PACKAGE_SCHEME" = "roothide" ]; then
+    # Include the unmodified GPL text and derivative/source attribution in DEB.
+    mkdir -p "$THEOS_STAGING_DIR/usr/share/doc/com.dk.viewphone"
+    cp COPYING docs/ATTRIBUTION.md "$THEOS_STAGING_DIR/usr/share/doc/com.dk.viewphone/"
+    # Managed deployment is deliberately excluded from this interactive build.
+    if [ -e "$THEOS_STAGING_DIR/Library/PreferenceBundles/TrollVNCPrefs.bundle/Managed.plist" ]; then
+        echo "Refusing to package Managed.plist in ĐK ViewPhone." >&2
+        exit 1
+    fi
+fi
+
 if [ "$THEOS_PACKAGE_SCHEME" = "rootless" ]; then
     /usr/libexec/PlistBuddy -c 'Set :ProgramArguments:0 /var/jb/usr/bin/trollvncserver' "$THEOS_STAGING_DIR/Library/LaunchDaemons/com.82flex.trollvnc.plist"
     /usr/libexec/PlistBuddy -c 'Set :StandardOutPath /var/jb/tmp/trollvnc-stdout.log' "$THEOS_STAGING_DIR/Library/LaunchDaemons/com.82flex.trollvnc.plist"

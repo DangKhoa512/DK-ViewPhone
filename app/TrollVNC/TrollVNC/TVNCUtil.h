@@ -20,6 +20,31 @@
 
 #define TVNC_NOTIFY_PREFS_CHANGED "com.82flex.trollvnc.prefs-changed"
 
+// Classic VNC uses only eight bytes. Require every byte to contribute to the
+// credential; never silently truncate a longer password.
+NS_INLINE BOOL TVNCIsStrongVNCPassword(NSString *password) {
+    if (![password isKindOfClass:[NSString class]] || password.length != 8)
+        return NO;
+    BOOL upper = NO, lower = NO, digit = NO, symbol = NO;
+    for (NSUInteger i = 0; i < password.length; i++) {
+        unichar c = [password characterAtIndex:i];
+        if (c < 0x21 || c > 0x7e)
+            return NO;
+        if (c >= 'A' && c <= 'Z') upper = YES;
+        else if (c >= 'a' && c <= 'z') lower = YES;
+        else if (c >= '0' && c <= '9') digit = YES;
+        else symbol = YES;
+    }
+    return upper && lower && digit && symbol;
+}
+
+NS_INLINE BOOL TVNCHasValidVNCPasswords(NSString *fullPassword, NSString *viewOnlyPassword) {
+    if (!TVNCIsStrongVNCPassword(fullPassword))
+        return NO;
+    return !viewOnlyPassword.length ||
+        (TVNCIsStrongVNCPassword(viewOnlyPassword) && ![viewOnlyPassword isEqualToString:fullPassword]);
+}
+
 // Minimal process enumeration to restart VNC service
 NS_INLINE void TVNCEnumerateProcesses(void (^enumerator)(pid_t pid, NSString *executablePath, BOOL *stop)) {
     static int kMaximumArgumentSize = 0;

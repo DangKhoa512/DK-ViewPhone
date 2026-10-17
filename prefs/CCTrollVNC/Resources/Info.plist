@@ -5,7 +5,7 @@
 		<key>CFBundleName</key>
 		<string>CCTrollVNC</string>
 		<key>CFBundleDisplayName</key>
-		<string>TrollVNC</string>
+		<string>ĐK ViewPhone</string>
 		<key>CFBundleExecutable</key>
 		<string>CCTrollVNC</string>
 		<key>CFBundleIdentifier</key>
@@ -21,7 +21,7 @@
 		<key>CFBundleVersion</key>
 		<string>1</string>
 		<key>MinimumOSVersion</key>
-		<string>14.0</string>
+		<string>15.0</string>
 		<key>UIDeviceFamily</key>
 		<array>
 			<integer>1</integer>

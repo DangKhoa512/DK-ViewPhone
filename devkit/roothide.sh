@@ -1,8 +1,14 @@
 #!/bin/bash
 
-THEOS="$HOME/theos-roothide"
-if [ ! -d "$THEOS" ]; then
-  THEOS="$GITHUB_WORKSPACE/theos-roothide"
+if [ -z "${THEOS:-}" ]; then
+  THEOS="$HOME/theos-roothide"
+  if [ ! -d "$THEOS" ] && [ -n "${GITHUB_WORKSPACE:-}" ]; then
+    THEOS="$GITHUB_WORKSPACE/theos-roothide"
+  fi
+fi
+if [ ! -f "$THEOS/vendor/mod/roothide/package/deb.mk" ]; then
+  echo "Missing roothide/theos checkout at $THEOS (including submodules)." >&2
+  return 1
 fi
 
 export THEOS

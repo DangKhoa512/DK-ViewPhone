@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>title</key>
-	<string>TrollVNC</string>
+	<string>ĐK ViewPhone</string>
 	<key>items</key>
 	<array>
 
@@ -26,7 +26,7 @@
 			<key>label</key>
 			<string>Enabled</string>
 			<key>default</key>
-			<true/>
+			<false/>
 		</dict>
 
 		<!-- Desktop Name -->
@@ -48,7 +48,7 @@
 			<key>label</key>
 			<string>Desktop Name</string>
 			<key>default</key>
-			<string>TrollVNC</string>
+			<string>ĐK ViewPhone</string>
 			<key>placeholder</key>
 			<string>Shown to VNC clients</string>
 			<key>keyboard</key>
@@ -62,7 +62,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Bind to a specific local IP address. Leave empty to listen on all interfaces.</string>
+			<string>Default: loopback 127.0.0.1. For LAN access enter this iPhone’s private Wi-Fi IPv4 address. Wildcard, public and IPv6 binds are disabled.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -74,9 +74,11 @@
 			<key>label</key>
 			<string>Bind Address</string>
 			<key>placeholder</key>
-			<string>Leave empty for all interfaces</string>
+			<string>127.0.0.1 or private Wi-Fi IPv4</string>
 			<key>noAutoCorrect</key>
 			<true/>
+			<key>default</key>
+			<string>127.0.0.1</string>
 		</dict>
 
 		<!-- TCP Port -->
@@ -116,7 +118,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Set a VNC password for full control. Leaving empty disables authentication (not recommended). Classic VNC authentication uses only the first 8 characters.</string>
+			<string>Required before enabling: exactly 8 visible ASCII characters, including uppercase, lowercase, a digit and a symbol. Generate a unique random password. Classic VNC limits authentication to 8 bytes; use an encrypted tunnel on untrusted networks.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -128,7 +130,7 @@
 			<key>label</key>
 			<string>Full-access Password</string>
 			<key>placeholder</key>
-			<string>8 characters max.</string>
+			<string>8 mixed ASCII characters</string>
 		</dict>
 
 		<!-- View-only Password -->
@@ -138,7 +140,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Set a password for view-only access (no input). Classic VNC authentication uses only the first 8 characters.</string>
+			<string>Optional: exactly 8 visible ASCII characters with uppercase, lowercase, digit and symbol, different from the full-access password. View-only clients cannot send input or change the clipboard.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -150,7 +152,7 @@
 			<key>label</key>
 			<string>View-only Password</string>
 			<key>placeholder</key>
-			<string>8 characters max.</string>
+			<string>8 mixed ASCII characters</string>
 		</dict>
 
 		<!-- Clipboard Sync -->
@@ -276,7 +278,7 @@
 			<key>key</key>
 			<string>Scale</string>
 			<key>default</key>
-			<real>1.0</real>
+			<real>0.75</real>
 			<key>min</key>
 			<real>0.1</real>
 			<key>max</key>
@@ -309,6 +311,8 @@
 			<string>e.g. 60 or 30-60 or 30:60:120</string>
 			<key>noAutoCorrect</key>
 			<true/>
+			<key>default</key>
+			<string>15:30:30</string>
 		</dict>
 
 		<!-- Sync Orientation -->
@@ -732,7 +736,7 @@
 			<key>label</key>
 			<string>Enable Auto-Discovery</string>
 			<key>default</key>
-			<true/>
+			<false/>
 		</dict>
 
 		<!-- Log Keyboard Events (debug) -->

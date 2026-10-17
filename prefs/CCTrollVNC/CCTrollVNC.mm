@@ -29,7 +29,7 @@
     if (self) {
         _defaults = [[NSUserDefaults alloc] initWithSuiteName:@"com.82flex.trollvnc"];
         [_defaults registerDefaults:@{
-            @"Enabled" : @YES,
+            @"Enabled" : @NO,
         }];
     }
     return self;
@@ -50,7 +50,14 @@
 }
 
 - (void)setSelected:(BOOL)selected {
+    // Configuration belongs in Settings. The runtime repeats this validation.
+    if (selected && !TVNCHasValidVNCPasswords([_defaults stringForKey:@"FullPassword"],
+                                             [_defaults stringForKey:@"ViewOnlyPassword"])) {
+        [self refreshState];
+        return;
+    }
     [_defaults setBool:selected forKey:@"Enabled"];
+    [_defaults synchronize];
     TVNCRestartVNCService();
     notify_post(TVNC_NOTIFY_PREFS_CHANGED);
 }

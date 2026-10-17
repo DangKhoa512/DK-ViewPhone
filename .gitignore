@@ -1,4 +1,9 @@
 .cache
+/.tools/
+/artifacts/
+/theos-roothide/
+/baseline/
+__pycache__/
 .theos
 compile_commands.json
 /packages

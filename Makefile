@@ -1,5 +1,13 @@
-export PACKAGE_VERSION := 3.2-272
+export PACKAGE_VERSION := 1.0.0
+THEOS_PACKAGE_SCHEME ?= roothide
 export THEOS_PACKAGE_SCHEME
+
+ifneq ($(THEOS_PACKAGE_SCHEME),roothide)
+$(error ĐK ViewPhone supports only THEOS_PACKAGE_SCHEME=roothide)
+endif
+ifneq ($(strip $(THEBOOTSTRAP)$(THEOS_DEVICE_SIMULATOR)),)
+$(error ĐK ViewPhone builds only a device DEB, not bootstrap or simulator targets)
+endif
 
 ifeq ($(THEOS_DEVICE_SIMULATOR),1)
 ARCHS := arm64 x86_64
@@ -56,6 +64,7 @@ trollvncserver_LDFLAGS += -FPrivateFrameworks
 else
 trollvncserver_CFLAGS += -Iinclude
 trollvncserver_LDFLAGS += -Llib
+trollvncserver_LDFLAGS += -lroothide
 endif
 
 ifeq ($(THEOS_DEVICE_SIMULATOR),1)

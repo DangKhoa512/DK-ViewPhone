@@ -4,6 +4,8 @@
 <dict>
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>
+    <key>CFBundleDisplayName</key>
+    <string>ĐK ViewPhone</string>
     <key>CFBundleExecutable</key>
     <string>TrollVNCPrefs</string>
     <key>CFBundleIdentifier</key>

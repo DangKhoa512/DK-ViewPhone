@@ -1,0 +1,138 @@
+name: Build DK ViewPhone (roothide)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev/roothide]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dkviewphone-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FINALPACKAGE: 1
+  THEOS_PACKAGE_SCHEME: roothide
+  THEOS: ${{ github.workspace }}/theos-roothide
+  HOMEBREW_NO_AUTO_UPDATE: 1
+  HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
+  UPSTREAM_COMMIT: cfdb737e72977d961eb7d0a8110d2fe1a58551d7
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout DK ViewPhone
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Prepare diagnostics
+        run: mkdir -p artifacts/logs artifacts/packages
+
+      - name: Select Xcode 16.2
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.2'
+
+      - name: Install build dependencies
+        run: |
+          set -euo pipefail
+          brew install xcbeautify ldid-procursus p7zip make dpkg 2>&1 | tee artifacts/logs/dependencies.log
+
+      - name: Checkout roothide Theos with submodules
+        uses: actions/checkout@v4
+        with:
+          repository: roothide/theos
+          ref: cfba89a53a05b4a1b822121158acc3669c20602f
+          path: theos-roothide
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Install upstream iOS SDKs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          "$THEOS/bin/install-sdk" iPhoneOS16.5 2>&1 | tee artifacts/logs/sdk-16.5.log
+          "$THEOS/bin/install-sdk" iPhoneOS14.5 2>&1 | tee artifacts/logs/sdk-14.5.log
+          {
+            xcodebuild -version
+            gmake --version
+            git -C "$THEOS" rev-parse HEAD
+            git -C "$THEOS" submodule status --recursive
+            shasum -a 256 lib/*.a
+          } > artifacts/logs/toolchain.txt
+
+      - name: Checkout untouched upstream baseline
+        uses: actions/checkout@v4
+        with:
+          repository: owngoal-dev/TrollVNC
+          ref: cfdb737e72977d961eb7d0a8110d2fe1a58551d7
+          path: baseline
+          persist-credentials: false
+
+      - name: Phase 1 - build upstream for roothide
+        run: |
+          set -euo pipefail
+          (
+            cd baseline
+            source devkit/roothide.sh
+            FINALPACKAGE=1 gmake clean package
+          ) 2>&1 | tee artifacts/logs/upstream-build.log
+          find baseline/packages -name '*.deb' -print > artifacts/logs/upstream-packages.txt
+          test -s artifacts/logs/upstream-packages.txt
+
+      - name: Check source and security policy
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tests -v 2>&1 | tee artifacts/logs/source-tests.log
+          xcrun clang++ -std=c++20 -Wall -Wextra -Werror tests/security-policy.cpp -o "$RUNNER_TEMP/dk-policy-test"
+          "$RUNNER_TEMP/dk-policy-test" | tee artifacts/logs/security-policy.log
+
+      - name: Phase 2 - build DK ViewPhone for roothide
+        run: |
+          set -euo pipefail
+          source devkit/roothide.sh
+          FINALPACKAGE=1 gmake clean package 2>&1 | tee artifacts/logs/dkviewphone-build.log
+
+      - name: Phase 3 - validate DEB before upload
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          packages=(packages/com.dk.viewphone_1.0.0_iphoneos-arm64e.deb)
+          test "${#packages[@]}" -eq 1
+          python3 devkit/verify-package.py "${packages[0]}" --report artifacts/package-validation.json 2>&1 | tee artifacts/logs/package-validation.log
+          cp "${packages[0]}" artifacts/packages/DKViewPhone_1.0.0_roothide.deb
+          shasum -a 256 artifacts/packages/*.deb > artifacts/packages/SHA256SUMS
+          git archive --format=tar.gz --output=artifacts/packages/DKViewPhone_1.0.0_source.tar.gz HEAD
+
+      - name: Upload validated DEB and corresponding project source
+        uses: actions/upload-artifact@v4
+        with:
+          name: DKViewPhone_1.0.0_roothide
+          path: |
+            artifacts/packages/
+            artifacts/package-validation.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload diagnostics even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DKViewPhone-build-logs-${{ github.run_attempt }}
+          path: |
+            artifacts/logs/
+            artifacts/package-validation.json
+            .theos/obj/**/*.dSYM/
+            baseline/.theos/obj/**/*.dSYM/
+          if-no-files-found: warn
+          retention-days: 30
