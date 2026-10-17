@@ -64,6 +64,8 @@ and no proxy/command/configuration endpoint. Shutdown joins workers and closes
 sockets. LibVNCServer's old HTTP CONNECT proxy is disabled: noVNC uses native WS.
 The document root is resolved relative to the installed executable, preserving
 roothide relocation. An explicit HttpDir override remains available.
+Paths passed to prebuilt OpenSSL/LibVNCServer are translated through libroothide
+at runtime; the saved certificate, key and HttpDir values are not rewritten.
 
 FPS/latency show a dash: this bundled noVNC does not expose accurate public
 measurements. Existing 1.1.0 CPU/RSS/changed-frame/processing diagnostics remain

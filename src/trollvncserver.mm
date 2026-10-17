@@ -57,6 +57,10 @@
 #import "STHIDEventGenerator.h"
 #import "ScreenCapturer.h"
 
+// libroothide public C API. Prebuilt OpenSSL/LibVNCServer archives do not receive
+// Theos's per-source filesystem redirection; pass physical paths at this boundary.
+extern "C" const char *jbroot(const char *path);
+
 #define LocalizedString(key, comment, bundle, table)                                                                   \
     (NSLocalizedStringFromTableInBundle((key), (table), (bundle), (comment)) ?: (key))
 
@@ -3848,7 +3852,7 @@ static void setupRfbHttpServer(void) {
         if (gHttpDirOverride) {
             // Use override absolute path
             gScreen->httpDir = strdup(gHttpDirOverride);
-            TVLog(@"HTTP server config: port=%d, dir=%s (override), proxyConnect=YES", gHttpPort, gHttpDirOverride);
+            TVLog(@"HTTP server config: port=%d, dir=%s (override), proxyConnect=NO", gHttpPort, gHttpDirOverride);
         } else {
             // Compute httpDir relative to executable: ../share/trollvnc/webclients
             do {
@@ -3864,7 +3868,7 @@ static void setupRfbHttpServer(void) {
                 const char *fs = [webPath fileSystemRepresentation];
                 if (fs && *fs) {
                     gScreen->httpDir = strdup(fs);
-                    TVLog(@"HTTP server config: port=%d, dir=%@, proxyConnect=YES", gHttpPort, webPath);
+                    TVLog(@"HTTP server config: port=%d, dir=%@, proxyConnect=NO", gHttpPort, webPath);
                 }
             } while (0);
         }
@@ -4258,6 +4262,13 @@ int main(int argc, const char *argv[]) {
         if (!gIsDaemonMode && gHttpPort > 0) {
             gLANWebEnabled = YES;
             gWebTLS = gSslCertPath && *gSslCertPath && gSslKeyPath && *gSslKeyPath;
+        }
+        for (char **path : {&gSslCertPath, &gSslKeyPath, &gHttpDirOverride}) {
+            if (!*path) continue;
+            const char *physical = jbroot(*path);
+            char *copy = physical ? strdup(physical) : NULL;
+            if (!copy) { TVPrintError("Could not resolve web resource path"); return EXIT_FAILURE; }
+            free(*path); *path = copy;
         }
         // Supervisor follows only the previously selected private interface.
         // Saved 1.0 preferences are never rewritten to the temporary runtime IP.
