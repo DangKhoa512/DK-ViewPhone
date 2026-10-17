@@ -116,6 +116,20 @@ jobs:
           shasum -a 256 artifacts/packages/*.deb > artifacts/packages/SHA256SUMS
           git archive --format=tar.gz --output=artifacts/packages/DKViewPhone_1.1.0_source.tar.gz HEAD
 
+      - name: Build isolated device test helper (excluded from DEB)
+        run: |
+          set -euo pipefail
+          gmake -C devkit/device-tests clean all 2>&1 | tee artifacts/logs/device-test-helper-build.log
+          mkdir -p artifacts/device-tests
+          cp devkit/device-tests/.theos/obj/arm64/dkviewphone-device-test artifacts/device-tests/
+
+      - name: Upload device test helper
+        uses: actions/upload-artifact@v4
+        with:
+          name: DKViewPhone-1.1.0-device-test-helper
+          path: artifacts/device-tests/
+          if-no-files-found: error
+
       - name: Upload validated DEB and corresponding project source
         uses: actions/upload-artifact@v4
         with:

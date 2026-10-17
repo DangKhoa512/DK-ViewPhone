@@ -3098,6 +3098,7 @@ static BOOL gRestoreAssist = NO;
 #endif
 
 static void clientGoneHook(rfbClientPtr cl) {
+  @autoreleasepool {
     DKUpdateEnd(cl, false);
     DKClientDelta(-1);
     // Free per-client state
@@ -3171,9 +3172,11 @@ static void clientGoneHook(rfbClientPtr cl) {
     if (isRepeaterClient) {
         CFRunLoopStop(CFRunLoopGetMain());
     }
+  }
 }
 
 static enum rfbNewClientAction newClientHook(rfbClientPtr cl) {
+  @autoreleasepool {
     DKClientDelta(1);
     int yes = 1, idle = 60, interval = 10, count = 3;
     setsockopt(cl->sock, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(yes));
@@ -3220,7 +3223,7 @@ static enum rfbNewClientAction newClientHook(rfbClientPtr cl) {
 
     if (!gClientStates)
         gClientStates = [[NSMutableDictionary alloc] init];
-    gClientStates[clientId] = entry;
+    @synchronized(gClientStates) { gClientStates[clientId] = entry; }
 
     // Update TXT (e.g., potential dynamic flags in future)
     refreshBonjourTXTRecord();
@@ -3262,6 +3265,7 @@ static enum rfbNewClientAction newClientHook(rfbClientPtr cl) {
     }
 
     return RFB_CLIENT_ACCEPT;
+  }
 }
 
 #pragma mark - Clipboard Extension
