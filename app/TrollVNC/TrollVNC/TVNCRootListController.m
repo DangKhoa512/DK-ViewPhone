@@ -826,6 +826,9 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:@"com.82flex.trollvnc"];
     [[NSUserDefaults standardUserDefaults] synchronize];
 
+    TVNCRestartVNCService(); // defaults are disabled; stop the previous session
+    notify_post(TVNC_NOTIFY_PREFS_CHANGED);
+
     [self reloadSpecifiers];
 }
 

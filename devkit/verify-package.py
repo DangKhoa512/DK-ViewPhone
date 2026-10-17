@@ -157,7 +157,9 @@ def validate(path):
     required = ['usr/bin/trollvncserver', 'Library/PreferenceBundles/TrollVNCPrefs.bundle/TrollVNCPrefs',
                 'Library/ControlCenter/Bundles/CCTrollVNC.bundle/CCTrollVNC',
                 'Library/PreferenceLoader/Preferences/TrollVNCPrefs/Root.plist',
-                'usr/share/trollvnc/webclients/novnc/vnc.html', 'usr/share/doc/com.dk.viewphone/COPYING']
+                'usr/share/trollvnc/webclients/novnc/vnc.html', 'usr/share/doc/com.dk.viewphone/COPYING',
+                'usr/share/doc/com.dk.viewphone/third-party/OpenSSL-LICENSE',
+                'usr/share/doc/com.dk.viewphone/third-party/noVNC-MPL-2.0']
     for name in required:
         require(name in payload and payload[name][1], f'Missing required payload: {name}')
     binaries = {}
@@ -204,7 +206,13 @@ def main():
     output = json.dumps(report, indent=2, ensure_ascii=False)
     if args.report:
         Path(args.report).write_text(output + '\n', encoding='utf-8')
-    print(output)
+    if report['status'] == 'passed':
+        print(json.dumps({'status':report['status'], 'package':report['package']['Package'],
+            'version':report['package']['Version'], 'package_architecture':report['package']['Architecture'],
+            'sha256':report['sha256'], 'payload_entries':report['payload_entries'],
+            'verified_binaries':list(report['binaries']), 'runtime_tested':False}, indent=2, ensure_ascii=False))
+    else:
+        print(output)
     return 0 if report['status'] == 'passed' else 1
 
 

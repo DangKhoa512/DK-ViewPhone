@@ -19,6 +19,20 @@ archive; their provenance and corresponding-source completeness require a
 separate distribution audit before a public binary release. No claim of a
 completed third-party license/source audit is made by the package validator.
 
+This software is based in part on the work of the Independent JPEG Group.
+This product includes software developed by the OpenSSL Project for use in the
+OpenSSL Toolkit (https://www.openssl.org/). This product includes cryptographic
+software written by Eric Young (eay@cryptsoft.com).
+
+Known upstream header/archive version strings: LibVNCServer 0.9.15, OpenSSL
+1.1.1l, libjpeg-turbo 3.1.3 (build 20251210), LZO 2.10, Cyrus SASL headers 2.1.28,
+and libpng 1.8.0.git (exact source commit unspecified). Unmodified license texts
+are bundled in `third-party/`; sources.json records URLs and SHA256. noVNC's
+license texts are taken from v1.6.0; the inherited JS snapshot is not tagged by
+upstream, so this is a license reference, not a proven exact source revision.
+The existing pako MIT license and sound credits stay with the web resources.
+LZO is covered by the bundled GPLv2 text and its original header notices.
+
 Build tools (Theos and ldid) are used to compile/sign; they are not bundled as
 host executables in the iPhone package. Apple SDKs are downloaded by the workflow
 and are not included in the DEB/source artifact.

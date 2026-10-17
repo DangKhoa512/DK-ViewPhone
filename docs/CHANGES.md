@@ -22,6 +22,8 @@ Baseline: owngoal-dev/TrollVNC cfdb737e72977d961eb7d0a8110d2fe1a58551d7.
 - `app/TrollVNC/TrollVNC/{TVNCRootListController.m,TVNCUtil.h}` and
   `prefs/CCTrollVNC/CCTrollVNC.mm`: shared Settings/CC password checks and stop
   behavior. The DEB compiles these through the existing source symlinks.
+  Reset Defaults also stops an existing session before reloading the disabled
+  default configuration.
 - `prefs/*/Makefile`, preference/CC plist and localization resources: arm64/iOS15,
   display names and editable defaults. Upstream self-updater is compiled only
   for bootstrap apps, which this project explicitly excludes.
@@ -33,6 +35,8 @@ Baseline: owngoal-dev/TrollVNC cfdb737e72977d961eb7d0a8110d2fe1a58551d7.
 - `layout/usr/share/trollvnc/webclients/index.vnc`: display branding and WSS as
   the default browser connection action; noVNC engine files are unchanged.
 - `README.md`, `docs/*`: setup, provenance, limitations, device test checklist.
+- `docs/third-party/*`: preserved library/client/font license texts and download
+  provenance, copied into the DEB documentation directory.
 
 Internal identifiers intentionally preserved: executable `trollvncserver`,
 daemon label/preference domain `com.82flex.trollvnc`, resource directory
