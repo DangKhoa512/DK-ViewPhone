@@ -14,7 +14,9 @@ an iPhone 7 was not tested.
 
 Installation and removal used `dpkg` over an SSH connection forwarded through
 USB. Sileo's file-opening and transaction UI were not exercised. Runtime VNC
-connections used that encrypted SSH connection and temporary random passwords.
+connections initially used that encrypted SSH connection and temporary random
+passwords. A later same-LAN retest used direct TCP sockets from the PC's Wi-Fi
+IPv4 to the iPhone's Wi-Fi IPv4 on port 5901; USB/SSH was used for setup only.
 
 | Check | Result and evidence |
 | --- | --- |
@@ -30,7 +32,7 @@ connections used that encrypted SSH connection and temporary random passwords.
 | Removal | Passed; daemon unloaded, server/daemon plist/preference and CC bundle paths absent, no server/manager processes or listeners remained. |
 | Reinstall | Passed; the same DEB installed again and the daemon loaded. Final state was installed and disabled, without listeners. |
 | Preferences cleanup | Passed; restored preferences matched the original backup exactly except `Enabled=false`. Temporary VNC credentials and device test files were removed. |
-| LAN bind | Listener opened on the phone's private Wi-Fi IPv4. Direct connection from the PC timed out; PC and phone were on different IPv4 subnets. End-to-end LAN access remains unverified. |
+| Direct LAN | Passed on retest after the owner joined the same LAN. Windows confirmed established sockets from the PC's Wi-Fi IPv4 to the iPhone's Wi-Fi IPv4:5901. Both full/view credentials authenticated, framebuffers arrived, full-access tap and swipe worked, view-only tap was ignored, reconnect succeeded and a wrong password was rejected. The earlier attempt on separate subnets had timed out. |
 
 For the view-only swipe, both framebuffers had SHA256
 `e1648020042068f1fe582f9f80e909c1333751266156b8ed25aa0fe9faa52d9f`.
@@ -40,17 +42,25 @@ Earlier input trials during physical phone use were inconclusive and were
 excluded from these pass results. Screenshots and raw device logs remain local
 because they can contain personal screen content and device paths.
 
+In the direct LAN retest, the view-only tap before/after framebuffers both had
+SHA256 `adeed292ef292798ff00e44e87b80273dc1d4a1fae66868c3db5652bfd7d922b`.
+The same tap with full access returned from the preference module to Settings;
+a subsequent swipe scrolled the list. Direct TCP reauthentication and another
+framebuffer were received after disconnecting the full-access client. No source
+or binary changes were needed for LAN; the tested DEB is still the one above.
+
 A standalone TrollStore TrollVNC manager was already running before installation.
 It was stopped gracefully; its app files were retained. Do not run that manager
 alongside this DEB: both intentionally retain the upstream preference domain
 and service resources. Package Conflicts/Replaces handles the original DEB,
 but cannot remove a standalone TrollStore app.
 
-CPU/RAM snapshots ranged from 0.9–6.9% CPU and approximately 16–17 MiB RSS.
-They are observations during this short session, not a sustained performance,
-thermal or latency benchmark.
+Initial USB-session CPU/RAM snapshots ranged from 0.9–6.9% CPU and approximately
+16–17 MiB RSS. A snapshot during the raw-frame LAN reconnect was 32.8% CPU and
+17,568 KiB RSS. These short observations are not a sustained performance,
+thermal or latency benchmark. This test client requests raw frame encoding.
 
-Remaining checks: iPhone 7; direct same-LAN viewer; rotation and input coordinate
+Remaining checks: iPhone 7; third-party desktop viewer UI; rotation and input coordinate
 mapping; clipboard in both directions; keyboard and view-only clipboard/keys;
 Control Center actions; lock/unlock; respring/reboot; long-running stability;
 WSS/noVNC and TLS behavior. No claim of passing these checks is made.

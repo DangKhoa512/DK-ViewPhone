@@ -5,7 +5,9 @@ An Actions build and package validation do not establish runtime compatibility.
 
 The iPhone 6s / iOS 15.8.4 session on 2026-10-17 passed the core capture,
 authentication, tap/swipe, view-only tap/swipe, reconnect, background service,
-disable and dpkg removal/reinstall checks. See [results and remaining checks](RUNTIME-RESULTS.md).
+disable and dpkg removal/reinstall checks. A subsequent direct same-LAN retest
+also passed capture, tap/swipe, view-only tap blocking, reconnect and wrong-password
+rejection. See [results and remaining checks](RUNTIME-RESULTS.md).
 This checklist remains the procedure for broader acceptance; its entries are
 not all marked passed by that session.
 

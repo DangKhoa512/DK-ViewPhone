@@ -52,8 +52,9 @@ Các thiết lập cũ từ TrollVNC được giữ khi thay gói. Defaults mớ
 
 Đã thử DEB thật trên iPhone 6s / iOS 15.8.4 Dopamine roothide: capture, xác thực,
 tap/vuốt, chặn tap/vuốt ở chế độ chỉ xem, kết nối lại, chạy khi đóng Settings và
-gỡ/cài lại bằng dpkg đều đạt. Kết nối LAN trực tiếp chưa xác nhận do máy tính và
-iPhone khác subnet. Xem [kết quả và giới hạn](docs/RUNTIME-RESULTS.md) cùng
+gỡ/cài lại bằng dpkg đều đạt. Sau khi đưa PC và iPhone về chung LAN, kết nối VNC
+trực tiếp qua Wi-Fi cũng đã đạt capture, tap/vuốt, chặn tap ở chế độ chỉ xem,
+kết nối lại và từ chối mật khẩu sai. Xem [kết quả và giới hạn](docs/RUNTIME-RESULTS.md) cùng
 [checklist thiết bị](docs/DEVICE-TESTS.md). Chữ ký ad-hoc hợp lệ không tương đương
 chữ ký Apple/App Store. Xem [các thay đổi](docs/CHANGES.md) và [ghi chú dependency/source kế thừa](docs/ATTRIBUTION.md).
 Tài liệu gốc được lưu tại [README.upstream.md](docs/README.upstream.md).
