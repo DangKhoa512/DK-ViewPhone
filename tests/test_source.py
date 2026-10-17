@@ -58,6 +58,24 @@ class SourceTests(unittest.TestCase):
             actual = (ROOT / 'src' / name).read_bytes().replace(b'\r\n', b'\n')
             self.assertEqual(actual, original.replace(b'\r\n', b'\n'), name)
 
+    def test_web_template_encoding_and_offline_entry(self):
+        from html.parser import HTMLParser
+        class Parser(HTMLParser):
+            def __init__(self):
+                super().__init__(); self.scripts = []
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                if tag == 'script': self.scripts.append(attrs.get('src'))
+        web = ROOT / 'layout/usr/share/trollvnc/webclients'
+        html = (web / 'index.vnc').read_text(encoding='utf-8')
+        self.assertIn('<title>ĐK ViewPhone · LAN Viewer</title>', html)
+        self.assertNotIn('\ufffd', html)
+        self.assertLess(len(html.encode()), 32768)
+        parser = Parser(); parser.feed(html)
+        self.assertEqual(parser.scripts, ['viewer.bundle.js'])
+        for name in parser.scripts:
+            self.assertGreater((web / name).stat().st_size, 10000)
+
     def test_archive_parser_rejects_fake_deb(self):
         for raw in (b'', b'pretend deb', b'!<arch>\ntruncated'):
             with self.subTest(raw=raw), self.assertRaises(ValueError):
