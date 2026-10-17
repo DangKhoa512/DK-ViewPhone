@@ -1,7 +1,13 @@
-# Device acceptance checklist — not yet executed
+# Device acceptance checklist
 
 Requires a physical iPhone 6s or iPhone 7 running iOS 15 with Dopamine **roothide**.
 An Actions build and package validation do not establish runtime compatibility.
+
+The iPhone 6s / iOS 15.8.4 session on 2026-10-17 passed the core capture,
+authentication, tap/swipe, view-only tap/swipe, reconnect, background service,
+disable and dpkg removal/reinstall checks. See [results and remaining checks](RUNTIME-RESULTS.md).
+This checklist remains the procedure for broader acceptance; its entries are
+not all marked passed by that session.
 
 1. In Sileo, review removal of TrollVNC and install the validated DEB.
 2. Verify ĐK ViewPhone appears in Settings, initially disabled on a fresh install.

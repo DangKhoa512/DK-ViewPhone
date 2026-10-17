@@ -28,6 +28,10 @@ Metadata `iphoneos-arm64e` là quy ước **package scheme roothide**, không c�
 3. Xem transaction: gói `com.dk.viewphone` sẽ **thay thế** `com.82flex.trollvnc`. Không cài song song hai gói.
 4. Vào **Settings → ĐK ViewPhone**. Cấu hình mật khẩu và địa chỉ bind trước khi bật.
 
+Nếu TrollVNC được cài riêng bằng TrollStore, hãy dừng server/manager của app đó
+trước khi dùng DEB này. Không chạy đồng thời vì vẫn dùng chung preference domain
+và tài nguyên dịch vụ; quan hệ thay thế gói không áp dụng cho app TrollStore.
+
 ## Kết nối máy tính
 
 Mặc định mới cài: server tắt; bind `127.0.0.1`; port `5901`; scale `0.75`; FPS `15:30:30`; clipboard và xoay màn hình bật; Bonjour và HTTP tắt; điều khiển chỉ sau xác thực.
@@ -46,4 +50,10 @@ Các thiết lập cũ từ TrollVNC được giữ khi thay gói. Defaults mớ
 
 `python3 -m unittest discover -s tests -v` kiểm tra source/plist/defaults và ba file engine được giữ nguyên. CI biên dịch/chạy `tests/security-policy.cpp`. Validator DEB kiểm tra metadata, payload, bundle, daemon, scripts, arm64, dependencies, entitlement và hash chữ ký, không chạy code trong DEB.
 
-Chưa thể kết luận runtime trên iPhone nếu chưa thực hiện [checklist thiết bị](docs/DEVICE-TESTS.md). Chữ ký ad-hoc hợp lệ không tương đương chữ ký Apple/App Store. Xem [các thay đổi](docs/CHANGES.md) và [ghi chú dependency/source kế thừa](docs/ATTRIBUTION.md). Tài liệu gốc được lưu tại [README.upstream.md](docs/README.upstream.md).
+Đã thử DEB thật trên iPhone 6s / iOS 15.8.4 Dopamine roothide: capture, xác thực,
+tap/vuốt, chặn tap/vuốt ở chế độ chỉ xem, kết nối lại, chạy khi đóng Settings và
+gỡ/cài lại bằng dpkg đều đạt. Kết nối LAN trực tiếp chưa xác nhận do máy tính và
+iPhone khác subnet. Xem [kết quả và giới hạn](docs/RUNTIME-RESULTS.md) cùng
+[checklist thiết bị](docs/DEVICE-TESTS.md). Chữ ký ad-hoc hợp lệ không tương đương
+chữ ký Apple/App Store. Xem [các thay đổi](docs/CHANGES.md) và [ghi chú dependency/source kế thừa](docs/ATTRIBUTION.md).
+Tài liệu gốc được lưu tại [README.upstream.md](docs/README.upstream.md).
