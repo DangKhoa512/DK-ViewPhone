@@ -125,6 +125,7 @@ endif
 endif
 
 TOOL_NAME += dkviewphone-watchdog
+dkviewphone-watchdog_USE_MODULES := 0
 dkviewphone-watchdog_FILES := src/dkviewphone-watchdog.mm
 dkviewphone-watchdog_CFLAGS := -fobjc-arc -DPACKAGE_VERSION=\"$(PACKAGE_VERSION)\"
 dkviewphone-watchdog_CCFLAGS := -std=c++20
