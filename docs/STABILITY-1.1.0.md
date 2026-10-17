@@ -3,6 +3,9 @@
 Build and physical test status are recorded separately. This version is not
 24-hour qualified. The owner deferred the 24-hour and reboot tests and allowed
 short device tests, with assistance for unlock and rotation.
+Recorded short-test evidence and remaining limits are in
+[physical results](TEST-RESULTS-1.1.0.md). The owner also deferred 20 physical
+Wi-Fi power cycles after the private API could not verify global power state.
 
 ## Source audit and changes
 

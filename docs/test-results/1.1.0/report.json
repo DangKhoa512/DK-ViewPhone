@@ -1,0 +1,167 @@
+{
+  "version": "1.1.0",
+  "date": "2026-10-17",
+  "device": {
+    "model": "iPhone 6s / iPhone8,1",
+    "ios": "15.8.4",
+    "bootstrap": "Dopamine roothide",
+    "dopamine_version": "not collected"
+  },
+  "build_commit": "64128aa61060c880b7e2c695a5d869c354592128",
+  "build_run": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39014574938",
+  "deb_artifact": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39014574938/artifacts/12094501386",
+  "deb_sha256": "7d22ea0c1dc6e43167bb115d3cca1be77804b4e032c8ae705e941e1a2c070c95",
+  "deb_bytes": 1494780,
+  "acceptance": "Short-device-test candidate; not 24-hour qualified",
+  "tests": [
+    {
+      "name": "Actions build and DEB validation",
+      "status": "passed",
+      "evidence": "Successful run 39014574938; local validation matches CI SHA256; 201 entries, four signed arm64 binaries. Test utility is excluded from DEB."
+    },
+    {
+      "name": "Upgrade 1.0.0 to final 1.1.0",
+      "status": "passed",
+      "evidence": "Installed trusted 1.0.0 baseline, checkpointed preferences privately, upgraded to this exact DEB, compared every saved preference value."
+    },
+    {
+      "name": "100 direct LAN viewer connect/disconnect cycles",
+      "status": "passed",
+      "evidence": {
+        "completed": 100,
+        "mean_connect_and_optional_capture_seconds": 0.1970881550001286,
+        "p95_seconds": 0.3465579000003345,
+        "note": "Capture requested on every tenth connection; this is not pure frame latency."
+      }
+    },
+    {
+      "name": "Crash recovery",
+      "status": "passed",
+      "evidence": "Injected faults on earlier 1.1.0 candidate, authenticated/retrieved frames after recovery. Final supervisor and budget source are identical to that tested candidate."
+    },
+    {
+      "name": "Hung worker recovery",
+      "status": "passed",
+      "evidence": "Injected faults on earlier 1.1.0 candidate, authenticated/retrieved frames after recovery. Final supervisor and budget source are identical to that tested candidate."
+    },
+    {
+      "name": "Exponential backoff and crash-loop latch",
+      "status": "passed",
+      "evidence": {
+        "observed_delays_seconds": [
+          2,
+          4,
+          8,
+          16,
+          -1
+        ],
+        "note": "Fifth failure latched; no engine remained. Explicit manual-off reset was observed."
+      }
+    },
+    {
+      "name": "Manual-off cancels pending recovery",
+      "status": "passed",
+      "evidence": "Turned Enabled off during backoff without restarting supervisor; no worker/listener appeared afterwards."
+    },
+    {
+      "name": "Interface IPv4 change",
+      "status": "passed",
+      "evidence": "Controlled private /32 alias on en0: listener moved to alias, authenticated frame received via SSH, alias removed and direct original LAN access restored. This was not a DHCP server lease-change test."
+    },
+    {
+      "name": "Wi-Fi loss and recovery",
+      "status": "partial",
+      "evidence": "The device-level power API trial lost association; owner reconnected Wi-Fi. Watchdog waited without crash-loop recovery and LAN access returned. Global AllowEnable state was unavailable, so automated cycling was stopped."
+    },
+    {
+      "name": "20 Wi-Fi power cycles",
+      "status": "deferred",
+      "evidence": "Owner explicitly deferred the 20 physical Wi-Fi power cycles after the native API could not verify global power state."
+    },
+    {
+      "name": "Clipboard both directions and view-only write protection",
+      "status": "passed",
+      "evidence": "Native mobile helper confirmed phone values, first different phone-side value reached viewer after remote write, view-only write was rejected, original item array restored and compared. No content exported."
+    },
+    {
+      "name": "Full-access and view-only touch",
+      "status": "passed",
+      "evidence": "Calculator stayed at 0 for view-only tap; same full-access tap displayed 2. Capture and HID implementation files unchanged from upstream."
+    },
+    {
+      "name": "Slow/non-reading viewer",
+      "status": "passed",
+      "evidence": "Stopped reading for 13 seconds; supervisor/worker PIDs unchanged and normal client captured afterwards. The exact FIN/deadline timing was not measured."
+    },
+    {
+      "name": "Respring and VNC reconnect",
+      "status": "passed",
+      "evidence": "SpringBoard PID changed after sbreload; watchdog/worker PIDs and listener remained, authenticated reconnect received a framebuffer."
+    },
+    {
+      "name": "Rotation and landscape touch mapping",
+      "status": "passed",
+      "evidence": "Portrait 564x1004 changed to landscape 1000x562. Calculator stayed at 0 for a view-only tap and displayed 2 for the same full-access tap at landscape coordinates. One landscape direction tested; other quadrants and a portrait-return cycle were not separately accepted."
+    },
+    {
+      "name": "Lock and unlock",
+      "status": "passed",
+      "evidence": "Observed locked screen after respring; owner unlocked and opened Calculator; authenticated capture and touch resumed. This was a respring-triggered lock, not a separate power-button lock cycle."
+    },
+    {
+      "name": "24-hour continuous run",
+      "status": "deferred",
+      "evidence": "Deferred by owner; observations during pauses are not a controlled 24-hour soak."
+    },
+    {
+      "name": "Reboot and rejailbreak",
+      "status": "deferred",
+      "evidence": "Deferred by owner. No reboot was performed."
+    },
+    {
+      "name": "Memory leak investigation",
+      "status": "partial",
+      "evidence": "Added callback autorelease pools and collected process RSS/CPU trends. Native leaks/malloc_history tools were unavailable; trends do not establish leak freedom."
+    },
+    {
+      "name": "Structured log rotation on device",
+      "status": "passed",
+      "evidence": {
+        "rotation_passed": true,
+        "files": 4,
+        "valid_json_lines": 264
+      }
+    }
+  ],
+  "performance": {
+    "changed_fps": {
+      "min": 0,
+      "max": 10.031115468025124,
+      "mean": 1.3574496521133201
+    },
+    "cpu_percent": {
+      "min": 0.21423195499470363,
+      "max": 21.36543845812547,
+      "mean": 3.625263498824337
+    },
+    "rss_bytes": {
+      "min": 19152896,
+      "max": 25477120,
+      "mean": 21468081.230769232
+    },
+    "frame_processing_mean_ms": {
+      "min": 18.531669781931466,
+      "max": 1579.545,
+      "mean": 168.3918472064585
+    },
+    "frame_processing_max_ms": {
+      "min": 23.311,
+      "max": 1579.545,
+      "mean": 303.8812857142857
+    },
+    "samples": 26,
+    "frame_processing_weighted_mean_ms": 27.05234598012647,
+    "definitions": "Changed callback FPS, process CPU percent/RSS, server callback-to-publication latency; not display FPS or glass-to-glass latency."
+  },
+  "final_state": "Final 1.1.0 remains installed with Enabled=false. Original saved preference values were restored and compared exactly, with server disabled. No VNC/control listeners or engine workers remained. Temporary device test tools, credential checkpoints and clipboard backups were removed; original clipboard items had already been restored and verified. Standalone TrollStore app files were retained and its manager remained stopped."
+}

@@ -51,10 +51,16 @@ Các thiết lập cũ từ TrollVNC được giữ khi thay gói. Defaults mớ
 Bản 1.1.0 thêm watchdog, phục hồi khi interface/IP thay đổi, giới hạn client gửi
 chậm và diagnostic JSON có xoay log. Xem [thiết kế, rủi ro và kế hoạch kiểm tra](docs/STABILITY-1.1.0.md).
 Test 24 giờ và reboot được để lại cho đợt sau theo yêu cầu chủ máy; không coi là đã đạt.
+Xem [kết quả thực tế bản 1.1.0](docs/TEST-RESULTS-1.1.0.md): nâng cấp, 100 lần kết nối,
+phục hồi lỗi, clipboard, respring và xoay ngang đã kiểm tra; 20 chu kỳ Wi-Fi cũng được hoãn.
 
-`python3 -m unittest discover -s tests -v` kiểm tra source/plist/defaults và ba file engine được giữ nguyên. CI biên dịch/chạy `tests/security-policy.cpp`. Validator DEB kiểm tra metadata, payload, bundle, daemon, scripts, arm64, dependencies, entitlement và hash chữ ký, không chạy code trong DEB.
+`python3 -m unittest discover -s tests -v` kiểm tra source/plist/defaults và hai file capture/input được giữ nguyên.
+CI biên dịch/chạy các bài C++ cho bảo mật, backoff/crash-loop và chống echo clipboard.
+ClipboardManager có sửa nhỏ để không bỏ mất thay đổi mới và có polling dự phòng.
+Validator DEB kiểm tra metadata, payload, bundle, daemon, scripts, arm64, dependencies,
+entitlement và hash chữ ký, không chạy code trong DEB.
 
-Đã thử DEB thật trên iPhone 6s / iOS 15.8.4 Dopamine roothide: capture, xác thực,
+Đợt kiểm thử 1.0.0 đã thử DEB thật trên iPhone 6s / iOS 15.8.4 Dopamine roothide: capture, xác thực,
 tap/vuốt, chặn tap/vuốt ở chế độ chỉ xem, kết nối lại, chạy khi đóng Settings và
 gỡ/cài lại bằng dpkg đều đạt. Sau khi đưa PC và iPhone về chung LAN, kết nối VNC
 trực tiếp qua Wi-Fi cũng đã đạt capture, tap/vuốt, chặn tap ở chế độ chỉ xem,

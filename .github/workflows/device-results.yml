@@ -1,0 +1,35 @@
+name: Export physical device test results
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check report format without changing device results
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, re
+          root = pathlib.Path('docs/test-results/1.1.0')
+          report = json.loads((root / 'report.json').read_text())
+          assert report['version'] == '1.1.0'
+          assert re.fullmatch('[0-9a-f]{64}', report['deb_sha256'])
+          assert report['tests']
+          assert all(row['status'] in ('passed', 'failed', 'partial', 'not_run', 'deferred') for row in report['tests'])
+          for line in (root / 'device-events.jsonl').read_text().splitlines():
+              assert isinstance(json.loads(line), dict)
+          print('Report parsed. Deferred or failed device tests remain deferred or failed.')
+          PY
+      - name: Upload recorded physical test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: DKViewPhone-1.1.0-physical-device-results
+          path: |
+            docs/test-results/1.1.0/
+            docs/TEST-RESULTS-1.1.0.md
+          if-no-files-found: error
+          retention-days: 30

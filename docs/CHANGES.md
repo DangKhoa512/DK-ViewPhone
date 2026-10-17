@@ -1,4 +1,19 @@
-# ĐK ViewPhone 1.0.0 changes
+# ĐK ViewPhone changes
+
+## 1.1.0
+
+Adds a separate bounded-recovery supervisor, main-runloop heartbeat, private
+interface rebinding, per-update slow socket deadline, TCP keepalive and bounded
+JSON diagnostics with CPU/RSS/changed-frame metrics. Fixes client publication
+lock lifetime, callback autorelease scope, realloc failure handling and clipboard
+echo suppression/missed notifications. Saved preference values and the server's
+security policy/entitlements remain unchanged. Capture and HID injection files
+remain byte-for-byte identical to upstream.
+
+See [audit and design](STABILITY-1.1.0.md) and [physical results](TEST-RESULTS-1.1.0.md).
+The owner deferred 24-hour, reboot and 20 Wi-Fi-cycle checks.
+
+## 1.0.0
 
 Baseline: owngoal-dev/TrollVNC cfdb737e72977d961eb7d0a8110d2fe1a58551d7.
 
