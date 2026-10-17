@@ -42,10 +42,13 @@ function connect() {
         if (current !== rfb) return;
         stop(); message('Xác thực thất bại. Kiểm tra mật khẩu VNC trên iPhone.');
     });
-    current.addEventListener('disconnect', event => {
+    current.addEventListener('disconnect', () => {
         if (current !== rfb) return;
         rfb = null; $('empty').hidden = false;
-        if (!manual && !event.detail.clean && $('reconnect').checked && retries < 5) {
+        // This noVNC version labels established server-side closes as clean,
+        // including a killed worker. Only our explicit Disconnect/auth failure
+        // cancels the user's reconnect intent.
+        if (!manual && $('reconnect').checked && retries < 5) {
             const seconds = Math.min(2 ** (++retries), 16);
             retryTimer = setTimeout(connect, seconds * 1000); status(`Kết nối lại sau ${seconds}s…`);
             message('Đang chờ iPhone hoặc mạng LAN phục hồi. Nếu IP đổi, mở URL mới trong Settings.');

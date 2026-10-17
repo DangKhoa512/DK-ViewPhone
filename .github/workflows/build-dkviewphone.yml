@@ -98,6 +98,7 @@ jobs:
           "$RUNNER_TEMP/dk-policy-test" | tee artifacts/logs/security-policy.log
           xcrun clang++ -std=c++20 -Wall -Wextra -Werror tests/recovery-policy.cpp -o "$RUNNER_TEMP/dk-recovery-test"
           "$RUNNER_TEMP/dk-recovery-test" | tee artifacts/logs/recovery-policy.log
+          node tests/web-viewer.mjs | tee artifacts/logs/web-viewer-tests.log
 
       - name: Verify offline web bundle is reproducible
         run: |
