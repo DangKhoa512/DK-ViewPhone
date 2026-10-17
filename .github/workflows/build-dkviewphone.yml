@@ -121,7 +121,9 @@ jobs:
           set -euo pipefail
           gmake -C devkit/device-tests clean all 2>&1 | tee artifacts/logs/device-test-helper-build.log
           mkdir -p artifacts/device-tests
-          cp devkit/device-tests/.theos/obj/arm64/dkviewphone-device-test artifacts/device-tests/
+          cp devkit/device-tests/.theos/obj/dkviewphone-device-test artifacts/device-tests/
+          ldid -e artifacts/device-tests/dkviewphone-device-test > artifacts/device-tests/entitlements.plist
+          python3 -c "import plistlib; from pathlib import Path; assert plistlib.loads(Path('artifacts/device-tests/entitlements.plist').read_bytes()) == plistlib.loads(Path('devkit/device-tests/test.entitlements').read_bytes())"
 
       - name: Upload device test helper
         uses: actions/upload-artifact@v4
