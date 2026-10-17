@@ -16,7 +16,7 @@
 		<string>30.0</string>
 	</dict>
 	<key>ExitTimeOut</key>
-	<integer>3</integer>
+	<integer>10</integer>
 	<key>GroupName</key>
 	<string>mobile</string>
 	<key>HighPriorityIO</key>
@@ -31,17 +31,16 @@
 	<string>Interactive</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/usr/bin/trollvncserver</string>
-		<string>-daemon</string>
+		<string>/usr/bin/dkviewphone-watchdog</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>
 	<key>StandardErrorPath</key>
-	<string>/tmp/trollvnc-stderr.log</string>
+	<string>/dev/null</string>
 	<key>StandardOutPath</key>
-	<string>/tmp/trollvnc-stdout.log</string>
+	<string>/dev/null</string>
 	<key>ThrottleInterval</key>
-	<integer>5</integer>
+	<integer>30</integer>
 	<key>UserName</key>
 	<string>mobile</string>
 	<key>_AdditionalProperties</key>

@@ -37,8 +37,13 @@ class SourceTests(unittest.TestCase):
 
     def test_daemon_and_bundle_references(self):
         daemon = plistlib.loads((ROOT / 'layout/Library/LaunchDaemons/com.82flex.trollvnc.plist').read_bytes())
-        self.assertEqual(daemon['ProgramArguments'], ['/usr/bin/trollvncserver','-daemon'])
+        self.assertEqual(daemon['ProgramArguments'], ['/usr/bin/dkviewphone-watchdog'])
         self.assertEqual(daemon['UserName'], 'mobile')
+        self.assertEqual(daemon['StandardOutPath'], '/dev/null')
+        self.assertEqual(daemon['StandardErrorPath'], '/dev/null')
+        upstream = plistlib.loads((ROOT / 'app/TrollVNC/TrollVNC/TrollVNC.entitlements').read_bytes())
+        watchdog = plistlib.loads((ROOT / 'src/dkviewphone-watchdog.entitlements').read_bytes())
+        self.assertTrue(all(upstream.get(key) == value for key, value in watchdog.items()))
         for bundle, executable in [('TrollVNCPrefs', 'TrollVNCPrefs'), ('CCTrollVNC','CCTrollVNC')]:
             info = plistlib.loads((ROOT / f'prefs/{bundle}/Resources/Info.plist').read_bytes())
             self.assertEqual(info['CFBundleExecutable'], executable)

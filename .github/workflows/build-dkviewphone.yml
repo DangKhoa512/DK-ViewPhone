@@ -96,6 +96,8 @@ jobs:
           python3 -m unittest discover -s tests -v 2>&1 | tee artifacts/logs/source-tests.log
           xcrun clang++ -std=c++20 -Wall -Wextra -Werror tests/security-policy.cpp -o "$RUNNER_TEMP/dk-policy-test"
           "$RUNNER_TEMP/dk-policy-test" | tee artifacts/logs/security-policy.log
+          xcrun clang++ -std=c++20 -Wall -Wextra -Werror tests/recovery-policy.cpp -o "$RUNNER_TEMP/dk-recovery-test"
+          "$RUNNER_TEMP/dk-recovery-test" | tee artifacts/logs/recovery-policy.log
 
       - name: Phase 2 - build DK ViewPhone for roothide
         run: |
@@ -107,17 +109,17 @@ jobs:
         run: |
           set -euo pipefail
           shopt -s nullglob
-          packages=(packages/com.dk.viewphone_1.0.0_iphoneos-arm64e.deb)
+          packages=(packages/com.dk.viewphone_1.1.0_iphoneos-arm64e.deb)
           test "${#packages[@]}" -eq 1
           python3 devkit/verify-package.py "${packages[0]}" --report artifacts/package-validation.json 2>&1 | tee artifacts/logs/package-validation.log
-          cp "${packages[0]}" artifacts/packages/DKViewPhone_1.0.0_roothide.deb
+          cp "${packages[0]}" artifacts/packages/DKViewPhone_1.1.0_roothide.deb
           shasum -a 256 artifacts/packages/*.deb > artifacts/packages/SHA256SUMS
-          git archive --format=tar.gz --output=artifacts/packages/DKViewPhone_1.0.0_source.tar.gz HEAD
+          git archive --format=tar.gz --output=artifacts/packages/DKViewPhone_1.1.0_source.tar.gz HEAD
 
       - name: Upload validated DEB and corresponding project source
         uses: actions/upload-artifact@v4
         with:
-          name: DKViewPhone_1.0.0_roothide
+          name: DKViewPhone_1.1.0_roothide
           path: |
             artifacts/packages/
             artifacts/package-validation.json

@@ -1,4 +1,4 @@
-# ĐK ViewPhone 1.0.0
+# ĐK ViewPhone 1.1.0
 
 Bản tùy biến từ [TrollVNC](https://github.com/owngoal-dev/TrollVNC), dành riêng cho **Dopamine roothide**, iOS 15+, binary arm64 (iPhone 6s/7). Giữ engine capture và điều khiển gốc. Giấy phép GPLv2; xem [COPYING](COPYING) và [nguồn/ghi công](docs/ATTRIBUTION.md).
 
@@ -8,7 +8,7 @@ Mã nguồn phát triển: [DangKhoa512/DK-ViewPhone, dev/roothide](https://gith
 
 Mở [Actions](https://github.com/DangKhoa512/DK-ViewPhone/actions/workflows/build-dkviewphone.yml), chọn **Build DK ViewPhone (roothide)** → **Run workflow** trên branch `dev/roothide`. Workflow cũng chạy khi push branch này.
 
-Workflow build bản TrollVNC gốc trước, sau đó build ĐK ViewPhone, kiểm tra DEB và hash chữ ký ad-hoc Mach-O rồi mới upload artifact `DKViewPhone_1.0.0_roothide`. Bên trong có `DKViewPhone_1.0.0_roothide.deb`, SHA256SUMS, báo cáo kiểm tra và source của commit tương ứng. Artifact log luôn được upload khi build lỗi. Chỉ run màu xanh với bước kiểm tra thành công mới được coi là build đạt.
+Workflow build bản TrollVNC gốc trước, sau đó build ĐK ViewPhone, kiểm tra DEB và hash chữ ký ad-hoc Mach-O rồi mới upload artifact `DKViewPhone_1.1.0_roothide`. Bên trong có `DKViewPhone_1.1.0_roothide.deb`, SHA256SUMS, báo cáo kiểm tra và source của commit tương ứng. Artifact log luôn được upload khi build lỗi. Chỉ run màu xanh với bước kiểm tra thành công mới được coi là build đạt.
 
 Build thủ công trên macOS với Xcode 16.2, `roothide/theos` cùng submodules, SDK 16.5/14.5 và dependencies như workflow:
 
@@ -16,7 +16,7 @@ Build thủ công trên macOS với Xcode 16.2, `roothide/theos` cùng submodule
 export THEOS="$HOME/theos-roothide"
 source devkit/roothide.sh
 FINALPACKAGE=1 gmake clean package
-python3 devkit/verify-package.py packages/com.dk.viewphone_1.0.0_iphoneos-arm64e.deb
+python3 devkit/verify-package.py packages/com.dk.viewphone_1.1.0_iphoneos-arm64e.deb
 ```
 
 Metadata `iphoneos-arm64e` là quy ước **package scheme roothide**, không có nghĩa binary chỉ chạy trên CPU arm64e. Binary trong bản này là arm64. Không dùng DEB này trên rootless thông thường hoặc TrollStore.
@@ -47,6 +47,10 @@ Mặc định mới cài: server tắt; bind `127.0.0.1`; port `5901`; scale `0.
 Các thiết lập cũ từ TrollVNC được giữ khi thay gói. Defaults mới áp dụng cho trường chưa lưu; mật khẩu cũ yếu khiến server bị tắt để cấu hình lại. Gỡ gói giữ lại preferences; có thể Reset Settings trước khi gỡ.
 
 ## Kiểm tra và giới hạn
+
+Bản 1.1.0 thêm watchdog, phục hồi khi interface/IP thay đổi, giới hạn client gửi
+chậm và diagnostic JSON có xoay log. Xem [thiết kế, rủi ro và kế hoạch kiểm tra](docs/STABILITY-1.1.0.md).
+Test 24 giờ và reboot được để lại cho đợt sau theo yêu cầu chủ máy; không coi là đã đạt.
 
 `python3 -m unittest discover -s tests -v` kiểm tra source/plist/defaults và ba file engine được giữ nguyên. CI biên dịch/chạy `tests/security-policy.cpp`. Validator DEB kiểm tra metadata, payload, bundle, daemon, scripts, arm64, dependencies, entitlement và hash chữ ký, không chạy code trong DEB.
 

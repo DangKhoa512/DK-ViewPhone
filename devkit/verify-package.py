@@ -137,7 +137,7 @@ def validate(path):
     payload = tar_members(members[data_names[0]])
     control = controls['control'][1].decode('utf-8')
     fields = dict(line.split(': ', 1) for line in control.splitlines() if ': ' in line and not line.startswith(' '))
-    for name, expected in {'Package':'com.dk.viewphone', 'Version':'1.0.0', 'Architecture':'iphoneos-arm64e',
+    for name, expected in {'Package':'com.dk.viewphone', 'Version':'1.1.0', 'Architecture':'iphoneos-arm64e',
                            'Name':'ĐK ViewPhone', 'Conflicts':'com.82flex.trollvnc',
                            'Replaces':'com.82flex.trollvnc', 'Provides':'com.82flex.trollvnc'}.items():
         require(fields.get(name) == expected, f'Invalid {name}: {fields.get(name)}')
@@ -151,7 +151,8 @@ def validate(path):
     daemon_name = 'Library/LaunchDaemons/com.82flex.trollvnc.plist'
     daemon = plistlib.loads(payload[daemon_name][1])
     require(daemon['Label'] == 'com.82flex.trollvnc', 'Daemon label mismatch')
-    require(daemon['ProgramArguments'] == ['/usr/bin/trollvncserver', '-daemon'], 'Daemon executable mismatch')
+    require(daemon['ProgramArguments'] == ['/usr/bin/dkviewphone-watchdog'], 'Daemon executable mismatch')
+    require(daemon['StandardOutPath'] == daemon['StandardErrorPath'] == '/dev/null', 'Unbounded daemon output')
     require(daemon['UserName'] == 'mobile' and daemon['RunAtLoad'] and daemon['KeepAlive'], 'Daemon lifecycle changed')
     require(not any('PASSWORD' in key for key in daemon.get('EnvironmentVariables', {})), 'Bundled password in daemon')
     required = ['usr/bin/trollvncserver', 'Library/PreferenceBundles/TrollVNCPrefs.bundle/TrollVNCPrefs',
@@ -159,7 +160,7 @@ def validate(path):
                 'Library/PreferenceLoader/Preferences/TrollVNCPrefs/Root.plist',
                 'usr/share/trollvnc/webclients/novnc/vnc.html', 'usr/share/doc/com.dk.viewphone/COPYING',
                 'usr/share/doc/com.dk.viewphone/third-party/OpenSSL-LICENSE',
-                'usr/share/doc/com.dk.viewphone/third-party/noVNC-MPL-2.0']
+                'usr/share/doc/com.dk.viewphone/third-party/noVNC-MPL-2.0', 'usr/bin/dkviewphone-watchdog']
     for name in required:
         require(name in payload and payload[name][1], f'Missing required payload: {name}')
     binaries = {}
@@ -177,6 +178,9 @@ def validate(path):
         require(b'-----BEGIN PRIVATE KEY-----' not in content and b'ghp_' not in content,
                 f'Possible bundled secret: {name}')
     require(all(name in binaries for name in required[:3]), 'Missing required Mach-O binaries')
+    require('usr/bin/dkviewphone-watchdog' in binaries, 'Missing watchdog Mach-O')
+    watchdog_entitlements = plistlib.loads((Path(__file__).resolve().parents[1] / 'src/dkviewphone-watchdog.entitlements').read_bytes())
+    require(binaries['usr/bin/dkviewphone-watchdog']['entitlements'] == watchdog_entitlements, 'Watchdog entitlements mismatch')
     for name in required[1:3]:
         bundle = str(PurePosixPath(name).parent)
         info = plistlib.loads(payload[bundle + '/Info.plist'][1])

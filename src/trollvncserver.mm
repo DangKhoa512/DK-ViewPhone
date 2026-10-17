@@ -47,6 +47,7 @@
 #import "ClipboardManager.h"
 #import "Control.h"
 #import "DKViewPhonePolicy.h"
+#import "DKRuntime.h"
 #import "FBSOrientationObserver.h"
 #import "IOKitSPI.h"
 #import "Logging.h"
@@ -1522,9 +1523,9 @@ NS_INLINE int ensureRotateScratch(size_t w, size_t h) {
     if (gRotateScratchSize >= need && gRotateScratch)
         return 0;
     void *nbuf = realloc(gRotateScratch, need);
-    memset(nbuf, 0, need);
     if (!nbuf)
         return -1;
+    memset(nbuf, 0, need);
     gRotateScratch = nbuf;
     gRotateScratchSize = need;
     return 0;
@@ -1612,25 +1613,30 @@ NS_INLINE void swapBuffers(void) {
 }
 
 // Blocking lock helpers (original behavior): lock all clients, then unlock all.
+static std::vector<rfbClientPtr> gPublishClients;
 NS_INLINE void lockAllClientsBlocking(void) {
     rfbClientIteratorPtr it = rfbGetClientIterator(gScreen);
     rfbClientPtr cl;
     while ((cl = rfbClientIteratorNext(it))) {
+        rfbIncrClientRef(cl);
+        gPublishClients.push_back(cl);
         pthread_mutex_lock(&cl->sendMutex);
     }
     rfbReleaseClientIterator(it);
 }
 
 NS_INLINE void unlockAllClientsBlocking(void) {
-    rfbClientIteratorPtr it = rfbGetClientIterator(gScreen);
-    rfbClientPtr cl;
-    while ((cl = rfbClientIteratorNext(it))) {
+    // Unlock exactly the retained clients that were locked, even when another
+    // thread adds/removes a client during publication.
+    for (rfbClientPtr cl : gPublishClients) {
         pthread_mutex_unlock(&cl->sendMutex);
+        rfbDecrClientRef(cl);
     }
-    rfbReleaseClientIterator(it);
+    gPublishClients.clear();
 }
 
 static void handleFramebuffer(CMSampleBufferRef sampleBuffer) {
+    double dkStarted = clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW) / 1e9;
 
 #if DEBUG
     // Perf: overall start timestamp
@@ -1859,6 +1865,7 @@ static void handleFramebuffer(CMSampleBufferRef sampleBuffer) {
     swapBuffers();
     rfbMarkRectAsModified(gScreen, 0, 0, gWidth, gHeight);
     unlockAllClientsBlocking();
+    DKFrameCompleted((clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW) / 1e9 - dkStarted) * 1000);
 
 #if DEBUG
     CFAbsoluteTime __tv_tEnd = CFAbsoluteTimeGetCurrent();
@@ -3091,6 +3098,8 @@ static BOOL gRestoreAssist = NO;
 #endif
 
 static void clientGoneHook(rfbClientPtr cl) {
+    DKUpdateEnd(cl, false);
+    DKClientDelta(-1);
     // Free per-client state
     TVClientState *st = tvGetClientState(cl);
     BOOL isRepeaterClient = NO;
@@ -3165,6 +3174,13 @@ static void clientGoneHook(rfbClientPtr cl) {
 }
 
 static enum rfbNewClientAction newClientHook(rfbClientPtr cl) {
+    DKClientDelta(1);
+    int yes = 1, idle = 60, interval = 10, count = 3;
+    setsockopt(cl->sock, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(yes));
+    setsockopt(cl->sock, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes));
+    setsockopt(cl->sock, IPPROTO_TCP, TCP_KEEPALIVE, &idle, sizeof(idle));
+    setsockopt(cl->sock, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(interval));
+    setsockopt(cl->sock, IPPROTO_TCP, TCP_KEEPCNT, &count, sizeof(count));
     cl->clientGoneHook = clientGoneHook;
     if (!cl->viewOnly && gViewOnly)
         cl->viewOnly = TRUE;
@@ -3632,6 +3648,7 @@ static void setupRfbScreen(int argc, const char *argv[]) {
 
     // Server ports
     gScreen->port = gPort;
+    gScreen->maxClientWait = 5000; // milliseconds, bound a stalled read/write
     // LibVNCServer otherwise opens a second wildcard IPv6 listener even when
     // listenInterface is an explicit IPv4 address.
     gScreen->ipv6port = -1;
@@ -3661,6 +3678,8 @@ static void setupRfbScreen(int argc, const char *argv[]) {
 
     // Event handlers
     gScreen->newClientHook = newClientHook;
+    gScreen->displayHook = [](rfbClientPtr client) { DKUpdateBegin(client, client->sock); };
+    gScreen->displayFinishedHook = [](rfbClientPtr client, int result) { DKUpdateEnd(client, result != 0); };
 #if DEBUG
     gScreen->displayHook = displayHook;
     gScreen->displayFinishedHook = displayFinishedHook;
@@ -3954,10 +3973,7 @@ static void initializeAndRunRfbServer(void) {
 
 static void handleSignal(int signum) {
     (void)signum;
-    TVLog(@"Signal %d received", signum);
-
-    // Best-effort: stop runloop to unwind main and allow cleanup.
-    CFRunLoopStop(CFRunLoopGetMain());
+    DKRequestTermination(); // signal-safe; main timer performs runloop cleanup
 }
 
 static void installSignalHandlers(void) {
@@ -3981,7 +3997,7 @@ static void installTerminationHandlers(void) {
 
 #pragma mark - Logging
 
-BOOL tvncLoggingEnabled = YES;
+BOOL tvncLoggingEnabled = NO; // fixed-schema diagnostics replace unrestricted messages
 BOOL tvncVerboseLoggingEnabled = NO;
 
 #define LOCK(mutex) pthread_mutex_lock(&(mutex))
@@ -4211,7 +4227,14 @@ int main(int argc, const char *argv[]) {
     dropPrivileges();
 
     @autoreleasepool {
+        DKStartRuntime();
+        installSignalHandlers();
         parseCLI(argc, argv);
+        // Supervisor follows only the previously selected private interface.
+        // Saved 1.0 preferences are never rewritten to the temporary runtime IP.
+        const char *runtimeBind = getenv("DK_VIEWPHONE_BIND");
+        if (gIsDaemonMode && getenv("DK_VIEWPHONE_HEARTBEAT_FD") && runtimeBind)
+            gBindHost = @(runtimeBind); // validated by the unchanged security policy below
 
         // Validate before capture, socket creation, or LibVNCServer startup.
         if (gEnabled && !validateSecurityConfiguration()) {
@@ -4263,7 +4286,7 @@ int main(int argc, const char *argv[]) {
     }
 
     CFRunLoopRun();
-    cleanupAndExit(EXIT_SUCCESS);
+    cleanupAndExit(gIsDaemonMode && DKTerminationRequested() ? 75 : EXIT_SUCCESS);
 
     return EXIT_SUCCESS;
 }
