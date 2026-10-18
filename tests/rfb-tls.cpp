@@ -71,6 +71,7 @@ int main(int argc, char **argv) {
         active = false; reader.join(); writer.join(); peeker.join();
         assert(reads && writes && pending); assert(client.sslctx == nullptr); assert(DKTestTLSSessions() == 0);
         assert(rfbssl_pending(&client) == 0); assert(rfbssl_write(&client, send, sizeof(send)) == -1);
+        assert(write(sockets[0], send, sizeof(send)) == -1); // no raw fallback after TLS teardown
         SSL_free(peer); SSL_CTX_free(ctx); close(sockets[0]); close(sockets[1]);
     }
     rfbScreenInfo screen = {}; screen.sslcertfile = (char *)"/nonexistent-dk-test-certificate";

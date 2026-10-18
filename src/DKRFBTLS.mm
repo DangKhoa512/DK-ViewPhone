@@ -122,7 +122,13 @@ extern "C" void rfbssl_destroy(rfbClientPtr cl) {
     {
         auto &r = registry(); std::lock_guard<std::mutex> lock(r.mutex);
         auto it = r.states.find(cl);
-        if (it != r.states.end()) { state = it->second; r.states.erase(it); }
+        if (it != r.states.end()) {
+            state = it->second; r.states.erase(it);
+            // The engine chooses raw write/read when sslctx is NULL. Shut down
+            // the transport first so a concurrent closing thread cannot fall
+            // back to plaintext. Socket ownership/close remains in the engine.
+            shutdown(cl->sock, SHUT_RDWR);
+        }
         cl->sslctx = nullptr;
     }
     if (!state) return;
