@@ -5,13 +5,6 @@
 #import <net/if.h>
 #import <objc/runtime.h>
 
-static NSHashTable *DKModernTimeViews(void) {
-    static NSHashTable *views;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{ views = [NSHashTable weakObjectsHashTable]; });
-    return views;
-}
-
 static NSHashTable *DKLegacyTimeViews(void) {
     static NSHashTable *views;
     static dispatch_once_t onceToken;
@@ -52,40 +45,18 @@ static NSString *DKCurrentIPv4(void) {
 }
 
 @interface NSObject (DKViewPhoneStatusBarPrivate)
-- (id)imageWithText:(NSString *)text;
+- (void)setDateTimeString:(NSString *)text;
 - (void)updateContentsAndWidth;
-- (id)timeView;
-- (id)shortTimeView;
-- (id)pillTimeView;
-- (void)setText:(NSString *)text;
 @end
 
 // Non-notched devices such as the iPhone 6s render the clock as an image.
-// Hooking this concrete class avoids changing carrier or date strings.
+// Replace the model string and let UIKit render/cache the image normally.
+// Hooking contentsImage directly can recurse inside UIKit and is unsafe.
 %hook UIStatusBarTimeItemView
 
-- (id)contentsImage {
+- (void)setDateTimeString:(NSString *)text {
     [DKLegacyTimeViews() addObject:self];
-    return [(id)self imageWithText:DKCurrentIPv4()];
-}
-
-%end
-
-// Newer status bars use string views owned by a dedicated time item. Update
-// only the views returned by that item instead of globally replacing strings.
-%hook _UIStatusBarTimeItem
-
-- (void)applyUpdate:(id)update toDisplayItem:(id)displayItem {
-    %orig;
-    NSString *address = DKCurrentIPv4();
-    for (id view in @[[((id)self) timeView] ?: NSNull.null,
-                      [((id)self) shortTimeView] ?: NSNull.null,
-                      [((id)self) pillTimeView] ?: NSNull.null]) {
-        if (view != NSNull.null && [view respondsToSelector:@selector(setText:)]) {
-            [DKModernTimeViews() addObject:view];
-            [view setText:address];
-        }
-    }
+    %orig(DKCurrentIPv4());
 }
 
 %end
@@ -94,10 +65,10 @@ static NSString *DKCurrentIPv4(void) {
     dispatch_async(dispatch_get_main_queue(), ^{
         [NSTimer scheduledTimerWithTimeInterval:5.0 repeats:YES block:^(__unused NSTimer *timer) {
             NSString *address = DKCurrentIPv4();
-            for (id view in DKModernTimeViews().allObjects)
-                [view setText:address];
-            for (id view in DKLegacyTimeViews().allObjects)
+            for (id view in DKLegacyTimeViews().allObjects) {
+                [view setDateTimeString:address];
                 [view updateContentsAndWidth];
+            }
         }];
     });
 }
