@@ -1,4 +1,4 @@
-export PACKAGE_VERSION := 1.1.4
+export PACKAGE_VERSION := 1.2.0
 THEOS_PACKAGE_SCHEME ?= roothide
 export THEOS_PACKAGE_SCHEME
 
@@ -139,7 +139,6 @@ include $(THEOS_MAKE_PATH)/tool.mk
 
 SUBPROJECTS += prefs/TrollVNCPrefs
 SUBPROJECTS += prefs/CCTrollVNC
-SUBPROJECTS += statusbar/DKViewPhoneStatusBar
 
 ifeq ($(THEBOOTSTRAP),1)
 SUBPROJECTS += app/TrollVNC

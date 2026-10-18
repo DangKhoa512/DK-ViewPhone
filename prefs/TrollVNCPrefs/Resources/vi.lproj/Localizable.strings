@@ -44,8 +44,8 @@
 "Copy ID" = "Sao chép ID";
 "Copy URL" = "Sao chép địa chỉ Web";
 "Current IP Address: %@" = "Địa chỉ IP hiện tại: %@";
-"Default off. HTTP/WS exposes screen and input without encryption: use trusted LAN only. Both services use the configured concrete Bind Address. Apply changes reconnects sessions. HTTPS/WSS requires a matching PEM certificate/key trusted by your browser." = "Mặc định tắt. HTTP/WS truyền ảnh và thao tác không mã hóa, chỉ dùng trên LAN tin cậy. Hai dịch vụ dùng Địa chỉ lắng nghe đã chọn. Áp dụng sẽ kết nối lại phiên. HTTPS/WSS cần chứng chỉ PEM và khóa tương ứng được trình duyệt tin cậy.";
-"Default off. When enabled, anyone who can reach this private LAN listener can view/control the phone without a password. Requires Trusted LAN consent and Reverse Mode off. Saved passwords are retained but ignored; use global View-only or disable Remote Control to restrict input." = "Mặc định tắt. Khi bật, bất kỳ ai truy cập được máy qua LAN đều có thể xem và điều khiển mà không cần mật khẩu. Cần bật LAN tin cậy và tắt kết nối ngược. Mật khẩu đã lưu được giữ lại nhưng không dùng trong chế độ này. Bật Chỉ xem hoặc tắt Cho phép điều khiển để chặn thao tác.";
+"Default off. HTTP/WS exposes screen and input without encryption: use trusted LAN only. Both services use the configured concrete Bind Address. Apply changes reconnects sessions. HTTPS/WSS requires a matching PEM certificate/key trusted by your browser." = "Mặc định bật trong cấu hình mới. HTTP/WS truyền ảnh và thao tác không mã hóa, chỉ dùng trên LAN tin cậy. Hai dịch vụ dùng Địa chỉ lắng nghe đã chọn. Áp dụng sẽ kết nối lại phiên. HTTPS/WSS cần chứng chỉ PEM và khóa tương ứng được trình duyệt tin cậy.";
+"Default off. When enabled, anyone who can reach this private LAN listener can view/control the phone without a password. Requires Trusted LAN consent and Reverse Mode off. Saved passwords are retained but ignored; use global View-only or disable Remote Control to restrict input." = "Mặc định bật trong cấu hình mới. Bất kỳ ai truy cập được máy qua LAN đều có thể xem và điều khiển mà không cần mật khẩu. Cần bật LAN tin cậy và tắt kết nối ngược. Mật khẩu đã lưu được giữ lại nhưng không dùng trong chế độ này. Bật Chỉ xem hoặc tắt Cho phép điều khiển để chặn thao tác.";
 "Default: loopback 127.0.0.1. For LAN access enter this iPhone’s private Wi-Fi IPv4 address. Wildcard, public and IPv6 binds are disabled." = "Mặc định: 127.0.0.1 (chỉ trên máy). Để truy cập qua LAN, nhập địa chỉ IPv4 Wi-Fi nội bộ của iPhone. Không dùng địa chỉ đại diện, IP công cộng hoặc IPv6.";
 "Desktop Name" = "Tên thiết bị hiển thị";
 "Disabled" = "Tắt";
@@ -126,7 +126,7 @@
 "Show notifications when clients connect or disconnect." = "Thông báo chỉ được lưu ẩn trong Trung tâm thông báo, không hiện biểu ngữ và không phát âm thanh.";
 "Shown to VNC clients" = "Tên hiển thị cho người xem";
 "Silence Notifications" = "Thông báo trạng thái ẩn";
-"Single fps (e.g. 60), range min-max (e.g. 30-60), or full spec min:pref:max (e.g. 30:60:120). iOS 15+ uses range; iOS 14 uses preferred/max." = "Nhập một mức FPS (60), khoảng tối thiểu–tối đa (30-60), hoặc tối thiểu:ưu tiên:tối đa (30:60:120). iOS 15 trở lên dùng khoảng FPS. Để trống để dùng mặc định 15:30:30.";
+"Single fps (e.g. 60), range min-max (e.g. 30-60), or full spec min:pref:max (e.g. 30:60:120). iOS 15+ uses range; iOS 14 uses preferred/max." = "Nhập một mức FPS (60), khoảng tối thiểu–tối đa (30-60), hoặc tối thiểu:ưu tiên:tối đa (30:60:120). iOS 15 trở lên dùng khoảng FPS. Để trống để dùng mặc định 30:60:120.";
 "Skip This Version" = "Bỏ qua phiên bản này";
 "Standard" = "Tiêu chuẩn";
 "Standard: Alt as Option, Super as Command. On macOS clients, Alt as Command (altcmd) is recommended." = "Tiêu chuẩn: Alt thành Option, Super thành Command. Với máy Mac, nên chọn Dùng Alt làm Command.";
@@ -159,7 +159,7 @@
 "While viewers are connected, keep capture at the preferred FPS and reduce update batching from 5 ms to 1 ms. Higher minimum FPS may use more battery. Image scale and touch coordinates are unchanged. Apply to restart the server." = "Khi có người xem, giữ nhịp capture ở FPS ưu tiên và giảm thời gian chờ gộp ảnh từ 5 ms xuống 1 ms. FPS tối thiểu cao hơn có thể tốn pin hơn. Giữ nguyên tỷ lệ ảnh và tọa độ chạm. Nhấn Áp dụng để khởi động lại máy chủ.";
 "Wi-Fi unavailable" = "Wi-Fi chưa kết nối";
 "You need to generate a self-signed CA certificate first before exporting it." = "Cần tạo chứng chỉ CA tự ký trước khi xuất.";
-"e.g. 60 or 30-60 or 30:60:120" = "Ví dụ: 30 hoặc 15:30:30";
+"e.g. 60 or 30-60 or 30:60:120" = "Ví dụ: 60 hoặc 30:60:120";
 "server:port" = "maychu:cong";
 "unavailable" = "không khả dụng";
 "ĐK ViewPhone" = "ĐK ViewPhone";

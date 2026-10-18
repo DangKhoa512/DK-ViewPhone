@@ -1,8 +1,8 @@
 Package: com.dk.viewphone
 Name: ĐK ViewPhone
-Version: 1.1.4
+Version: 1.2.0
 Section: Tweaks
-Depends: firmware (>= 15.0), preferenceloader, mobilesubstrate
+Depends: firmware (>= 15.0), preferenceloader
 Conflicts: com.82flex.trollvnc
 Replaces: com.82flex.trollvnc
 Provides: com.82flex.trollvnc

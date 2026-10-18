@@ -39,7 +39,7 @@
             <key>defaults</key><string>com.82flex.trollvnc</string>
             <key>key</key><string>LowLatencyMode</string>
             <key>label</key><string>Ưu tiên độ trễ thấp</string>
-            <key>default</key><false/>
+            <key>default</key><true/>
         </dict>
 
 		<!-- Desktop Name -->
@@ -127,14 +127,14 @@
 		<dict>
             <key>cell</key><string>PSGroupCell</string>
             <key>label</key><string>LAN không mật khẩu</string>
-            <key>footerText</key><string>Mặc định tắt. Khi bật, bất kỳ ai truy cập được máy qua LAN đều có thể xem và điều khiển mà không cần mật khẩu. Cần bật LAN tin cậy và tắt kết nối ngược. Mật khẩu đã lưu được giữ lại nhưng không dùng trong chế độ này. Bật Chỉ xem hoặc tắt Cho phép điều khiển để chặn thao tác.</string>
+            <key>footerText</key><string>Mặc định bật cho LAN tin cậy. Bất kỳ ai truy cập được máy qua LAN đều có thể xem và điều khiển mà không cần mật khẩu. Không mở cổng ra Internet. Mật khẩu đã lưu được giữ lại nhưng không dùng trong chế độ này. Bật Chỉ xem hoặc tắt Cho phép điều khiển để chặn thao tác.</string>
         </dict>
         <dict>
             <key>cell</key><string>PSSwitchCell</string>
             <key>defaults</key><string>com.82flex.trollvnc</string>
             <key>key</key><string>AllowUnauthenticatedLAN</string>
             <key>label</key><string>Không mật khẩu trên LAN tin cậy</string>
-            <key>default</key><false/>
+            <key>default</key><true/>
         </dict>
 
 		<!-- Full-access Password -->
@@ -304,7 +304,7 @@
 			<key>key</key>
 			<string>Scale</string>
 			<key>default</key>
-			<real>0.75</real>
+			<real>0.40</real>
 			<key>min</key>
 			<real>0.1</real>
 			<key>max</key>
@@ -322,7 +322,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Nhập một mức FPS (60), khoảng tối thiểu–tối đa (30-60), hoặc tối thiểu:ưu tiên:tối đa (30:60:120). iOS 15 trở lên dùng khoảng FPS. Để trống để dùng mặc định 15:30:30.</string>
+			<string>Nhập một mức FPS (60), khoảng tối thiểu–tối đa (30-60), hoặc tối thiểu:ưu tiên:tối đa (30:60:120). iOS 15 trở lên dùng khoảng FPS. Để trống để dùng mặc định 30:60:120.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -334,11 +334,11 @@
 			<key>label</key>
 			<string>Tốc độ khung hình (FPS)</string>
 			<key>placeholder</key>
-			<string>Ví dụ: 30 hoặc 15:30:30</string>
+			<string>Ví dụ: 60 hoặc 30:60:120</string>
 			<key>noAutoCorrect</key>
 			<true/>
 			<key>default</key>
-			<string>15:30:30</string>
+			<string>30:60:120</string>
 		</dict>
 
 		<!-- Sync Orientation -->
@@ -565,7 +565,7 @@
 	<key>label</key>
 	<string>Xem và điều khiển qua Web LAN</string>
 	<key>footerText</key>
-	<string>Mặc định tắt. HTTP/WS truyền ảnh và thao tác không mã hóa, chỉ dùng trên LAN tin cậy. Hai dịch vụ dùng Địa chỉ lắng nghe đã chọn. Áp dụng sẽ kết nối lại phiên. HTTPS/WSS cần chứng chỉ PEM và khóa tương ứng được trình duyệt tin cậy.</string>
+	<string>Mặc định bật. HTTP/WS truyền ảnh và thao tác không mã hóa, chỉ dùng trên LAN tin cậy. Hai dịch vụ dùng Địa chỉ lắng nghe đã chọn. Áp dụng sẽ kết nối lại phiên. HTTPS/WSS cần chứng chỉ PEM và khóa tương ứng được trình duyệt tin cậy.</string>
 </dict>
 <dict>
 	<key>cell</key>
@@ -577,7 +577,7 @@
 	<key>label</key>
 	<string>Bật trình xem Web LAN</string>
 	<key>default</key>
-	<false/>
+	<true/>
 </dict>
 <dict>
 	<key>cell</key>
@@ -589,7 +589,7 @@
 	<key>label</key>
 	<string>LAN tin cậy (HTTP / không mật khẩu)</string>
 	<key>default</key>
-	<false/>
+	<true/>
 </dict>
 <dict>
 	<key>cell</key>

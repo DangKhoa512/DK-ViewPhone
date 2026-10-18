@@ -1,4 +1,4 @@
-# LAN Web Viewer — 1.1.1
+# LAN Web Viewer và Multi View — 1.2.0
 
 This extends the existing 1.1.0 tree, checkpoint `167f88b`; package ID remains
 `com.dk.viewphone`. Capture, HID input, watchdog, backoff, network recovery and
@@ -6,14 +6,16 @@ runtime diagnostics remain in place. No Node/Python server is installed on iPhon
 
 ## Enable from Settings
 
-1. Install the 1.1.1 Dopamine roothide DEB. Open Settings → ĐK ViewPhone.
+1. Install the 1.2.0 Dopamine roothide DEB. Open Settings → ĐK ViewPhone.
 2. Keep VNC Port at 5901. Set Bind Address to the concrete private Wi-Fi IPv4
    shown under Local IP Address; loopback remains the safe initial default.
-3. Configure the existing full-access VNC password; optionally set a different
-   view-only password. Both follow the unchanged eight-visible-ASCII password policy.
-4. Turn on Enable LAN Web Viewer, set HTTP Port to 5801. For plaintext access,
-   explicitly turn on Allow HTTP/WS on Trusted LAN. This exposes screen and input
-   without encryption and is unsuitable for untrusted LANs or Internet forwarding.
+3. The 1.2.0 new-install profile enables passwordless trusted LAN, Low Latency,
+   Web Viewer and Remote Control by default. HTTP is 5801, VNC is 5901, scale is
+   0.40 and FPS is 30:60:120. Saved values from an upgrade take precedence.
+4. Passwordless HTTP/WS exposes screen and input to anyone who can reach the
+   private listener. Use only on a trusted LAN and never forward these ports to
+   the Internet. You can disable passwordless mode and configure the existing
+   eight-character VNC passwords instead.
 5. Enable the main server and Apply. Copy URL copies the web address only, never
    credentials. The URL field is a configuration hint, not a listener health check.
 
@@ -25,6 +27,30 @@ Session credentials stay in browser memory for bounded reconnect and are cleared
 by manual Disconnect or closing the page. The page offers Disconnect, Fullscreen,
 View-only, Auto Scale and bounded reconnect (2/4/8/16 seconds, at most five attempts).
 An IP change requires opening the new URL shown in Settings.
+
+## Multi View
+
+Open the Web Viewer and choose **Multi View**. Add each iPhone with a name,
+private IPv4 and VNC port. The list is stored in the current browser profile;
+passwords are never written to localStorage. Each card owns a separate noVNC RFB
+instance, DOM container, timeout and reconnect budget. Select cards and use
+Connect Selected or Disconnect Selected. Cards outside the visible viewport wait
+instead of opening a stream. The default Live View limit is six and can be set
+from 1 to 12; start with four to six devices on older iPhones.
+
+Choose two, three or four grid columns. Search and Online/Offline filters do not
+create connections. Clicking a preview or **Open control** releases Multi View
+streams and moves that device to Single View, where tap, swipe, keyboard,
+fullscreen, view-only and auto-scale continue to use the existing noVNC path.
+Multi View defaults to view-only. The current frontend makes only one control
+session per tab; the server does not arbitrate control ownership across separate
+browsers or PCs.
+
+For USB, forward a different local VNC port for every attached iPhone and store
+that port on its card. When the UI is served from one iPhone, WebSockets to other
+private LAN iPhones work independently, but reloading the page still depends on
+the iPhone serving the HTML. An HTTPS page requires trusted WSS certificates for
+every target iPhone; browsers block insecure WS targets from HTTPS pages.
 
 View-only in the browser suppresses local input. For enforced restrictions use
 the view-only password, the existing global ViewOnly setting, or turn off Enable

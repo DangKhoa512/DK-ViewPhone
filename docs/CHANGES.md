@@ -1,5 +1,13 @@
 # ĐK ViewPhone changes
 
+## 1.2.0
+
+- Thêm Single View và Multi View 2/3/4 cột, quản lý thiết bị LAN/USB, tìm kiếm, lọc, kết nối theo lựa chọn và mở card sang màn hình điều khiển lớn.
+- Mỗi card dùng RFB riêng, reconnect exponential backoff, timeout riêng, lazy connection theo vùng nhìn và giới hạn mặc định 6 Live View.
+- Danh sách thiết bị được lưu trong trình duyệt; mật khẩu chỉ giữ trong bộ nhớ tab và không ghi vào localStorage hay source.
+- Đặt mặc định cài mới: Low Latency bật, LAN không mật khẩu bật, scale 0.40, FPS 30:60:120, Web Viewer/LAN tin cậy/điều khiển từ xa bật, HTTP 5801.
+- Dừng đóng gói tweak thay đồng hồ bằng IPv4 theo yêu cầu; thanh trạng thái iOS giữ nguyên.
+
 ## 1.1.4
 
 - Chuyển thông báo kết nối/ngắt kết nối sang mức ẩn: không biểu ngữ và không âm thanh.

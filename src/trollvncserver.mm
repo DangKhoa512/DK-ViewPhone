@@ -86,11 +86,11 @@ static double gKeepAliveSec = 0.0; // 15..86400
 static BOOL gClipboardEnabled = YES;
 static BOOL gIsDaemonMode = NO; // set when launched with -daemon
 
-static double gScale = 0.75; // 0 < scale <= 1.0, 1.0 = no scaling
+static double gScale = 0.40; // 0 < scale <= 1.0, 1.0 = no scaling
 // Preferred frame rate range (0 = unspecified)
-static int gFpsMin = 15;
-static int gFpsPref = 30;
-static int gFpsMax = 30;
+static int gFpsMin = 30;
+static int gFpsPref = 60;
+static int gFpsMax = 120;
 
 // Wheel scroll coalescing state (async, non-blocking)
 static double gWheelStepPx = 48.0;        // base pixels per wheel tick (lower = slower)
@@ -119,12 +119,12 @@ static char *gAuthPasswdStr = NULL;         // owns the duplicated password stri
 static char *gAuthViewOnlyPasswdStr = NULL; // optional view-only password string
 
 // HTTP server (LibVNCServer built-in web client)
-static int gHttpPort = 0;
-static BOOL gLANWebEnabled = NO;
+static int gHttpPort = 5801;
+static BOOL gLANWebEnabled = YES;
 static BOOL gWebTLS = NO;
-static BOOL gTrustedLAN = NO;
-static BOOL gNoPasswordLAN = NO;
-static BOOL gLowLatency = NO;
+static BOOL gTrustedLAN = YES;
+static BOOL gNoPasswordLAN = YES;
+static BOOL gLowLatency = YES;
 static char *gHttpDirOverride = NULL;
 static char *gSslCertPath = NULL;
 static char *gSslKeyPath = NULL;
@@ -572,11 +572,11 @@ static void parseDaemonOptions(void) {
     }
 
     // Booleans
-    gLANWebEnabled = [prefs[@"LANWebViewerEnabled"] boolValue];
-    gWebTLS = [prefs[@"WebViewerTLS"] boolValue];
-    gTrustedLAN = [prefs[@"WebViewerTrustedLAN"] boolValue];
-    gNoPasswordLAN = [prefs[@"AllowUnauthenticatedLAN"] boolValue];
-    gLowLatency = [prefs[@"LowLatencyMode"] boolValue];
+    if (prefs[@"LANWebViewerEnabled"]) gLANWebEnabled = [prefs[@"LANWebViewerEnabled"] boolValue];
+    if (prefs[@"WebViewerTLS"]) gWebTLS = [prefs[@"WebViewerTLS"] boolValue];
+    if (prefs[@"WebViewerTrustedLAN"]) gTrustedLAN = [prefs[@"WebViewerTrustedLAN"] boolValue];
+    if (prefs[@"AllowUnauthenticatedLAN"]) gNoPasswordLAN = [prefs[@"AllowUnauthenticatedLAN"] boolValue];
+    if (prefs[@"LowLatencyMode"]) gLowLatency = [prefs[@"LowLatencyMode"] boolValue];
     if (!prefs[@"HttpPort"] && gLANWebEnabled) gHttpPort = 5801;
     if (!gLANWebEnabled) gHttpPort = 0;
     NSNumber *enableN = [prefs objectForKey:@"Enabled"];

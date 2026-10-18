@@ -1,8 +1,8 @@
-# ĐK ViewPhone 1.1.4
+# ĐK ViewPhone 1.2.0
 
 [Chế độ LAN không mật khẩu 1.1.3](docs/PASSWORDLESS-LAN-1.1.3.md).
 
-Bổ sung [LAN Web Viewer tích hợp trong DEB](docs/LAN-WEB-VIEWER.md), mặc định tắt.
+Bổ sung [LAN Web Viewer tích hợp trong DEB](docs/LAN-WEB-VIEWER.md) với Single View và Multi View.
 Giữ các tính năng Stability 1.1.0. Xem [kết quả kiểm thử Web Viewer](docs/WEB-VIEWER-RESULTS.md).
 
 Bản tùy biến từ [TrollVNC](https://github.com/owngoal-dev/TrollVNC), dành riêng cho **Dopamine roothide**, iOS 15+, binary arm64 (iPhone 6s/7). Giữ engine capture và điều khiển gốc. Giấy phép GPLv2; xem [COPYING](COPYING) và [nguồn/ghi công](docs/ATTRIBUTION.md).
@@ -13,7 +13,7 @@ Mã nguồn phát triển: [DangKhoa512/DK-ViewPhone, dev/roothide](https://gith
 
 Mở [Actions](https://github.com/DangKhoa512/DK-ViewPhone/actions/workflows/build-dkviewphone.yml), chọn **Build DK ViewPhone (roothide)** → **Run workflow** trên branch `dev/roothide`. Workflow cũng chạy khi push branch này.
 
-Workflow build bản TrollVNC gốc trước, sau đó build ĐK ViewPhone, kiểm tra DEB và hash chữ ký ad-hoc Mach-O rồi mới upload artifact `DKViewPhone_1.1.4_roothide`. Bên trong có `DKViewPhone_1.1.4_roothide.deb`, SHA256SUMS, báo cáo kiểm tra và source của commit tương ứng. Artifact log luôn được upload khi build lỗi. Chỉ run màu xanh với bước kiểm tra thành công mới được coi là build đạt.
+Workflow build bản TrollVNC gốc trước, sau đó build ĐK ViewPhone, kiểm tra DEB và hash chữ ký ad-hoc Mach-O rồi mới upload artifact `DKViewPhone_1.2.0_roothide`. Bên trong có `DKViewPhone_1.2.0_roothide.deb`, SHA256SUMS, báo cáo kiểm tra và source của commit tương ứng. Artifact log luôn được upload khi build lỗi. Chỉ run màu xanh với bước kiểm tra thành công mới được coi là build đạt.
 
 Build thủ công trên macOS với Xcode 16.2, `roothide/theos` cùng submodules, SDK 16.5/14.5 và dependencies như workflow:
 
@@ -21,7 +21,7 @@ Build thủ công trên macOS với Xcode 16.2, `roothide/theos` cùng submodule
 export THEOS="$HOME/theos-roothide"
 source devkit/roothide.sh
 FINALPACKAGE=1 gmake clean package
-python3 devkit/verify-package.py packages/com.dk.viewphone_1.1.4_iphoneos-arm64e.deb
+python3 devkit/verify-package.py packages/com.dk.viewphone_1.2.0_iphoneos-arm64e.deb
 ```
 
 Metadata `iphoneos-arm64e` là quy ước **package scheme roothide**, không có nghĩa binary chỉ chạy trên CPU arm64e. Binary trong bản này là arm64. Không dùng DEB này trên rootless thông thường hoặc TrollStore.
@@ -39,14 +39,14 @@ và tài nguyên dịch vụ; quan hệ thay thế gói không áp dụng cho ap
 
 ## Kết nối máy tính
 
-Mặc định mới cài: server tắt; bind `127.0.0.1`; port `5901`; scale `0.75`; FPS `15:30:30`; clipboard và xoay màn hình bật; Bonjour và HTTP tắt; điều khiển chỉ sau xác thực.
+Mặc định mới cài: server tắt; bind `127.0.0.1`; VNC `5901`; Web `5801`; scale `0.40`; FPS `30:60:120`; ưu tiên độ trễ thấp, Web Viewer, LAN tin cậy, không mật khẩu LAN và điều khiển từ xa đều bật. Clipboard và xoay màn hình bật; Bonjour và HTTPS/WSS tắt. Trước khi bật server để dùng LAN, chọn IPv4 Wi-Fi riêng của iPhone làm Bind Address.
 
 - Mật khẩu full-access phải có đúng **8 ký tự ASCII nhìn thấy**, gồm chữ hoa, chữ thường, số và ký hiệu. Dùng mật khẩu ngẫu nhiên riêng. Không có mật khẩu mặc định. Mật khẩu view-only là tùy chọn và phải khác full-access, cùng quy tắc.
 - Để dùng LAN, nhập **địa chỉ IPv4 Wi-Fi riêng của iPhone** vào Bind Address, ví dụ địa chỉ đang hiển thị trong Settings của máy. Bật Enabled, nhấn Apply khi sửa các thiết lập khác. Máy tính phải kết nối được tới cùng LAN.
 - Trong VNC viewer, nhập host và port riêng `5901`. Với viewer dùng cú pháp cổng tuyệt đối, dùng `<IP-iPhone>::5901`; với macOS dùng `vnc://<IP-iPhone>:5901`. Nhập mật khẩu khi được hỏi.
 - Nếu dùng SSH tunnel, giữ bind loopback và chuyển tiếp `ssh -N -L 5901:127.0.0.1:5901 mobile@<IP-iPhone>` rồi kết nối viewer tới `127.0.0.1:5901`. Cần SSH trên iPhone đã được cấu hình riêng.
 - Classic VNC chỉ dùng 8 byte và không mã hóa hình ảnh/input. Dùng LAN tin cậy; trên mạng không tin cậy phải dùng tunnel mã hóa. Không forward cổng VNC ra Internet. IPv6, wildcard và bind IP công khai bị từ chối trong bản này.
-- Web Viewer mặc định tắt. HTTP/WS cần bật Allow HTTP/WS on Trusted LAN và chỉ dùng trên LAN tin cậy. HTTPS/WSS cần certificate/key phù hợp được trình duyệt tin cậy. Xem [cấu hình chi tiết](docs/LAN-WEB-VIEWER.md).
+- Web Viewer dùng HTTP/WS mặc định và chỉ phù hợp LAN tin cậy. Multi View lưu danh sách thiết bị, chế độ và cổng trên trình duyệt; không lưu mật khẩu. HTTPS/WSS cần certificate/key phù hợp được trình duyệt tin cậy cho từng iPhone. Xem [cấu hình chi tiết](docs/LAN-WEB-VIEWER.md).
 - Có thể tắt bằng Enabled hoặc Control Center. Server do LaunchDaemon quản lý, không phụ thuộc việc giữ Settings mở.
 
 Các thiết lập cũ từ TrollVNC được giữ khi thay gói. Defaults mới áp dụng cho trường chưa lưu; mật khẩu cũ yếu khiến server bị tắt để cấu hình lại. Gỡ gói giữ lại preferences; có thể Reset Settings trước khi gỡ.

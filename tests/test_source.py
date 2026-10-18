@@ -32,7 +32,12 @@ class SourceTests(unittest.TestCase):
         def settings(p):
             return {i['key']:{k:v for k,v in i.items() if k not in display} for i in p['items'] if 'key' in i}
         original,translated = settings(before),settings(after)
-        for key,value in original.items():self.assertEqual(value,translated[key],key)
+        changed_defaults = {'Scale','FrameRateSpec','AllowUnauthenticatedLAN','LANWebViewerEnabled','WebViewerTrustedLAN'}
+        for key,value in original.items():
+            if key in changed_defaults:
+                self.assertEqual({k:v for k,v in value.items() if k != 'default'},
+                                 {k:v for k,v in translated[key].items() if k != 'default'}, key)
+            else:self.assertEqual(value,translated[key],key)
         self.assertEqual(set(translated)-set(original), {'LowLatencyMode'})
 
     def test_xml_resources(self):
@@ -47,13 +52,13 @@ class SourceTests(unittest.TestCase):
         self.assertEqual(root['title'], 'ĐK ViewPhone')
         items = {item['key']: item for item in root['items'] if 'key' in item}
         expected = {'Enabled':False, 'DesktopName':'ĐK ViewPhone', 'Port':5901,
-                    'BindHost':'127.0.0.1', 'Scale':0.75, 'FrameRateSpec':'15:30:30',
+                    'BindHost':'127.0.0.1', 'Scale':0.40, 'FrameRateSpec':'30:60:120',
                     'ClipboardEnabled':True, 'OrientationSync':True, 'ViewOnly':False,
                     'BonjourEnabled':False}
-        expected.update(LANWebViewerEnabled=False, WebViewerTrustedLAN=False,
+        expected.update(LANWebViewerEnabled=True, WebViewerTrustedLAN=True,
                         WebViewerTLS=False, HttpPort=5801, RemoteControlEnabled=True,
-                        AllowUnauthenticatedLAN=False)
-        expected['LowLatencyMode'] = False
+                        AllowUnauthenticatedLAN=True)
+        expected['LowLatencyMode'] = True
         for key, value in expected.items():
             self.assertEqual(items[key]['default'], value, key)
         for key in ('FullPassword', 'ViewOnlyPassword'):
@@ -92,7 +97,9 @@ class SourceTests(unittest.TestCase):
                 if tag == 'script': self.scripts.append(attrs.get('src'))
         web = ROOT / 'layout/usr/share/trollvnc/webclients'
         html = (web / 'index.vnc').read_text(encoding='utf-8')
-        self.assertIn('<title>ĐK ViewPhone · USB / LAN Viewer</title>', html)
+        self.assertIn('<title>ĐK ViewPhone · Multi-Device Viewer</title>', html)
+        self.assertIn('id="multiPanel"', html)
+        self.assertIn('id="deviceGrid"', html)
         self.assertNotIn('\ufffd', html)
         self.assertLess(len(html.encode()), 32768)
         parser = Parser(); parser.feed(html)
@@ -100,20 +107,24 @@ class SourceTests(unittest.TestCase):
         for name in parser.scripts:
             self.assertGreater((web / name).stat().st_size, 10000)
 
-    def test_notifications_are_passive_and_status_bar_is_scoped(self):
+    def test_notifications_are_passive_and_status_bar_build_is_disabled(self):
         bulletins = (ROOT / 'src/BulletinManager.mm').read_text(encoding='utf-8')
         pop = bulletins.split('- (void)popBannerWithContent:', 1)[1].split('- (void)revokeSingleNotification', 1)[0]
         self.assertIn('UNNotificationInterruptionLevelPassive', pop)
         self.assertNotIn('UNNotificationInterruptionLevelActive', pop)
         self.assertNotIn('defaultSound', pop)
-        tweak = (ROOT / 'statusbar/DKViewPhoneStatusBar/Tweak.xm').read_text(encoding='utf-8')
-        self.assertIn('StatusBarTimeItemView', tweak)
-        self.assertIn('getifaddrs', tweak)
-        self.assertIn('- (NSString *)dateTimeString', tweak)
-        self.assertNotIn('- (id)contentsImage', tweak)
-        self.assertNotIn('[view updateContentsAndWidth]', tweak)
-        filter_plist = plistlib.loads((ROOT / 'statusbar/DKViewPhoneStatusBar/DKViewPhoneStatusBar.plist').read_bytes())
-        self.assertEqual(filter_plist['Filter']['Bundles'], ['com.apple.springboard'])
+        makefile = (ROOT / 'Makefile').read_text(encoding='utf-8')
+        self.assertNotIn('SUBPROJECTS += statusbar/DKViewPhoneStatusBar', makefile)
+
+    def test_multi_view_does_not_persist_passwords(self):
+        source = (ROOT / 'layout/usr/share/trollvnc/webclients/viewer.js').read_text(encoding='utf-8')
+        self.assertIn('class DeviceSession', source)
+        self.assertIn('class MultiConnectionManager', source)
+        self.assertIn("const STORAGE_KEY = 'dk-viewphone-devices-v1'", source)
+        storage_lines = [line for line in source.splitlines() if 'localStorage.setItem' in line]
+        self.assertTrue(storage_lines)
+        self.assertTrue(all('password' not in line.lower() for line in storage_lines))
+        self.assertIn('prefs.limit = Math.min(12,Math.max(1,Number(prefs.limit)||6))', source)
 
     def test_archive_parser_rejects_fake_deb(self):
         for raw in (b'', b'pretend deb', b'!<arch>\ntruncated'):

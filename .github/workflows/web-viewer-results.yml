@@ -5,8 +5,8 @@ on:
       version:
         description: Recorded result version
         type: choice
-        options: ['1.1.4', '1.1.3', '1.1.2', '1.1.1']
-        default: '1.1.4'
+        options: ['1.2.0', '1.1.4', '1.1.3', '1.1.2', '1.1.1']
+        default: '1.2.0'
         required: true
 permissions:
   contents: read
@@ -24,7 +24,7 @@ jobs:
           python3 - <<'PY'
           import json, os, pathlib, re
           version = os.environ['RESULT_VERSION']
-          assert version in ('1.1.1', '1.1.2', '1.1.3', '1.1.4')
+          assert version in ('1.1.1', '1.1.2', '1.1.3', '1.1.4', '1.2.0')
           root = pathlib.Path('docs/test-results') / version
           report = json.loads((root / 'report.json').read_text())
           assert report['version'] == version

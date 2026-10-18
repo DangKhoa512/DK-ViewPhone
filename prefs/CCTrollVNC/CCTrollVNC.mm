@@ -30,6 +30,14 @@
         _defaults = [[NSUserDefaults alloc] initWithSuiteName:@"com.82flex.trollvnc"];
         [_defaults registerDefaults:@{
             @"Enabled" : @NO,
+            @"LowLatencyMode" : @YES,
+            @"AllowUnauthenticatedLAN" : @YES,
+            @"Scale" : @0.40,
+            @"FrameRateSpec" : @"30:60:120",
+            @"LANWebViewerEnabled" : @YES,
+            @"WebViewerTrustedLAN" : @YES,
+            @"RemoteControlEnabled" : @YES,
+            @"HttpPort" : @5801,
         }];
     }
     return self;
@@ -51,8 +59,11 @@
 
 - (void)setSelected:(BOOL)selected {
     // Configuration belongs in Settings. The runtime repeats this validation.
-    if (selected && !TVNCHasValidVNCPasswords([_defaults stringForKey:@"FullPassword"],
-                                             [_defaults stringForKey:@"ViewOnlyPassword"])) {
+    BOOL passwordlessLAN = [_defaults boolForKey:@"AllowUnauthenticatedLAN"] &&
+                           [_defaults boolForKey:@"WebViewerTrustedLAN"];
+    if (selected && !passwordlessLAN &&
+        !TVNCHasValidVNCPasswords([_defaults stringForKey:@"FullPassword"],
+                                  [_defaults stringForKey:@"ViewOnlyPassword"])) {
         [self refreshState];
         return;
     }

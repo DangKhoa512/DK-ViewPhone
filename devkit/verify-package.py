@@ -150,7 +150,7 @@ def validate(path):
     payload = tar_members(members[data_names[0]])
     control = controls['control'][1].decode('utf-8')
     fields = dict(line.split(': ', 1) for line in control.splitlines() if ': ' in line and not line.startswith(' '))
-    for name, expected in {'Package':'com.dk.viewphone', 'Version':'1.1.4', 'Architecture':'iphoneos-arm64e',
+    for name, expected in {'Package':'com.dk.viewphone', 'Version':'1.2.0', 'Architecture':'iphoneos-arm64e',
                            'Name':'ĐK ViewPhone', 'Conflicts':'com.82flex.trollvnc',
                            'Replaces':'com.82flex.trollvnc', 'Provides':'com.82flex.trollvnc'}.items():
         require(fields.get(name) == expected, f'Invalid {name}: {fields.get(name)}')
@@ -175,11 +175,11 @@ def validate(path):
                 'usr/share/trollvnc/webclients/index.vnc', 'usr/share/trollvnc/webclients/viewer.css',
                 'usr/share/trollvnc/webclients/viewer.js', 'usr/share/trollvnc/webclients/viewer.bundle.js',
                 'usr/share/doc/com.dk.viewphone/third-party/OpenSSL-LICENSE',
-                'usr/share/doc/com.dk.viewphone/third-party/noVNC-MPL-2.0', 'usr/bin/dkviewphone-watchdog',
-                'Library/MobileSubstrate/DynamicLibraries/DKViewPhoneStatusBar.dylib',
-                'Library/MobileSubstrate/DynamicLibraries/DKViewPhoneStatusBar.plist']
+                'usr/share/doc/com.dk.viewphone/third-party/noVNC-MPL-2.0', 'usr/bin/dkviewphone-watchdog']
     for name in required:
         require(name in payload and payload[name][1], f'Missing required payload: {name}')
+    require('Library/MobileSubstrate/DynamicLibraries/DKViewPhoneStatusBar.dylib' not in payload,
+            'Stopped status-bar tweak must not be packaged')
     binaries = {}
     for name, (info, content) in payload.items():
         parts = PurePosixPath(name).parts
@@ -196,8 +196,6 @@ def validate(path):
                 f'Possible bundled secret: {name}')
     require(all(name in binaries for name in required[:3]), 'Missing required Mach-O binaries')
     require('usr/bin/dkviewphone-watchdog' in binaries, 'Missing watchdog Mach-O')
-    require('Library/MobileSubstrate/DynamicLibraries/DKViewPhoneStatusBar.dylib' in binaries,
-            'Missing status-bar IPv4 tweak')
     watchdog_entitlements = plistlib.loads((Path(__file__).resolve().parents[1] / 'src/dkviewphone-watchdog.entitlements').read_bytes())
     require(binaries['usr/bin/dkviewphone-watchdog']['entitlements'] == watchdog_entitlements, 'Watchdog entitlements mismatch')
     for name in required[1:3]:
@@ -209,12 +207,14 @@ def validate(path):
     defaults = {item['key']:item.get('default') for item in root['items'] if 'key' in item}
     require(defaults.get('Enabled') is False and defaults.get('BindHost') == '127.0.0.1', 'Unsafe startup defaults')
     require(not defaults.get('FullPassword') and not defaults.get('ViewOnlyPassword'), 'Bundled password in Settings')
-    require(defaults.get('AllowUnauthenticatedLAN') is False, 'Passwordless LAN must require explicit opt-in')
-    require(defaults.get('LowLatencyMode') is False, 'Low latency must preserve existing scheduling unless opted in')
-    require(defaults.get('LANWebViewerEnabled') is False and defaults.get('WebViewerTrustedLAN') is False,
-            'Web access must default off and require consent for plaintext LAN')
-    require(defaults.get('HttpPort') == 5801 and defaults.get('RemoteControlEnabled') is True,
-            'Unexpected web defaults')
+    require(defaults.get('AllowUnauthenticatedLAN') is True and defaults.get('WebViewerTrustedLAN') is True,
+            'Trusted passwordless LAN defaults do not match the release profile')
+    require(defaults.get('LowLatencyMode') is True, 'Low-latency default missing')
+    require(defaults.get('LANWebViewerEnabled') is True and defaults.get('WebViewerTLS') is False,
+            'LAN Web Viewer defaults do not match the release profile')
+    require(defaults.get('HttpPort') == 5801 and defaults.get('RemoteControlEnabled') is True and
+            defaults.get('Scale') == 0.40 and defaults.get('FrameRateSpec') == '30:60:120',
+            'Unexpected performance/web defaults')
     web = 'usr/share/trollvnc/webclients/'
     source_root = Path(__file__).resolve().parents[1]
     vi = 'Library/PreferenceBundles/TrollVNCPrefs.bundle/vi.lproj/Localizable.strings'
