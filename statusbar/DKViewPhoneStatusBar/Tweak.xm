@@ -5,13 +5,6 @@
 #import <net/if.h>
 #import <objc/runtime.h>
 
-static NSHashTable *DKLegacyTimeViews(void) {
-    static NSHashTable *views;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{ views = [NSHashTable weakObjectsHashTable]; });
-    return views;
-}
-
 static BOOL DKPrivateIPv4(uint32_t address) {
     return (address >> 24) == 10 || (address >> 16) == 0xa9fe ||
            (address >> 16) == 0xc0a8 || (address >= 0xac100000 && address <= 0xac1fffff);
@@ -44,31 +37,14 @@ static NSString *DKCurrentIPv4(void) {
     return best ?: @"IPv4 --";
 }
 
-@interface NSObject (DKViewPhoneStatusBarPrivate)
-- (void)setDateTimeString:(NSString *)text;
-- (void)updateContentsAndWidth;
-@end
-
 // Non-notched devices such as the iPhone 6s render the clock as an image.
-// Replace the model string and let UIKit render/cache the image normally.
-// Hooking contentsImage directly can recurse inside UIKit and is unsafe.
+// Override only the model getter and let UIKit own all image/cache/layout work.
+// Calling contentsImage/updateContentsAndWidth from a tweak is intentionally
+// avoided because those private methods recurse on iOS 15.8.4.
 %hook UIStatusBarTimeItemView
 
-- (void)setDateTimeString:(NSString *)text {
-    [DKLegacyTimeViews() addObject:self];
-    %orig(DKCurrentIPv4());
+- (NSString *)dateTimeString {
+    return DKCurrentIPv4();
 }
 
 %end
-
-%ctor {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [NSTimer scheduledTimerWithTimeInterval:5.0 repeats:YES block:^(__unused NSTimer *timer) {
-            NSString *address = DKCurrentIPv4();
-            for (id view in DKLegacyTimeViews().allObjects) {
-                [view setDateTimeString:address];
-                [view updateContentsAndWidth];
-            }
-        }];
-    });
-}

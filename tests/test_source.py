@@ -109,8 +109,9 @@ class SourceTests(unittest.TestCase):
         tweak = (ROOT / 'statusbar/DKViewPhoneStatusBar/Tweak.xm').read_text(encoding='utf-8')
         self.assertIn('StatusBarTimeItemView', tweak)
         self.assertIn('getifaddrs', tweak)
-        self.assertIn('setDateTimeString:', tweak)
+        self.assertIn('- (NSString *)dateTimeString', tweak)
         self.assertNotIn('- (id)contentsImage', tweak)
+        self.assertNotIn('[view updateContentsAndWidth]', tweak)
         filter_plist = plistlib.loads((ROOT / 'statusbar/DKViewPhoneStatusBar/DKViewPhoneStatusBar.plist').read_bytes())
         self.assertEqual(filter_plist['Filter']['Bundles'], ['com.apple.springboard'])
 
