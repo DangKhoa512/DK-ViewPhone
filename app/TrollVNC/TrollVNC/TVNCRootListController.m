@@ -15,6 +15,7 @@
  along with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import "DKSettingsLocalization.h"
 #import <Foundation/Foundation.h>
 #import <Network/Network.h>
 #import <Preferences/PSSpecifier.h>
@@ -267,14 +268,14 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     }
 
     UIBarButtonItem *applyItem = [[UIBarButtonItem alloc]
-        initWithTitle:NSLocalizedStringFromTableInBundle(@"Apply", @"Localizable", self.bundle, nil)
+        initWithTitle:DKSettingsLocalizedString(@"Apply", @"Localizable", self.bundle, nil)
                 style:UIBarButtonItemStyleDone
                target:self
                action:@selector(applyChanges)];
     applyItem.tintColor = _primaryColor;
 
     UIBarButtonItem *clientsItem = [[UIBarButtonItem alloc]
-        initWithTitle:NSLocalizedStringFromTableInBundle(@"Clients", @"Localizable", self.bundle, nil)
+        initWithTitle:DKSettingsLocalizedString(@"Clients", @"Localizable", self.bundle, nil)
                 style:UIBarButtonItemStylePlain
                target:self
                action:@selector(showClients)];
@@ -343,7 +344,7 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 #endif
 
         NSString *footerText = [NSString
-            stringWithFormat:NSLocalizedStringFromTableInBundle(@"ĐK ViewPhone (%@) v%@", @"Localizable", self.bundle, nil),
+            stringWithFormat:DKSettingsLocalizedString(@"ĐK ViewPhone (%@) v%@", @"Localizable", self.bundle, nil),
                              packageScheme, versionString];
         _defaultFooterText = footerText;
     }
@@ -372,19 +373,19 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     BOOL isRevModeOn = [revMode caseInsensitiveCompare:@"none"] != NSOrderedSame;
     if (isRevModeOn) {
         NSString *modeFormat =
-            NSLocalizedStringFromTableInBundle(@"Reverse Connection: %@", @"Localizable", self.bundle, nil);
+            DKSettingsLocalizedString(@"Reverse Connection: %@", @"Localizable", self.bundle, nil);
         if ([revMode caseInsensitiveCompare:@"repeater"] == NSOrderedSame) {
-            revMode = NSLocalizedStringFromTableInBundle(@"Repeater", @"Localizable", self.bundle, nil);
+            revMode = DKSettingsLocalizedString(@"Repeater", @"Localizable", self.bundle, nil);
         } else {
-            revMode = NSLocalizedStringFromTableInBundle(@"Viewer", @"Localizable", self.bundle, nil);
+            revMode = DKSettingsLocalizedString(@"Viewer", @"Localizable", self.bundle, nil);
         }
         text = [NSString stringWithFormat:modeFormat, revMode];
     } else {
         // Append current en0 IP on a second line, if available
         NSString *ip = TVNCGetEn0IPAddress();
-        NSString *ipUnavailable = NSLocalizedStringFromTableInBundle(@"unavailable", @"Localizable", self.bundle, nil);
+        NSString *ipUnavailable = DKSettingsLocalizedString(@"unavailable", @"Localizable", self.bundle, nil);
         NSString *ipFormat =
-            NSLocalizedStringFromTableInBundle(@"Current IP Address: %@", @"Localizable", self.bundle, nil);
+            DKSettingsLocalizedString(@"Current IP Address: %@", @"Localizable", self.bundle, nil);
         text = [NSString stringWithFormat:ipFormat, (ip.length ? ip : ipUnavailable)];
     }
 
@@ -415,17 +416,17 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 #pragma mark - Actions
 
 - (NSString *)dkLocalIPAddress:(PSSpecifier *)specifier {
-    return TVNCGetEn0IPAddress() ?: @"Wi-Fi unavailable";
+    return TVNCGetEn0IPAddress() ?: DKSettingsLocalizedString(@"Wi-Fi unavailable", @"Localizable", self.bundle, nil);
 }
 
 - (NSString *)dkWebViewerURL:(PSSpecifier *)specifier {
-    if (![[self dkPreferenceValueForKey:@"LANWebViewerEnabled"] boolValue]) return @"Web Viewer is off";
+    if (![[self dkPreferenceValueForKey:@"LANWebViewerEnabled"] boolValue]) return DKSettingsLocalizedString(@"Web Viewer is off", @"Localizable", self.bundle, nil);
     NSString *bind = [self dkPreferenceValueForKey:@"BindHost"];
     NSString *ip = TVNCGetEn0IPAddress();
     if (!bind.length || [bind hasPrefix:@"127."] || !ip || !TVNCIsValidBindHostLiteral(ip))
-        return @"Set Bind Address to the iPhone Wi-Fi IPv4";
+        return DKSettingsLocalizedString(@"Set Bind Address to the iPhone Wi-Fi IPv4", @"Localizable", self.bundle, nil);
     int port = [[self dkPreferenceValueForKey:@"HttpPort"] intValue];
-    if (port < 1024 || port > 65535) return @"Set HTTP Port to 5801";
+    if (port < 1024 || port > 65535) return DKSettingsLocalizedString(@"Set HTTP Port to 5801", @"Localizable", self.bundle, nil);
     BOOL tls = [[self dkPreferenceValueForKey:@"WebViewerTLS"] boolValue];
     return [NSString stringWithFormat:@"%@://%@:%d/", tls ? @"https" : @"http", ip, port];
 }
@@ -459,19 +460,19 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
         BOOL reverseOff = !reverse.length || [reverse isEqualToString:@"none"];
         if ([[self dkPreferenceValueForKey:@"WebViewerTrustedLAN"] boolValue] && reverseOff &&
             TVNCIsValidBindHostLiteral([self dkPreferenceValueForKey:@"BindHost"])) return YES;
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Passwordless LAN"
-            message:@"Enable Trusted LAN, choose this iPhone's private LAN IPv4 or loopback Bind Address, and turn Reverse Mode off. Anyone who can reach this listener can view/control the phone. Saved passwords are ignored while this mode is on."
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:DKSettingsLocalizedString(@"Passwordless LAN", @"Localizable", self.bundle, nil)
+            message:DKSettingsLocalizedString(@"Enable Trusted LAN, choose this iPhone's private LAN IPv4 or loopback Bind Address, and turn Reverse Mode off. Anyone who can reach this listener can view/control the phone. Saved passwords are ignored while this mode is on.", @"Localizable", self.bundle, nil)
             preferredStyle:UIAlertControllerStyleAlert];
-        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+        [alert addAction:[UIAlertAction actionWithTitle:DKSettingsLocalizedString(@"OK", @"Localizable", self.bundle, nil) style:UIAlertActionStyleCancel handler:nil]];
         [self presentViewController:alert animated:YES completion:nil]; return NO;
     }
     NSString *full = [self dkPreferenceValueForKey:@"FullPassword"];
     NSString *view = [self dkPreferenceValueForKey:@"ViewOnlyPassword"];
     if (TVNCHasValidVNCPasswords(full, view)) return YES;
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"ĐK ViewPhone"
-        message:@"Set a unique random full-access password: exactly 8 visible ASCII characters including uppercase, lowercase, digit and symbol. The optional view-only password must meet the same rules and be different. Classic VNC uses only 8 bytes; use an encrypted tunnel on untrusted networks."
+        message:DKSettingsLocalizedString(@"Set a unique random full-access password: exactly 8 visible ASCII characters including uppercase, lowercase, digit and symbol. The optional view-only password must meet the same rules and be different. Classic VNC uses only 8 bytes; use an encrypted tunnel on untrusted networks.", @"Localizable", self.bundle, nil)
         preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+    [alert addAction:[UIAlertAction actionWithTitle:DKSettingsLocalizedString(@"OK", @"Localizable", self.bundle, nil) style:UIAlertActionStyleCancel handler:nil]];
     [self presentViewController:alert animated:YES completion:nil];
     return NO;
 }
@@ -550,11 +551,11 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     BOOL webEnabled = [[self dkPreferenceValueForKey:@"LANWebViewerEnabled"] boolValue];
     BOOL httpInvalid = webEnabled && (httpPort < 1024 || httpPort > 65535 || httpPort == port);
     if (portInvalid || httpInvalid) {
-        NSString *t = NSLocalizedStringFromTableInBundle(@"Invalid Port", @"Localizable", self.bundle, nil);
-        NSString *msg = NSLocalizedStringFromTableInBundle(
+        NSString *t = DKSettingsLocalizedString(@"Invalid Port", @"Localizable", self.bundle, nil);
+        NSString *msg = DKSettingsLocalizedString(
             @"TCP/HTTP ports must be 1024..65535 (HTTP can be 0 to disable). The server will fallback to defaults.",
             @"Localizable", self.bundle, nil);
-        NSString *ok = NSLocalizedStringFromTableInBundle(@"OK", @"Localizable", self.bundle, nil);
+        NSString *ok = DKSettingsLocalizedString(@"OK", @"Localizable", self.bundle, nil);
 
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:t
                                                                        message:msg
@@ -566,11 +567,11 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     }
 
     if (!TVNCIsValidBindHostLiteral(bindHost)) {
-        NSString *t = NSLocalizedStringFromTableInBundle(@"Invalid Bind Address", @"Localizable", self.bundle, nil);
-        NSString *msg = NSLocalizedStringFromTableInBundle(
+        NSString *t = DKSettingsLocalizedString(@"Invalid Bind Address", @"Localizable", self.bundle, nil);
+        NSString *msg = DKSettingsLocalizedString(
             @"Use loopback or this iPhone’s private LAN IPv4 address. Empty means 127.0.0.1. Wildcard, public and IPv6 binds are disabled.",
             @"Localizable", self.bundle, nil);
-        NSString *ok = NSLocalizedStringFromTableInBundle(@"OK", @"Localizable", self.bundle, nil);
+        NSString *ok = DKSettingsLocalizedString(@"OK", @"Localizable", self.bundle, nil);
 
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:t
                                                                        message:msg
@@ -585,20 +586,20 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     if (webEnabled && ((tls && (![[self dkPreferenceValueForKey:@"SslCertFile"] length] ||
                                ![[self dkPreferenceValueForKey:@"SslKeyFile"] length])) ||
                         (!tls && ![[self dkPreferenceValueForKey:@"WebViewerTrustedLAN"] boolValue]))) {
-        UIAlertController *webAlert = [UIAlertController alertControllerWithTitle:@"LAN Web Viewer"
-            message:@"For HTTP/WS, explicitly enable Trusted LAN: screen and input are unencrypted. For HTTPS/WSS, configure a matching PEM certificate and key trusted by the browser, including the iPhone IP in the certificate SAN. Use different VNC and web ports."
+        UIAlertController *webAlert = [UIAlertController alertControllerWithTitle:@"Xem qua Web LAN"
+            message:DKSettingsLocalizedString(@"For HTTP/WS, explicitly enable Trusted LAN: screen and input are unencrypted. For HTTPS/WSS, configure a matching PEM certificate and key trusted by the browser, including the iPhone IP in the certificate SAN. Use different VNC and web ports.", @"Localizable", self.bundle, nil)
             preferredStyle:UIAlertControllerStyleAlert];
-        [webAlert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+        [webAlert addAction:[UIAlertAction actionWithTitle:DKSettingsLocalizedString(@"OK", @"Localizable", self.bundle, nil) style:UIAlertActionStyleCancel handler:nil]];
         [self presentViewController:webAlert animated:YES completion:nil]; return;
     }
 
-    NSString *title = NSLocalizedStringFromTableInBundle(@"Apply Changes", @"Localizable", self.bundle, nil);
-    NSString *message = NSLocalizedStringFromTableInBundle(@"Are you sure you want to restart the VNC service?",
+    NSString *title = DKSettingsLocalizedString(@"Apply Changes", @"Localizable", self.bundle, nil);
+    NSString *message = DKSettingsLocalizedString(@"Are you sure you want to restart the VNC service?",
                                                            @"Localizable", self.bundle, nil);
 
     NSString *fullMessage = [NSString stringWithFormat:@"%@\n%@", message, [self currentStatusText]];
-    NSString *cancel = NSLocalizedStringFromTableInBundle(@"Cancel", @"Localizable", self.bundle, nil);
-    NSString *restart = NSLocalizedStringFromTableInBundle(@"Restart", @"Localizable", self.bundle, nil);
+    NSString *cancel = DKSettingsLocalizedString(@"Cancel", @"Localizable", self.bundle, nil);
+    NSString *restart = DKSettingsLocalizedString(@"Restart", @"Localizable", self.bundle, nil);
 
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
                                                                    message:fullMessage
@@ -673,7 +674,7 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 
     [logsVC setRowPrefixRegularExpression:rowRegex];
     [logsVC setRowSeparator:@"\r\n"];
-    [logsVC setTitle:NSLocalizedStringFromTableInBundle(@"View Logs", @"Localizable", self.bundle, nil)];
+    [logsVC setTitle:DKSettingsLocalizedString(@"View Logs", @"Localizable", self.bundle, nil)];
     [logsVC setLocalizationBundle:self.bundle];
 
     UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:logsVC];
@@ -702,11 +703,11 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     NSString *cacertPath = [self cacertPath];
     if (![[NSFileManager defaultManager] fileExistsAtPath:cacertPath]) {
         NSString *title =
-            NSLocalizedStringFromTableInBundle(@"Certificate Not Found", @"Localizable", self.bundle, nil);
-        NSString *message = NSLocalizedStringFromTableInBundle(
+            DKSettingsLocalizedString(@"Certificate Not Found", @"Localizable", self.bundle, nil);
+        NSString *message = DKSettingsLocalizedString(
             @"You need to generate a self-signed CA certificate first before exporting it.", @"Localizable",
             self.bundle, nil);
-        NSString *ok = NSLocalizedStringFromTableInBundle(@"OK", @"Localizable", self.bundle, nil);
+        NSString *ok = DKSettingsLocalizedString(@"OK", @"Localizable", self.bundle, nil);
 
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
                                                                        message:message
@@ -738,13 +739,13 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     NSString *cakeyPath = [self cakeyPath];
     if ([[NSFileManager defaultManager] fileExistsAtPath:cakeyPath]) {
         NSString *title =
-            NSLocalizedStringFromTableInBundle(@"Overwrite Existing Keys", @"Localizable", self.bundle, nil);
+            DKSettingsLocalizedString(@"Overwrite Existing Keys", @"Localizable", self.bundle, nil);
         NSString *message =
-            NSLocalizedStringFromTableInBundle(@"A CA private key already exists. Generating new keys will overwrite "
+            DKSettingsLocalizedString(@"A CA private key already exists. Generating new keys will overwrite "
                                                @"the existing ones. Are you sure you want to continue?",
                                                @"Localizable", self.bundle, nil);
-        NSString *cancel = NSLocalizedStringFromTableInBundle(@"Cancel", @"Localizable", self.bundle, nil);
-        NSString *generate = NSLocalizedStringFromTableInBundle(@"Overwrite", @"Localizable", self.bundle, nil);
+        NSString *cancel = DKSettingsLocalizedString(@"Cancel", @"Localizable", self.bundle, nil);
+        NSString *generate = DKSettingsLocalizedString(@"Overwrite", @"Localizable", self.bundle, nil);
 
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
                                                                        message:message
@@ -756,7 +757,7 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
                                                 handler:^(UIAlertAction *_Nonnull action) {
                                                     [weakSelf _reallyGenerateKeys];
                                                 }]];
-        [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedStringFromTableInBundle(
+        [alert addAction:[UIAlertAction actionWithTitle:DKSettingsLocalizedString(
                                                             @"Export Certificate…", @"Localizable", self.bundle, nil)
                                                   style:UIAlertActionStyleDefault
                                                 handler:^(UIAlertAction *_Nonnull action) {
@@ -776,10 +777,10 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 
     ZTSelfSignedCertificate *ca = [ZTSelfSignedCertificate generateWithCommonName:commonName];
     if (!ca) {
-        NSString *title = NSLocalizedStringFromTableInBundle(@"Generation Failed", @"Localizable", self.bundle, nil);
-        NSString *message = NSLocalizedStringFromTableInBundle(@"Failed to generate self-signed CA certificate.",
+        NSString *title = DKSettingsLocalizedString(@"Generation Failed", @"Localizable", self.bundle, nil);
+        NSString *message = DKSettingsLocalizedString(@"Failed to generate self-signed CA certificate.",
                                                                @"Localizable", self.bundle, nil);
-        NSString *ok = NSLocalizedStringFromTableInBundle(@"OK", @"Localizable", self.bundle, nil);
+        NSString *ok = DKSettingsLocalizedString(@"OK", @"Localizable", self.bundle, nil);
 
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
                                                                        message:message
@@ -821,12 +822,12 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     } while (0);
 
     if (!succeed) {
-        NSString *title = NSLocalizedStringFromTableInBundle(@"Generation Failed", @"Localizable", self.bundle, nil);
+        NSString *title = DKSettingsLocalizedString(@"Generation Failed", @"Localizable", self.bundle, nil);
         NSString *message =
-            [NSString stringWithFormat:NSLocalizedStringFromTableInBundle(@"Failed to save generated keys: %@",
+            [NSString stringWithFormat:DKSettingsLocalizedString(@"Failed to save generated keys: %@",
                                                                           @"Localizable", self.bundle, nil),
                                        error.localizedDescription];
-        NSString *ok = NSLocalizedStringFromTableInBundle(@"OK", @"Localizable", self.bundle, nil);
+        NSString *ok = DKSettingsLocalizedString(@"OK", @"Localizable", self.bundle, nil);
 
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
                                                                        message:message
@@ -842,18 +843,18 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 
     [self reloadSpecifiers];
 
-    NSString *title = NSLocalizedStringFromTableInBundle(@"Generation Succeeded", @"Localizable", self.bundle, nil);
-    NSString *message = NSLocalizedStringFromTableInBundle(
+    NSString *title = DKSettingsLocalizedString(@"Generation Succeeded", @"Localizable", self.bundle, nil);
+    NSString *message = DKSettingsLocalizedString(
         @"The self-signed CA certificate and private key have been successfully generated. You need to trust this "
         @"certificate in your client browser or operating system. Restart the service to apply the changes.",
         @"Localizable", self.bundle, nil);
-    NSString *ok = NSLocalizedStringFromTableInBundle(@"OK", @"Localizable", self.bundle, nil);
+    NSString *ok = DKSettingsLocalizedString(@"OK", @"Localizable", self.bundle, nil);
 
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
                                                                    message:message
                                                             preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:ok style:UIAlertActionStyleCancel handler:nil]];
-    [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedStringFromTableInBundle(@"Export Certificate…",
+    [alert addAction:[UIAlertAction actionWithTitle:DKSettingsLocalizedString(@"Export Certificate…",
                                                                                        @"Localizable", self.bundle, nil)
                                               style:UIAlertActionStyleDefault
                                             handler:^(UIAlertAction *_Nonnull action) {
@@ -864,11 +865,11 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 }
 
 - (void)resetDefaults {
-    NSString *title = NSLocalizedStringFromTableInBundle(@"Reset to Defaults", @"Localizable", self.bundle, nil);
-    NSString *message = NSLocalizedStringFromTableInBundle(
+    NSString *title = DKSettingsLocalizedString(@"Reset to Defaults", @"Localizable", self.bundle, nil);
+    NSString *message = DKSettingsLocalizedString(
         @"Are you sure you want to reset all settings to their defaults?", @"Localizable", self.bundle, nil);
-    NSString *cancel = NSLocalizedStringFromTableInBundle(@"Cancel", @"Localizable", self.bundle, nil);
-    NSString *reset = NSLocalizedStringFromTableInBundle(@"Reset", @"Localizable", self.bundle, nil);
+    NSString *cancel = DKSettingsLocalizedString(@"Cancel", @"Localizable", self.bundle, nil);
+    NSString *reset = DKSettingsLocalizedString(@"Reset", @"Localizable", self.bundle, nil);
 
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
                                                                    message:message
@@ -959,7 +960,7 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
                 break;
             }
 
-            return [NSString stringWithFormat:NSLocalizedStringFromTableInBundle(
+            return [NSString stringWithFormat:DKSettingsLocalizedString(
                                                   @"A new version %@ is available! You’re currently using v%@. "
                                                   @"Download the latest version from Havoc Marketplace.",
                                                   @"Localizable", self.bundle, nil),

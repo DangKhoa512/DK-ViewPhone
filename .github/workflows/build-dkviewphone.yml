@@ -138,12 +138,12 @@ jobs:
         run: |
           set -euo pipefail
           shopt -s nullglob
-          packages=(packages/com.dk.viewphone_1.1.2_iphoneos-arm64e.deb)
+          packages=(packages/com.dk.viewphone_1.1.3_iphoneos-arm64e.deb)
           test "${#packages[@]}" -eq 1
           python3 devkit/verify-package.py "${packages[0]}" --report artifacts/package-validation.json 2>&1 | tee artifacts/logs/package-validation.log
-          cp "${packages[0]}" artifacts/packages/DKViewPhone_1.1.2_roothide.deb
+          cp "${packages[0]}" artifacts/packages/DKViewPhone_1.1.3_roothide.deb
           shasum -a 256 artifacts/packages/*.deb > artifacts/packages/SHA256SUMS
-          git archive --format=tar.gz --output=artifacts/packages/DKViewPhone_1.1.2_source.tar.gz HEAD
+          git archive --format=tar.gz --output=artifacts/packages/DKViewPhone_1.1.3_source.tar.gz HEAD
 
       - name: Build isolated device test helper (excluded from DEB)
         run: |
@@ -157,14 +157,14 @@ jobs:
       - name: Upload device test helper
         uses: actions/upload-artifact@v4
         with:
-          name: DKViewPhone-1.1.2-device-test-helper
+          name: DKViewPhone-1.1.3-device-test-helper
           path: artifacts/device-tests/
           if-no-files-found: error
 
       - name: Upload validated DEB and corresponding project source
         uses: actions/upload-artifact@v4
         with:
-          name: DKViewPhone_1.1.2_roothide
+          name: DKViewPhone_1.1.3_roothide
           path: |
             artifacts/packages/
             artifacts/package-validation.json

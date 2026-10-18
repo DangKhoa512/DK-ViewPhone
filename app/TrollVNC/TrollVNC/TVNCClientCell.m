@@ -15,6 +15,7 @@
  along with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import "DKSettingsLocalization.h"
 #import "TVNCClientCell.h"
 
 @implementation TVNCClientCell {
@@ -47,7 +48,7 @@
     _badgeView = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"hand.raised.slash.fill"]];
     _badgeView.tintColor = [UIColor systemOrangeColor];
     _badgeView.contentMode = UIViewContentModeScaleAspectFit;
-    _badgeView.accessibilityLabel = NSLocalizedStringFromTableInBundle(@"View-Only", @"Localizable", self.bundle, nil);
+    _badgeView.accessibilityLabel = DKSettingsLocalizedString(@"View-Only", @"Localizable", self.bundle, nil);
 
     for (UIView *v in @[ _idLabel, _hostLabel, _subtitleLabel, _badgeView ]) {
         v.translatesAutoresizingMaskIntoConstraints = NO;

@@ -122,6 +122,7 @@ static BOOL gLANWebEnabled = NO;
 static BOOL gWebTLS = NO;
 static BOOL gTrustedLAN = NO;
 static BOOL gNoPasswordLAN = NO;
+static BOOL gLowLatency = NO;
 static char *gHttpDirOverride = NULL;
 static char *gSslCertPath = NULL;
 static char *gSslKeyPath = NULL;
@@ -573,6 +574,7 @@ static void parseDaemonOptions(void) {
     gWebTLS = [prefs[@"WebViewerTLS"] boolValue];
     gTrustedLAN = [prefs[@"WebViewerTrustedLAN"] boolValue];
     gNoPasswordLAN = [prefs[@"AllowUnauthenticatedLAN"] boolValue];
+    gLowLatency = [prefs[@"LowLatencyMode"] boolValue];
     if (!prefs[@"HttpPort"] && gLANWebEnabled) gHttpPort = 5801;
     if (!gLANWebEnabled) gHttpPort = 0;
     NSNumber *enableN = [prefs objectForKey:@"Enabled"];
@@ -3528,7 +3530,10 @@ static void prepareScreenCapturer(void) {
     // Apply preferred frame rate (if provided)
     if (gFpsMin > 0 || gFpsPref > 0 || gFpsMax > 0) {
         TVLog(@"Applying preferred FPS to ScreenCapturer: min=%d pref=%d max=%d", gFpsMin, gFpsPref, gFpsMax);
-        [[ScreenCapturer sharedCapturer] setPreferredFrameRateWithMin:gFpsMin preferred:gFpsPref max:gFpsMax];
+        // Keep the selected preferred cadence while viewers are present. Dirty
+        // frame detection and stopping capture at zero viewers remain intact.
+        int minimum = gLowLatency && gFpsPref > gFpsMin ? gFpsPref : gFpsMin;
+        [[ScreenCapturer sharedCapturer] setPreferredFrameRateWithMin:minimum preferred:gFpsPref max:gFpsMax];
     }
 
     gFrameHandler = ^(CMSampleBufferRef _Nonnull sampleBuffer) {
@@ -3680,6 +3685,9 @@ static void setupRfbScreen(int argc, const char *argv[]) {
     // Server ports
     gScreen->port = gPort;
     gScreen->maxClientWait = 5000; // milliseconds, bound a stalled read/write
+    // LibVNCServer otherwise batches updates for 5 ms. Retain its event/thread
+    // model and existing bounded slow-client handling, without a frame queue.
+    gScreen->deferUpdateTime = gLowLatency ? 1 : 5;
     // LibVNCServer otherwise opens a second wildcard IPv6 listener even when
     // listenInterface is an explicit IPv4 address.
     gScreen->ipv6port = -1;

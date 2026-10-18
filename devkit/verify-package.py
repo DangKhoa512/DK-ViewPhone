@@ -20,6 +20,19 @@ def require(condition, message):
         raise ValueError(message)
 
 
+def apple_strings(raw):
+    try:
+        value = plistlib.loads(raw)
+        require(isinstance(value, dict), 'Invalid strings dictionary')
+        return value
+    except plistlib.InvalidFileException:
+        source = raw.decode('utf-8-sig')
+        pairs = re.findall(r'("(?:[^"\\]|\\.)*")\s*=\s*("(?:[^"\\]|\\.)*")\s*;', source)
+        result = {json.loads(k):json.loads(v) for k,v in pairs}
+        require(bool(result) and len(result) == len(pairs), 'Invalid or duplicate strings entries')
+        return result
+
+
 def ar_members(raw):
     require(raw.startswith(b'!<arch>\n'), 'Not a Debian ar archive')
     members = {}
@@ -137,7 +150,7 @@ def validate(path):
     payload = tar_members(members[data_names[0]])
     control = controls['control'][1].decode('utf-8')
     fields = dict(line.split(': ', 1) for line in control.splitlines() if ': ' in line and not line.startswith(' '))
-    for name, expected in {'Package':'com.dk.viewphone', 'Version':'1.1.2', 'Architecture':'iphoneos-arm64e',
+    for name, expected in {'Package':'com.dk.viewphone', 'Version':'1.1.3', 'Architecture':'iphoneos-arm64e',
                            'Name':'ĐK ViewPhone', 'Conflicts':'com.82flex.trollvnc',
                            'Replaces':'com.82flex.trollvnc', 'Provides':'com.82flex.trollvnc'}.items():
         require(fields.get(name) == expected, f'Invalid {name}: {fields.get(name)}')
@@ -193,12 +206,17 @@ def validate(path):
     require(defaults.get('Enabled') is False and defaults.get('BindHost') == '127.0.0.1', 'Unsafe startup defaults')
     require(not defaults.get('FullPassword') and not defaults.get('ViewOnlyPassword'), 'Bundled password in Settings')
     require(defaults.get('AllowUnauthenticatedLAN') is False, 'Passwordless LAN must require explicit opt-in')
+    require(defaults.get('LowLatencyMode') is False, 'Low latency must preserve existing scheduling unless opted in')
     require(defaults.get('LANWebViewerEnabled') is False and defaults.get('WebViewerTrustedLAN') is False,
             'Web access must default off and require consent for plaintext LAN')
     require(defaults.get('HttpPort') == 5801 and defaults.get('RemoteControlEnabled') is True,
             'Unexpected web defaults')
     web = 'usr/share/trollvnc/webclients/'
     source_root = Path(__file__).resolve().parents[1]
+    vi = 'Library/PreferenceBundles/TrollVNCPrefs.bundle/vi.lproj/Localizable.strings'
+    require(vi in payload, 'Vietnamese Settings strings missing from DEB')
+    require(apple_strings(payload[vi][1]) == apple_strings((source_root / 'prefs/TrollVNCPrefs/Resources/vi.lproj/Localizable.strings').read_bytes()),
+            'Packaged Vietnamese strings differ from source')
     assets = {}
     for name in ('index.vnc', 'viewer.css', 'viewer.js', 'viewer.bundle.js', 'novnc/core/rfb.js'):
         content = payload[web + name][1]

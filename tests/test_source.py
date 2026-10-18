@@ -4,6 +4,8 @@ from pathlib import Path
 import subprocess
 import struct
 import hashlib
+import json
+import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,6 +15,26 @@ spec.loader.exec_module(validator)
 
 
 class SourceTests(unittest.TestCase):
+    def test_vietnamese_settings_preserve_configuration(self):
+        raw = (ROOT / 'prefs/TrollVNCPrefs/Resources/vi.lproj/Localizable.strings').read_text(encoding='utf-8')
+        pairs = re.findall(r'("(?:[^"\\]|\\.)*")\s*=\s*("(?:[^"\\]|\\.)*")\s*;', raw)
+        strings = {json.loads(k):json.loads(v) for k,v in pairs}
+        self.assertEqual(len(strings), len(pairs), 'Duplicate translation keys')
+        self.assertEqual(strings['Apply'], 'Áp dụng')
+        for key, value in strings.items():
+            # A mismatched %@/%d can crash native string formatting at runtime.
+            pattern = r'%(?:[0-9]+\$)?(?:[0-9.]+)?[@diufs]'
+            self.assertEqual(sorted(re.findall(pattern,key)), sorted(re.findall(pattern,value)), key)
+            self.assertNotIn('\ufffd',value)
+        before = plistlib.loads(subprocess.check_output(['git','show','c99c897:prefs/TrollVNCPrefs/Resources/Root.plist'],cwd=ROOT))
+        after = plistlib.loads((ROOT/'prefs/TrollVNCPrefs/Resources/Root.plist').read_bytes())
+        display = {'label','footerText','placeholder','validTitles','shortTitles','staticTextMessage'}
+        def settings(p):
+            return {i['key']:{k:v for k,v in i.items() if k not in display} for i in p['items'] if 'key' in i}
+        original,translated = settings(before),settings(after)
+        for key,value in original.items():self.assertEqual(value,translated[key],key)
+        self.assertEqual(set(translated)-set(original), {'LowLatencyMode'})
+
     def test_xml_resources(self):
         # Real plist parsing catches malformed edits, not string matching.
         for directory in ('prefs', 'layout/Library'):
@@ -31,6 +53,7 @@ class SourceTests(unittest.TestCase):
         expected.update(LANWebViewerEnabled=False, WebViewerTrustedLAN=False,
                         WebViewerTLS=False, HttpPort=5801, RemoteControlEnabled=True,
                         AllowUnauthenticatedLAN=False)
+        expected['LowLatencyMode'] = False
         for key, value in expected.items():
             self.assertEqual(items[key]['default'], value, key)
         for key in ('FullPassword', 'ViewOnlyPassword'):

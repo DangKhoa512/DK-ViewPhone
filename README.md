@@ -1,6 +1,6 @@
-# ĐK ViewPhone 1.1.2
+# ĐK ViewPhone 1.1.3
 
-[Chế độ LAN không mật khẩu 1.1.2](docs/PASSWORDLESS-LAN-1.1.2.md).
+[Chế độ LAN không mật khẩu 1.1.3](docs/PASSWORDLESS-LAN-1.1.3.md).
 
 Bổ sung [LAN Web Viewer tích hợp trong DEB](docs/LAN-WEB-VIEWER.md), mặc định tắt.
 Giữ các tính năng Stability 1.1.0. Xem [kết quả kiểm thử Web Viewer](docs/WEB-VIEWER-RESULTS.md).
@@ -13,7 +13,7 @@ Mã nguồn phát triển: [DangKhoa512/DK-ViewPhone, dev/roothide](https://gith
 
 Mở [Actions](https://github.com/DangKhoa512/DK-ViewPhone/actions/workflows/build-dkviewphone.yml), chọn **Build DK ViewPhone (roothide)** → **Run workflow** trên branch `dev/roothide`. Workflow cũng chạy khi push branch này.
 
-Workflow build bản TrollVNC gốc trước, sau đó build ĐK ViewPhone, kiểm tra DEB và hash chữ ký ad-hoc Mach-O rồi mới upload artifact `DKViewPhone_1.1.2_roothide`. Bên trong có `DKViewPhone_1.1.2_roothide.deb`, SHA256SUMS, báo cáo kiểm tra và source của commit tương ứng. Artifact log luôn được upload khi build lỗi. Chỉ run màu xanh với bước kiểm tra thành công mới được coi là build đạt.
+Workflow build bản TrollVNC gốc trước, sau đó build ĐK ViewPhone, kiểm tra DEB và hash chữ ký ad-hoc Mach-O rồi mới upload artifact `DKViewPhone_1.1.3_roothide`. Bên trong có `DKViewPhone_1.1.3_roothide.deb`, SHA256SUMS, báo cáo kiểm tra và source của commit tương ứng. Artifact log luôn được upload khi build lỗi. Chỉ run màu xanh với bước kiểm tra thành công mới được coi là build đạt.
 
 Build thủ công trên macOS với Xcode 16.2, `roothide/theos` cùng submodules, SDK 16.5/14.5 và dependencies như workflow:
 
@@ -21,7 +21,7 @@ Build thủ công trên macOS với Xcode 16.2, `roothide/theos` cùng submodule
 export THEOS="$HOME/theos-roothide"
 source devkit/roothide.sh
 FINALPACKAGE=1 gmake clean package
-python3 devkit/verify-package.py packages/com.dk.viewphone_1.1.2_iphoneos-arm64e.deb
+python3 devkit/verify-package.py packages/com.dk.viewphone_1.1.3_iphoneos-arm64e.deb
 ```
 
 Metadata `iphoneos-arm64e` là quy ước **package scheme roothide**, không có nghĩa binary chỉ chạy trên CPU arm64e. Binary trong bản này là arm64. Không dùng DEB này trên rootless thông thường hoặc TrollStore.

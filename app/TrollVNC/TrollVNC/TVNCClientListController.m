@@ -15,6 +15,7 @@
  along with this program. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import "DKSettingsLocalization.h"
 #import "TVNCClientListController.h"
 #import "TVNCClientCell.h"
 
@@ -127,7 +128,7 @@ static int TVNCConnect(void) {
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    self.title = NSLocalizedStringFromTableInBundle(@"Clients", @"Localizable", self.bundle, nil);
+    self.title = DKSettingsLocalizedString(@"Clients", @"Localizable", self.bundle, nil);
 
     UIRefreshControl *refreshControl = [UIRefreshControl new];
     [refreshControl addTarget:self action:@selector(refresh) forControlEvents:UIControlEventValueChanged];
@@ -183,7 +184,7 @@ static int TVNCConnect(void) {
 
 - (UIBarButtonItem *)disconnectItem {
     if (!_disconnectItem) {
-        NSString *title = NSLocalizedStringFromTableInBundle(@"Disconnect All", @"Localizable", self.bundle, nil);
+        NSString *title = DKSettingsLocalizedString(@"Disconnect All", @"Localizable", self.bundle, nil);
         _disconnectItem = [[UIBarButtonItem alloc] initWithTitle:title
                                                            style:UIBarButtonItemStylePlain
                                                           target:self
@@ -388,7 +389,7 @@ static int TVNCConnect(void) {
         cell.textLabel.textColor = [UIColor secondaryLabelColor];
         cell.textLabel.numberOfLines = 0;
     }
-    cell.textLabel.text = NSLocalizedStringFromTableInBundle(@"No clients connected", @"Localizable", self.bundle, nil);
+    cell.textLabel.text = DKSettingsLocalizedString(@"No clients connected", @"Localizable", self.bundle, nil);
     return cell;
 }
 
@@ -414,7 +415,7 @@ static int TVNCConnect(void) {
 
     NSString *rel = [sFmt localizedStringFromTimeInterval:-dur];
     NSString *subtitle = [NSString
-        stringWithFormat:NSLocalizedStringFromTableInBundle(@"Connected %@", @"Localizable", self.bundle, nil),
+        stringWithFormat:DKSettingsLocalizedString(@"Connected %@", @"Localizable", self.bundle, nil),
                          rel ?: @"-"];
 
     [cell configureWithId:cid host:host viewOnly:vo subtitle:subtitle primaryColor:self.primaryColor];
@@ -535,7 +536,7 @@ static int TVNCConnect(void) {
 
     UIContextualAction *block = [UIContextualAction
         contextualActionWithStyle:UIContextualActionStyleDestructive
-                            title:NSLocalizedStringFromTableInBundle(@"Block", @"Localizable", self.bundle, nil)
+                            title:DKSettingsLocalizedString(@"Block", @"Localizable", self.bundle, nil)
                           handler:^(__kindof UIContextualAction *action, __kindof UIView *sourceView,
                                     void (^completionHandler)(BOOL)) {
                               NSString *cid = [weakSelf.dataSource itemIdentifierForIndexPath:indexPath] ?: @"";
@@ -546,7 +547,7 @@ static int TVNCConnect(void) {
 
     UIContextualAction *kick = [UIContextualAction
         contextualActionWithStyle:UIContextualActionStyleNormal
-                            title:NSLocalizedStringFromTableInBundle(@"Disconnect", @"Localizable", self.bundle, nil)
+                            title:DKSettingsLocalizedString(@"Disconnect", @"Localizable", self.bundle, nil)
                           handler:^(__kindof UIContextualAction *action, __kindof UIView *sourceView,
                                     void (^completionHandler)(BOOL)) {
                               NSString *cid = [weakSelf.dataSource itemIdentifierForIndexPath:indexPath] ?: @"";
@@ -587,7 +588,7 @@ static int TVNCConnect(void) {
                     previewProvider:nil
                      actionProvider:^UIMenu *_Nullable(NSArray<UIMenuElement *> *_Nonnull suggestedActions) {
                          UIAction *copyId = [UIAction
-                             actionWithTitle:NSLocalizedStringFromTableInBundle(@"Copy ID", @"Localizable", self.bundle,
+                             actionWithTitle:DKSettingsLocalizedString(@"Copy ID", @"Localizable", self.bundle,
                                                                                 nil)
                                        image:[UIImage systemImageNamed:@"doc.on.doc"]
                                   identifier:nil
@@ -597,7 +598,7 @@ static int TVNCConnect(void) {
                                          [gen notificationOccurred:UINotificationFeedbackTypeSuccess];
                                      }];
                          UIAction *copyHost = [UIAction
-                             actionWithTitle:NSLocalizedStringFromTableInBundle(@"Copy Host", @"Localizable",
+                             actionWithTitle:DKSettingsLocalizedString(@"Copy Host", @"Localizable",
                                                                                 self.bundle, nil)
                                        image:[UIImage systemImageNamed:@"globe"]
                                   identifier:nil
@@ -607,7 +608,7 @@ static int TVNCConnect(void) {
                                          [gen notificationOccurred:UINotificationFeedbackTypeSuccess];
                                      }];
                          UIAction *disconnect = [UIAction
-                             actionWithTitle:NSLocalizedStringFromTableInBundle(@"Disconnect Client", @"Localizable",
+                             actionWithTitle:DKSettingsLocalizedString(@"Disconnect Client", @"Localizable",
                                                                                 self.bundle, nil)
                                        image:[UIImage systemImageNamed:@"xmark.circle"]
                                   identifier:nil
@@ -617,7 +618,7 @@ static int TVNCConnect(void) {
                          disconnect.attributes = UIMenuElementAttributesDestructive;
 
                          UIAction *block = [UIAction
-                             actionWithTitle:NSLocalizedStringFromTableInBundle(@"Block Client", @"Localizable",
+                             actionWithTitle:DKSettingsLocalizedString(@"Block Client", @"Localizable",
                                                                                 self.bundle, nil)
                                        image:[UIImage systemImageNamed:@"hand.raised.fill"]
                                   identifier:nil

@@ -18,6 +18,7 @@ TrollVNCPrefs_FILES += StripedTextTableViewController.m
 TrollVNCPrefs_FILES += ZTSelfSignedCertificate.m
 
 TrollVNCPrefs_CFLAGS += -fobjc-arc
+TrollVNCPrefs_CFLAGS += -iquote $(THEOS_PROJECT_DIR)/../../app/TrollVNC/TrollVNC
 TrollVNCPrefs_CFLAGS += -DPACKAGE_VERSION=\"$(PACKAGE_VERSION)\"
 TrollVNCPrefs_CFLAGS += -DTHEOS_PACKAGE_SCHEME=\"$(THEOS_PACKAGE_SCHEME)\"
 

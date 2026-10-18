@@ -12,7 +12,7 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>General</string>
+			<string>Cài đặt chung</string>
 			<key>footerText</key>
 			<string></string>
 		</dict>
@@ -24,10 +24,23 @@
 			<key>key</key>
 			<string>Enabled</string>
 			<key>label</key>
-			<string>Enabled</string>
+			<string>Bật máy chủ</string>
 			<key>default</key>
 			<false/>
 		</dict>
+
+        <dict>
+            <key>cell</key><string>PSGroupCell</string>
+            <key>label</key><string>Độ trễ</string>
+            <key>footerText</key><string>Khi có người xem, giữ nhịp capture ở FPS ưu tiên và giảm thời gian chờ gộp ảnh từ 5 ms xuống 1 ms. FPS tối thiểu cao hơn có thể tốn pin hơn. Giữ nguyên tỷ lệ ảnh và tọa độ chạm. Nhấn Áp dụng để khởi động lại máy chủ.</string>
+        </dict>
+        <dict>
+            <key>cell</key><string>PSSwitchCell</string>
+            <key>defaults</key><string>com.82flex.trollvnc</string>
+            <key>key</key><string>LowLatencyMode</string>
+            <key>label</key><string>Ưu tiên độ trễ thấp</string>
+            <key>default</key><false/>
+        </dict>
 
 		<!-- Desktop Name -->
 		<dict>
@@ -36,7 +49,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Name shown to VNC clients.</string>
+			<string>Tên hiển thị trên thiết bị kết nối VNC.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -46,11 +59,11 @@
 			<key>key</key>
 			<string>DesktopName</string>
 			<key>label</key>
-			<string>Desktop Name</string>
+			<string>Tên thiết bị hiển thị</string>
 			<key>default</key>
 			<string>ĐK ViewPhone</string>
 			<key>placeholder</key>
-			<string>Shown to VNC clients</string>
+			<string>Tên hiển thị cho người xem</string>
 			<key>keyboard</key>
 			<string>alphabet</string>
 		</dict>
@@ -62,7 +75,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Default: loopback 127.0.0.1. For LAN access enter this iPhone’s private Wi-Fi IPv4 address. Wildcard, public and IPv6 binds are disabled.</string>
+			<string>Mặc định: 127.0.0.1 (chỉ trên máy). Để truy cập qua LAN, nhập địa chỉ IPv4 Wi-Fi nội bộ của iPhone. Không dùng địa chỉ đại diện, IP công cộng hoặc IPv6.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -72,9 +85,9 @@
 			<key>key</key>
 			<string>BindHost</string>
 			<key>label</key>
-			<string>Bind Address</string>
+			<string>Địa chỉ lắng nghe</string>
 			<key>placeholder</key>
-			<string>127.0.0.1 or private Wi-Fi IPv4</string>
+			<string>127.0.0.1 hoặc IPv4 Wi-Fi nội bộ</string>
 			<key>noAutoCorrect</key>
 			<true/>
 			<key>default</key>
@@ -88,7 +101,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>VNC TCP port. Default 5901. Valid range 1024–65535.</string>
+			<string>Cổng TCP của VNC. Mặc định 5901; phạm vi hợp lệ 1024–65535.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -98,7 +111,7 @@
 			<key>key</key>
 			<string>Port</string>
 			<key>label</key>
-			<string>TCP Port</string>
+			<string>Cổng VNC (TCP)</string>
 			<key>default</key>
 			<integer>5901</integer>
 			<key>decimal</key>
@@ -113,14 +126,14 @@
 
 		<dict>
             <key>cell</key><string>PSGroupCell</string>
-            <key>label</key><string>Passwordless LAN</string>
-            <key>footerText</key><string>Default off. When enabled, anyone who can reach this private LAN listener can view/control the phone without a password. Requires Trusted LAN consent and Reverse Mode off. Saved passwords are retained but ignored; use global View-only or disable Remote Control to restrict input.</string>
+            <key>label</key><string>LAN không mật khẩu</string>
+            <key>footerText</key><string>Mặc định tắt. Khi bật, bất kỳ ai truy cập được máy qua LAN đều có thể xem và điều khiển mà không cần mật khẩu. Cần bật LAN tin cậy và tắt kết nối ngược. Mật khẩu đã lưu được giữ lại nhưng không dùng trong chế độ này. Bật Chỉ xem hoặc tắt Cho phép điều khiển để chặn thao tác.</string>
         </dict>
         <dict>
             <key>cell</key><string>PSSwitchCell</string>
             <key>defaults</key><string>com.82flex.trollvnc</string>
             <key>key</key><string>AllowUnauthenticatedLAN</string>
-            <key>label</key><string>No Password on Trusted LAN</string>
+            <key>label</key><string>Không mật khẩu trên LAN tin cậy</string>
             <key>default</key><false/>
         </dict>
 
@@ -131,7 +144,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Required in password mode: exactly 8 visible ASCII characters, including uppercase, lowercase, a digit and a symbol. Generate a unique random password. Classic VNC limits authentication to 8 bytes; use an encrypted tunnel on untrusted networks.</string>
+			<string>Khi dùng xác thực mật khẩu: nhập đúng 8 ký tự ASCII hiển thị, gồm chữ hoa, chữ thường, số và ký hiệu. Nên dùng mật khẩu ngẫu nhiên riêng. VNC cổ điển chỉ dùng 8 byte; cần kết nối mã hóa trên mạng không tin cậy.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -141,9 +154,9 @@
 			<key>key</key>
 			<string>FullPassword</string>
 			<key>label</key>
-			<string>Full-access Password</string>
+			<string>Mật khẩu điều khiển</string>
 			<key>placeholder</key>
-			<string>8 mixed ASCII characters</string>
+			<string>8 ký tự: hoa, thường, số, ký hiệu</string>
 		</dict>
 
 		<!-- View-only Password -->
@@ -153,7 +166,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Optional: exactly 8 visible ASCII characters with uppercase, lowercase, digit and symbol, different from the full-access password. View-only clients cannot send input or change the clipboard.</string>
+			<string>Không bắt buộc: đúng 8 ký tự ASCII hiển thị, gồm chữ hoa, chữ thường, số và ký hiệu; phải khác mật khẩu điều khiển. Người dùng mật khẩu chỉ xem không thể thao tác hoặc thay đổi bộ nhớ tạm.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -163,9 +176,9 @@
 			<key>key</key>
 			<string>ViewOnlyPassword</string>
 			<key>label</key>
-			<string>View-only Password</string>
+			<string>Mật khẩu chỉ xem</string>
 			<key>placeholder</key>
-			<string>8 mixed ASCII characters</string>
+			<string>8 ký tự: hoa, thường, số, ký hiệu</string>
 		</dict>
 
 		<!-- Clipboard Sync -->
@@ -175,7 +188,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Syncs text clipboard with VNC clients while connected. Disable if you do not want remote clipboard access.</string>
+			<string>Đồng bộ văn bản trong bộ nhớ tạm với thiết bị VNC khi kết nối. Tắt nếu không muốn truy cập bộ nhớ tạm từ xa.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -185,7 +198,7 @@
 			<key>key</key>
 			<string>ClipboardEnabled</string>
 			<key>label</key>
-			<string>Clipboard Sync</string>
+			<string>Đồng bộ bộ nhớ tạm</string>
 			<key>default</key>
 			<true/>
 		</dict>
@@ -197,7 +210,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Ignore all input from clients. Overrides per-client view-only password if set.</string>
+			<string>Chặn toàn bộ thao tác từ xa, kể cả người dùng mật khẩu điều khiển.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -207,7 +220,7 @@
 			<key>key</key>
 			<string>ViewOnly</string>
 			<key>label</key>
-			<string>View-only</string>
+			<string>Chỉ xem</string>
 			<key>default</key>
 			<false/>
 		</dict>
@@ -219,7 +232,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Show notifications when clients connect or disconnect.</string>
+			<string>Hiển thị thông báo khi có thiết bị kết nối hoặc ngắt kết nối.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -229,7 +242,7 @@
 			<key>key</key>
 			<string>SingleNotifEnabled</string>
 			<key>label</key>
-			<string>Silence Notifications</string>
+			<string>Tắt thông báo</string>
 			<key>default</key>
 			<true/>
 		</dict>
@@ -241,7 +254,7 @@
 			<key>key</key>
 			<string>ClientNotifsEnabled</string>
 			<key>label</key>
-			<string>Connect/Disconnect Notifications</string>
+			<string>Thông báo kết nối/ngắt kết nối</string>
 			<key>default</key>
 			<true/>
 		</dict>
@@ -251,9 +264,9 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>Keep-Alive (sec)</string>
+			<string>Giữ màn hình sáng (giây)</string>
 			<key>footerText</key>
-			<string>Keeps device awake only while at least one client is connected. 0 disables. Range 15–300 sec; shorter intervals may increase battery usage.</string>
+			<string>Chỉ giữ máy thức khi có người xem. Nhập 0 để tắt; phạm vi 15–300 giây. Khoảng thời gian ngắn có thể tốn pin hơn.</string>
 		</dict>
 		<dict>
 			<key>cellClass</key>
@@ -279,9 +292,9 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>Output Scale</string>
+			<string>Tỷ lệ ảnh xuất</string>
 			<key>footerText</key>
-			<string>0.1–1.0. Lower scale reduces bandwidth/CPU; 1.0 is pixel-perfect. Balance quality, latency and battery.</string>
+			<string>Từ 0.1 đến 1.0. Tỷ lệ nhỏ giảm băng thông và CPU; 1.0 giữ độ phân giải gốc. Cân đối độ nét, độ trễ và pin.</string>
 		</dict>
 		<dict>
 			<key>cellClass</key>
@@ -309,7 +322,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Single fps (e.g. 60), range min-max (e.g. 30-60), or full spec min:pref:max (e.g. 30:60:120). iOS 15+ uses range; iOS 14 uses preferred/max.</string>
+			<string>Nhập một mức FPS (60), khoảng tối thiểu–tối đa (30-60), hoặc tối thiểu:ưu tiên:tối đa (30:60:120). iOS 15 trở lên dùng khoảng FPS. Để trống để dùng mặc định 15:30:30.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -319,9 +332,9 @@
 			<key>key</key>
 			<string>FrameRateSpec</string>
 			<key>label</key>
-			<string>Frame Rate</string>
+			<string>Tốc độ khung hình (FPS)</string>
 			<key>placeholder</key>
-			<string>e.g. 60 or 30-60 or 30:60:120</string>
+			<string>Ví dụ: 30 hoặc 15:30:30</string>
 			<key>noAutoCorrect</key>
 			<true/>
 			<key>default</key>
@@ -335,7 +348,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Rotate the shared display to follow device orientation changes. “Orientation Offset” applies a fixed rotation for iPad models with non-standard default orientations.</string>
+			<string>Xoay ảnh chia sẻ theo hướng của thiết bị. Mục Góc xoay bổ sung dùng góc cố định cho iPad có hướng mặc định khác chuẩn.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -345,7 +358,7 @@
 			<key>key</key>
 			<string>OrientationSync</string>
 			<key>label</key>
-			<string>Sync Interface Orientation</string>
+			<string>Xoay ảnh theo thiết bị</string>
 			<key>default</key>
 			<true/>
 		</dict>
@@ -357,7 +370,7 @@
 			<key>key</key>
 			<string>OrientationPadFix</string>
 			<key>label</key>
-			<string>Orientation Offset</string>
+			<string>Góc xoay bổ sung</string>
 			<key>detail</key>
 			<string>TVNCListItemsController</string>
 			<key>default</key>
@@ -371,10 +384,10 @@
 			</array>
 			<key>validTitles</key>
 			<array>
-				<string>Disabled</string>
-				<string>90° Clockwise</string>
+				<string>Tắt</string>
+				<string>90° theo chiều kim đồng hồ</string>
 				<string>180°</string>
-				<string>270° Clockwise</string>
+				<string>270° theo chiều kim đồng hồ</string>
 			</array>
 			<key>validValues</key>
 			<array>
@@ -384,7 +397,7 @@
 				<integer>3</integer>
 			</array>
 			<key>staticTextMessage</key>
-			<string>Apply a fixed rotation offset to the captured display. Useful for iPad models with non-standard default orientations.</string>
+			<string>Thêm góc xoay cố định cho ảnh chụp, dùng cho iPad có hướng mặc định khác chuẩn.</string>
 		</dict>
 
 		<!-- Natural Scroll Direction -->
@@ -394,7 +407,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Match iOS natural scroll direction for mouse wheel/trackpad; disable for traditional desktop direction.</string>
+			<string>Dùng chiều cuộn tự nhiên của iOS cho con lăn chuột/bàn di chuột. Tắt để dùng chiều cuộn kiểu máy tính.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -404,7 +417,7 @@
 			<key>key</key>
 			<string>NaturalScroll</string>
 			<key>label</key>
-			<string>Natural Scroll Direction</string>
+			<string>Cuộn theo chiều tự nhiên</string>
 			<key>default</key>
 			<false/>
 		</dict>
@@ -416,7 +429,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Choose how remote Alt/Super map to iOS Option/Command.</string>
+			<string>Chọn cách ánh xạ phím Alt/Super từ máy tính sang Option/Command của iOS.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -426,20 +439,20 @@
 			<key>key</key>
 			<string>ModifierMap</string>
 			<key>label</key>
-			<string>Modifier Mapping</string>
+			<string>Ánh xạ phím bổ trợ</string>
 			<key>detail</key>
 			<string>TVNCListItemsController</string>
 			<key>default</key>
 			<string>std</string>
 			<key>shortTitles</key>
 			<array>
-				<string>Standard</string>
-				<string>Alt→Cmd</string>
+				<string>Tiêu chuẩn</string>
+				<string>Alt→Command</string>
 			</array>
 			<key>validTitles</key>
 			<array>
-				<string>Standard</string>
-				<string>Alt as Command</string>
+				<string>Tiêu chuẩn</string>
+				<string>Dùng Alt làm Command</string>
 			</array>
 			<key>validValues</key>
 			<array>
@@ -447,7 +460,7 @@
 				<string>altcmd</string>
 			</array>
 			<key>staticTextMessage</key>
-			<string>Standard: Alt as Option, Super as Command. On macOS clients, Alt as Command (altcmd) is recommended.</string>
+			<string>Tiêu chuẩn: Alt thành Option, Super thành Command. Với máy Mac, nên chọn Dùng Alt làm Command.</string>
 		</dict>
 
 		<!-- Assistive Touch -->
@@ -457,7 +470,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Automatically enables iOS AssistiveTouch while clients are connected to improve input support.</string>
+			<string>Tự bật AssistiveTouch của iOS khi có người xem để hỗ trợ thao tác.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -467,7 +480,7 @@
 			<key>key</key>
 			<string>AutoAssistEnabled</string>
 			<key>label</key>
-			<string>Assistive Touch Auto-Activation</string>
+			<string>Tự bật AssistiveTouch</string>
 			<key>default</key>
 			<false/>
 		</dict>
@@ -479,7 +492,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Render a cursor on the server for clients that lack a hardware cursor. May slightly reduce performance.</string>
+			<string>Vẽ con trỏ trên máy chủ cho thiết bị không có con trỏ phần cứng. Có thể giảm nhẹ hiệu năng.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -489,7 +502,7 @@
 			<key>key</key>
 			<string>ServerCursor</string>
 			<key>label</key>
-			<string>Server-Side Cursor</string>
+			<string>Vẽ con trỏ trên iPhone</string>
 			<key>default</key>
 			<false/>
 		</dict>
@@ -499,9 +512,9 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>Wheel Step (px)</string>
+			<string>Bước cuộn (pixel)</string>
 			<key>footerText</key>
-			<string>Pixels per wheel tick sent to clients. Higher = faster scroll.</string>
+			<string>Số pixel cho mỗi nấc con lăn. Giá trị cao giúp cuộn nhanh hơn.</string>
 		</dict>
 		<dict>
 			<key>cellClass</key>
@@ -529,7 +542,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Advanced wheel options: comma-separated key=value (e.g. step=48,coalesce=0.03,accel=1.0). Leave empty to use defaults.</string>
+			<string>Tùy chọn con lăn nâng cao, phân cách bằng dấu phẩy: step=48,coalesce=0.03,accel=1.0. Để trống để dùng mặc định.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -539,7 +552,7 @@
 			<key>key</key>
 			<string>WheelTuning</string>
 			<key>label</key>
-			<string>Wheel Tuning</string>
+			<string>Tinh chỉnh con lăn</string>
 			<key>placeholder</key>
 			<string>step=48,coalesce=0.03,...</string>
 			<key>noAutoCorrect</key>
@@ -550,9 +563,9 @@
 	<key>cell</key>
 	<string>PSGroupCell</string>
 	<key>label</key>
-	<string>LAN Web Viewer</string>
+	<string>Xem và điều khiển qua Web LAN</string>
 	<key>footerText</key>
-	<string>Default off. HTTP/WS exposes screen and input without encryption: use trusted LAN only. Both services use the configured concrete Bind Address. Apply changes reconnects sessions. HTTPS/WSS requires a matching PEM certificate/key trusted by your browser.</string>
+	<string>Mặc định tắt. HTTP/WS truyền ảnh và thao tác không mã hóa, chỉ dùng trên LAN tin cậy. Hai dịch vụ dùng Địa chỉ lắng nghe đã chọn. Áp dụng sẽ kết nối lại phiên. HTTPS/WSS cần chứng chỉ PEM và khóa tương ứng được trình duyệt tin cậy.</string>
 </dict>
 <dict>
 	<key>cell</key>
@@ -562,7 +575,7 @@
 	<key>key</key>
 	<string>LANWebViewerEnabled</string>
 	<key>label</key>
-	<string>Enable LAN Web Viewer</string>
+	<string>Bật trình xem Web LAN</string>
 	<key>default</key>
 	<false/>
 </dict>
@@ -574,7 +587,7 @@
 	<key>key</key>
 	<string>WebViewerTrustedLAN</string>
 	<key>label</key>
-	<string>Trusted LAN (HTTP / No Password)</string>
+	<string>LAN tin cậy (HTTP / không mật khẩu)</string>
 	<key>default</key>
 	<false/>
 </dict>
@@ -586,7 +599,7 @@
 	<key>key</key>
 	<string>WebViewerTLS</string>
 	<key>label</key>
-	<string>Use HTTPS / WSS</string>
+	<string>Dùng HTTPS / WSS</string>
 	<key>default</key>
 	<false/>
 </dict>
@@ -598,7 +611,7 @@
 	<key>key</key>
 	<string>RemoteControlEnabled</string>
 	<key>label</key>
-	<string>Enable Remote Control</string>
+	<string>Cho phép điều khiển từ xa</string>
 	<key>default</key>
 	<true/>
 </dict>
@@ -606,7 +619,7 @@
 	<key>cell</key>
 	<string>PSStaticTextCell</string>
 	<key>label</key>
-	<string>Local IP Address</string>
+	<string>Địa chỉ IP nội bộ</string>
 	<key>id</key>
 	<string>DKWebInfoIP</string>
 	<key>get</key>
@@ -616,7 +629,7 @@
 	<key>cell</key>
 	<string>PSStaticTextCell</string>
 	<key>label</key>
-	<string>Web Viewer URL</string>
+	<string>Địa chỉ Web Viewer</string>
 	<key>id</key>
 	<string>DKWebInfoURL</string>
 	<key>get</key>
@@ -626,7 +639,7 @@
 	<key>cell</key>
 	<string>PSButtonCell</string>
 	<key>label</key>
-	<string>Copy URL</string>
+	<string>Sao chép địa chỉ Web</string>
 	<key>action</key>
 	<string>dkCopyWebURL</string>
 </dict>
@@ -638,7 +651,7 @@
 			<key>key</key>
 			<string>HttpPort</string>
 			<key>label</key>
-			<string>HTTP Port</string>
+			<string>Cổng Web (HTTP)</string>
 			<key>default</key>
 			<integer>5801</integer>
 			<key>isNumeric</key>
@@ -656,7 +669,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Absolute path to static web client files. Leave empty to use built-in assets.</string>
+			<string>Đường dẫn tuyệt đối đến thư mục giao diện Web. Để trống để dùng giao diện tích hợp trong DEB.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -666,9 +679,9 @@
 			<key>key</key>
 			<string>HttpDir</string>
 			<key>label</key>
-			<string>HTTP Document Root</string>
+			<string>Thư mục giao diện Web</string>
 			<key>placeholder</key>
-			<string>/absolute/path</string>
+			<string>/duong/dan/tuyet/doi</string>
 			<key>noAutoCorrect</key>
 			<true/>
 		</dict>
@@ -680,7 +693,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>PEM-encoded X.509 certificate path for TLS. Used by HTTPS/WSS when Use HTTPS / WSS is enabled.</string>
+			<string>Đường dẫn chứng chỉ X.509 dạng PEM cho TLS. Dùng khi bật HTTPS/WSS.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -690,9 +703,9 @@
 			<key>key</key>
 			<string>SslCertFile</string>
 			<key>label</key>
-			<string>SSL Certificate File</string>
+			<string>Tệp chứng chỉ SSL</string>
 			<key>placeholder</key>
-			<string>/path/to/cert.pem</string>
+			<string>/duong/dan/cert.pem</string>
 			<key>noAutoCorrect</key>
 			<true/>
 		</dict>
@@ -704,7 +717,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>PEM-encoded private key path matching the certificate.</string>
+			<string>Đường dẫn khóa riêng dạng PEM tương ứng với chứng chỉ.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -714,9 +727,9 @@
 			<key>key</key>
 			<string>SslKeyFile</string>
 			<key>label</key>
-			<string>SSL Private Key File</string>
+			<string>Tệp khóa riêng SSL</string>
 			<key>placeholder</key>
-			<string>/path/to/key.pem</string>
+			<string>/duong/dan/key.pem</string>
 			<key>noAutoCorrect</key>
 			<true/>
 		</dict>
@@ -724,7 +737,7 @@
 			<key>cell</key>
 			<string>PSButtonCell</string>
 			<key>label</key>
-			<string>Generate CA…</string>
+			<string>Tạo chứng chỉ CA…</string>
 			<key>action</key>
 			<string>generateKeys</string>
 		</dict>
@@ -734,9 +747,9 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>Reverse Connection</string>
+			<string>Kết nối ngược</string>
 			<key>footerText</key>
-			<string>Establish a reverse connection to a listening VNC viewer or repeater without opening a server port. This is useful for bypassing firewalls or NAT.</string>
+			<string>Kết nối đến trình xem VNC hoặc máy chuyển tiếp đang lắng nghe mà không mở cổng máy chủ. Dùng khi cần đi qua NAT/tường lửa. Chế độ không mật khẩu không hỗ trợ kết nối ngược.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -746,22 +759,22 @@
 			<key>key</key>
 			<string>ReverseMode</string>
 			<key>label</key>
-			<string>Mode</string>
+			<string>Chế độ</string>
 			<key>detail</key>
 			<string>TVNCListItemsController</string>
 			<key>default</key>
 			<string>none</string>
 			<key>shortTitles</key>
 			<array>
-				<string>None</string>
-				<string>Viewer</string>
-				<string>Repeater</string>
+				<string>Tắt</string>
+				<string>Trình xem</string>
+				<string>Máy chuyển tiếp</string>
 			</array>
 			<key>validTitles</key>
 			<array>
-				<string>None</string>
-				<string>Viewer</string>
-				<string>UltraVNC Repeater</string>
+				<string>Tắt</string>
+				<string>Trình xem</string>
+				<string>Máy chuyển tiếp UltraVNC</string>
 			</array>
 			<key>validValues</key>
 			<array>
@@ -770,7 +783,7 @@
 				<string>repeater</string>
 			</array>
 			<key>staticTextMessage</key>
-			<string>A repeater ID is required for the “UltraVNC Repeater” mode.</string>
+			<string>Chế độ Máy chuyển tiếp UltraVNC yêu cầu ID máy chuyển tiếp.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -780,9 +793,9 @@
 			<key>key</key>
 			<string>ReverseSocket</string>
 			<key>label</key>
-			<string>Server</string>
+			<string>Máy chủ</string>
 			<key>placeholder</key>
-			<string>server:port</string>
+			<string>maychu:cong</string>
 			<key>noAutoCorrect</key>
 			<true/>
 		</dict>
@@ -794,7 +807,7 @@
 			<key>key</key>
 			<string>ReverseRepeaterID</string>
 			<key>label</key>
-			<string>Repeater ID</string>
+			<string>ID máy chuyển tiếp</string>
 			<key>decimal</key>
 			<true/>
 			<key>isNumeric</key>
@@ -812,7 +825,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Advertises the VNC service over Bonjour (_rfb._tcp) for clients that support auto-discovery. When the built-in HTTP server is enabled, also publishes _http._tcp. Turn off to disable broadcasting.</string>
+			<string>Quảng bá dịch vụ VNC qua Bonjour để thiết bị tự tìm thấy. Khi bật máy chủ HTTP tích hợp, quảng bá thêm dịch vụ Web. Tắt để ngừng quảng bá.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -822,7 +835,7 @@
 			<key>key</key>
 			<string>BonjourEnabled</string>
 			<key>label</key>
-			<string>Enable Auto-Discovery</string>
+			<string>Cho phép tự tìm thiết bị</string>
 			<key>default</key>
 			<false/>
 		</dict>
@@ -834,7 +847,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Keyboard logging is disabled in ĐK ViewPhone to keep typed information out of logs.</string>
+			<string>ĐK ViewPhone luôn tắt ghi phím để nội dung nhập không xuất hiện trong nhật ký.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -846,7 +859,7 @@
 			<key>enabled</key>
 			<false/>
 			<key>label</key>
-			<string>Log Keyboard Events</string>
+			<string>Ghi thao tác bàn phím</string>
 			<key>default</key>
 			<false/>
 		</dict>
@@ -858,13 +871,13 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>To unblock previously blocked clients, restart the VNC service. The temporary block list is cleared on service restart.</string>
+			<string>Khởi động lại dịch vụ VNC để bỏ chặn thiết bị. Danh sách chặn tạm được xóa khi dịch vụ khởi động lại.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
 			<string>PSButtonCell</string>
 			<key>label</key>
-			<string>Reset to Defaults</string>
+			<string>Đặt lại mặc định</string>
 			<key>action</key>
 			<string>resetDefaults</string>
 			<key>isDestructive</key>
@@ -878,13 +891,13 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>This project is licensed under GPLv2. Author: Lessica.</string>
+			<string>Dự án dùng giấy phép GPLv2. Tác giả gốc: Lessica.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
 			<string>PSButtonCell</string>
 			<key>label</key>
-			<string>View Logs</string>
+			<string>Xem nhật ký</string>
 			<key>action</key>
 			<string>viewLogs</string>
 		</dict>
@@ -892,7 +905,7 @@
 			<key>cell</key>
 			<string>PSButtonCell</string>
 			<key>label</key>
-			<string>View Source Code</string>
+			<string>Xem mã nguồn</string>
 			<key>action</key>
 			<string>source</string>
 		</dict>
@@ -903,13 +916,13 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Please support our paid works, thank you!</string>
+			<string>Cảm ơn bạn đã ủng hộ các sản phẩm của tác giả!</string>
 		</dict>
 		<dict>
 			<key>cell</key>
 			<string>PSButtonCell</string>
 			<key>label</key>
-			<string>Made with ♥ by OwnGoal Studio</string>
+			<string>Phát triển bởi OwnGoal Studio ♥</string>
 			<key>action</key>
 			<string>support</string>
 		</dict>

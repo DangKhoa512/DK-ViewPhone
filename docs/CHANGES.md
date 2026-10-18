@@ -1,5 +1,19 @@
 # ĐK ViewPhone changes
 
+## 1.1.3
+
+Adds optional low-latency scheduling: 1 ms RFB update batching instead of 5 ms,
+and capture's minimum cadence equal to the configured preferred FPS while
+viewers are connected. Dirty-frame skipping, zero-viewer stop, image scale,
+gesture coordinates, socket deadlines and authentication modes are retained.
+Existing preferences keep the old scheduling unless this option is enabled.
+
+Vietnamese Settings covers labels, explanations, option lists, alerts, client
+actions and log controls. Preference keys/defaults and existing values are
+retained. Build checks validate formatting placeholders and packaged translations.
+Device before/after latency results are recorded separately; no FPS or latency
+claim is inferred from configuration alone.
+
 ## 1.1.2
 
 Adds explicit optional passwordless LAN mode at the owner's request. Reuses
