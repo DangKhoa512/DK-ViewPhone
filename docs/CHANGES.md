@@ -1,5 +1,26 @@
 # ĐK ViewPhone changes
 
+## 1.1.1
+
+Integrates an offline blue LAN Web Viewer around the bundled noVNC. Reuses
+LibVNCServer HTTP and native WS/WSS; adds a bounded optional native HTTPS static
+adapter because the built-in HTTP service has no TLS support. Adds Settings for
+web opt-in, explicit trusted-LAN consent, HTTPS, remote-control restriction,
+current IP, web URL and Copy URL. Defaults to web off and HTTP port 5801.
+Resolves certificate/key/custom document-root paths at the prebuilt-library
+boundary with libroothide, preserving saved logical or physical path values.
+Fixes automatic reconnect after established server-side WebSocket closes.
+Hardens the inherited OpenSSL adapter against concurrent read/write/close,
+and releases unused WebSocket request paths before session threads start to
+avoid the 0.9.15 repeated-close double-free found on the physical device.
+Concurrent TLS lifecycle regression runs under ASan/UBSan in CI.
+
+The 1.1.0 capture/input, clipboard, watchdog/backoff, network recovery and runtime
+metrics implementations are retained. The HTTP CONNECT proxy is disabled because
+the viewer uses native WebSocket on the VNC port. No new server runtime or
+production entitlements are added. See [setup](LAN-WEB-VIEWER.md) and
+[recorded tests and limits](WEB-VIEWER-RESULTS.md).
+
 ## 1.1.0
 
 Adds a separate bounded-recovery supervisor, main-runloop heartbeat, private

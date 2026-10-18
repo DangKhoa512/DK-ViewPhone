@@ -11,7 +11,7 @@ Mã nguồn phát triển: [DangKhoa512/DK-ViewPhone, dev/roothide](https://gith
 
 Mở [Actions](https://github.com/DangKhoa512/DK-ViewPhone/actions/workflows/build-dkviewphone.yml), chọn **Build DK ViewPhone (roothide)** → **Run workflow** trên branch `dev/roothide`. Workflow cũng chạy khi push branch này.
 
-Workflow build bản TrollVNC gốc trước, sau đó build ĐK ViewPhone, kiểm tra DEB và hash chữ ký ad-hoc Mach-O rồi mới upload artifact `DKViewPhone_1.1.0_roothide`. Bên trong có `DKViewPhone_1.1.0_roothide.deb`, SHA256SUMS, báo cáo kiểm tra và source của commit tương ứng. Artifact log luôn được upload khi build lỗi. Chỉ run màu xanh với bước kiểm tra thành công mới được coi là build đạt.
+Workflow build bản TrollVNC gốc trước, sau đó build ĐK ViewPhone, kiểm tra DEB và hash chữ ký ad-hoc Mach-O rồi mới upload artifact `DKViewPhone_1.1.1_roothide`. Bên trong có `DKViewPhone_1.1.1_roothide.deb`, SHA256SUMS, báo cáo kiểm tra và source của commit tương ứng. Artifact log luôn được upload khi build lỗi. Chỉ run màu xanh với bước kiểm tra thành công mới được coi là build đạt.
 
 Build thủ công trên macOS với Xcode 16.2, `roothide/theos` cùng submodules, SDK 16.5/14.5 và dependencies như workflow:
 
@@ -44,7 +44,7 @@ Mặc định mới cài: server tắt; bind `127.0.0.1`; port `5901`; scale `0.
 - Trong VNC viewer, nhập host và port riêng `5901`. Với viewer dùng cú pháp cổng tuyệt đối, dùng `<IP-iPhone>::5901`; với macOS dùng `vnc://<IP-iPhone>:5901`. Nhập mật khẩu khi được hỏi.
 - Nếu dùng SSH tunnel, giữ bind loopback và chuyển tiếp `ssh -N -L 5901:127.0.0.1:5901 mobile@<IP-iPhone>` rồi kết nối viewer tới `127.0.0.1:5901`. Cần SSH trên iPhone đã được cấu hình riêng.
 - Classic VNC chỉ dùng 8 byte và không mã hóa hình ảnh/input. Dùng LAN tin cậy; trên mạng không tin cậy phải dùng tunnel mã hóa. Không forward cổng VNC ra Internet. IPv6, wildcard và bind IP công khai bị từ chối trong bản này.
-- WebSocket/noVNC gốc vẫn có trong package; HTTP mặc định tắt, muốn bật phải cấu hình certificate/key. Dùng WSS/tunnel và kiểm tra TLS trên thiết bị trước khi sử dụng.
+- Web Viewer mặc định tắt. HTTP/WS cần bật Allow HTTP/WS on Trusted LAN và chỉ dùng trên LAN tin cậy. HTTPS/WSS cần certificate/key phù hợp được trình duyệt tin cậy. Xem [cấu hình chi tiết](docs/LAN-WEB-VIEWER.md).
 - Có thể tắt bằng Enabled hoặc Control Center. Server do LaunchDaemon quản lý, không phụ thuộc việc giữ Settings mở.
 
 Các thiết lập cũ từ TrollVNC được giữ khi thay gói. Defaults mới áp dụng cho trường chưa lưu; mật khẩu cũ yếu khiến server bị tắt để cấu hình lại. Gỡ gói giữ lại preferences; có thể Reset Settings trước khi gỡ.

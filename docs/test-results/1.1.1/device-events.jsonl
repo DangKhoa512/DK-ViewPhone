@@ -1,0 +1,70 @@
+{"event": "supervisor_started", "latched": false, "restarts": 40, "time_unix": 1792289996.119796, "version": "1.1.1"}
+{"available": true, "event": "network_changed", "time_unix": 1792289996.1311312, "version": "1.1.1"}
+{"event": "worker_started", "reason": "startup", "restarts": 41, "time_unix": 1792289999.193318, "version": "1.1.1"}
+{"changed_fps": 0, "changed_frames": 0, "clients": 0, "cpu_percent": 0, "event": "metrics", "frame_processing_max_ms": 0, "frame_processing_mean_ms": 0, "interval_s": 0, "rss_bytes": 5308416, "time_unix": 1792289999.696931, "updates_sent": 0, "version": "1.1.1"}
+{"changed_fps": 9.483252418089021, "changed_frames": 285, "clients": 1, "cpu_percent": 42.01160347435469, "event": "metrics", "frame_processing_max_ms": 29.554, "frame_processing_mean_ms": 15.08196842105263, "interval_s": 30.052980500273407, "rss_bytes": 18448384, "time_unix": 1792290029.432086, "updates_sent": 286, "version": "1.1.1"}
+{"event": "worker_stopped", "reason": "configuration_changed", "time_unix": 1792290047.5159302, "version": "1.1.1"}
+{"event": "worker_started", "reason": "configuration_changed", "restarts": 42, "time_unix": 1792290047.533197, "version": "1.1.1"}
+{"changed_fps": 0, "changed_frames": 0, "clients": 0, "cpu_percent": 0, "event": "metrics", "frame_processing_max_ms": 0, "frame_processing_mean_ms": 0, "interval_s": 0, "rss_bytes": 6979584, "time_unix": 1792290048.0367641, "updates_sent": 0, "version": "1.1.1"}
+{"changed_fps": 11.522339548930585, "changed_frames": 346, "clients": 2, "cpu_percent": 36.720174261177654, "event": "metrics", "frame_processing_max_ms": 191.66, "frame_processing_mean_ms": 16.89591907514451, "interval_s": 30.028623833786696, "rss_bytes": 20856832, "time_unix": 1792290078.1906462, "updates_sent": 408, "version": "1.1.1"}
+{"changed_fps": 13.987722587446836, "changed_frames": 420, "clients": 1, "cpu_percent": 40.442828872670354, "event": "metrics", "frame_processing_max_ms": 111.392, "frame_processing_mean_ms": 14.940150000000001, "interval_s": 30.026331833098084, "rss_bytes": 21839872, "time_unix": 1792290108.198834, "updates_sent": 530, "version": "1.1.1"}
+{"changed_fps": 5.750706108905742, "changed_frames": 184, "clients": 1, "cpu_percent": 14.075318883726274, "event": "metrics", "frame_processing_max_ms": 257.163, "frame_processing_mean_ms": 17.855, "interval_s": 31.996070832945406, "rss_bytes": 22839296, "time_unix": 1792290139.904819, "updates_sent": 172, "version": "1.1.1"}
+{"changed_fps": 2.78019156872201, "changed_frames": 89, "clients": 1, "cpu_percent": 8.95820519649525, "event": "metrics", "frame_processing_max_ms": 57.85, "frame_processing_mean_ms": 10.633191011235956, "interval_s": 32.0121825421229, "rss_bytes": 22855680, "time_unix": 1792290171.808084, "updates_sent": 88, "version": "1.1.1"}
+{"event": "worker_stopped", "reason": "configuration_changed", "time_unix": 1792290191.916916, "version": "1.1.1"}
+{"event": "worker_started", "reason": "configuration_changed", "restarts": 43, "time_unix": 1792290192.325448, "version": "1.1.1"}
+{"changed_fps": 0, "changed_frames": 0, "clients": 0, "cpu_percent": 0, "event": "metrics", "frame_processing_max_ms": 0, "frame_processing_mean_ms": 0, "interval_s": 0, "rss_bytes": 7012352, "time_unix": 1792290192.8309479, "updates_sent": 0, "version": "1.1.1"}
+{"event": "worker_stopped", "reason": "configuration_changed", "time_unix": 1792290204.669255, "version": "1.1.1"}
+{"event": "worker_started", "reason": "configuration_changed", "restarts": 44, "time_unix": 1792290204.685413, "version": "1.1.1"}
+{"changed_fps": 0, "changed_frames": 0, "clients": 0, "cpu_percent": 0, "event": "metrics", "frame_processing_max_ms": 0, "frame_processing_mean_ms": 0, "interval_s": 0, "rss_bytes": 6963200, "time_unix": 1792290205.189169, "updates_sent": 0, "version": "1.1.1"}
+{"changed_fps": 4.355556724230785, "changed_frames": 131, "clients": 2, "cpu_percent": 12.720333591214319, "event": "metrics", "frame_processing_max_ms": 374.757, "frame_processing_mean_ms": 14.059961832061068, "interval_s": 30.07652254216373, "rss_bytes": 20905984, "time_unix": 1792290235.370837, "updates_sent": 132, "version": "1.1.1"}
+{"delay_s": 2, "event": "recovery", "failures": 1, "latched": false, "reason": "server_signal", "restarts": 44, "time_unix": 1792290251.515255, "version": "1.1.1", "wait_status": 9}
+{"event": "worker_started", "reason": "server_signal", "restarts": 45, "time_unix": 1792290253.570229, "version": "1.1.1"}
+{"changed_fps": 0, "changed_frames": 0, "clients": 0, "cpu_percent": 0, "event": "metrics", "frame_processing_max_ms": 0, "frame_processing_mean_ms": 0, "interval_s": 0, "rss_bytes": 6995968, "time_unix": 1792290254.076427, "updates_sent": 0, "version": "1.1.1"}
+{"event": "worker_stopped", "reason": "configuration_changed", "time_unix": 1792290283.96714, "version": "1.1.1"}
+{"event": "worker_started", "reason": "configuration_changed", "restarts": 46, "time_unix": 1792290283.976234, "version": "1.1.1"}
+{"changed_fps": 0, "changed_frames": 0, "clients": 0, "cpu_percent": 0, "event": "metrics", "frame_processing_max_ms": 0, "frame_processing_mean_ms": 0, "interval_s": 0, "rss_bytes": 5292032, "time_unix": 1792290284.482425, "updates_sent": 0, "version": "1.1.1"}
+{"event": "worker_stopped", "reason": "configuration_changed", "time_unix": 1792290312.277816, "version": "1.1.1"}
+{"event": "worker_started", "reason": "configuration_changed", "restarts": 47, "time_unix": 1792290312.304967, "version": "1.1.1"}
+{"changed_fps": 0, "changed_frames": 0, "clients": 0, "cpu_percent": 0, "event": "metrics", "frame_processing_max_ms": 0, "frame_processing_mean_ms": 0, "interval_s": 0, "rss_bytes": 5308416, "time_unix": 1792290312.811195, "updates_sent": 0, "version": "1.1.1"}
+{"event": "worker_stopped", "reason": "configuration_changed", "time_unix": 1792290340.510917, "version": "1.1.1"}
+{"event": "worker_started", "reason": "configuration_changed", "restarts": 48, "time_unix": 1792290340.530641, "version": "1.1.1"}
+{"changed_fps": 0, "changed_frames": 0, "clients": 0, "cpu_percent": 0, "event": "metrics", "frame_processing_max_ms": 0, "frame_processing_mean_ms": 0, "interval_s": 0, "rss_bytes": 6717440, "time_unix": 1792290341.036772, "updates_sent": 0, "version": "1.1.1"}
+{"changed_fps": 0.19910602418535175, "changed_frames": 6, "clients": 0, "cpu_percent": 0.8071559114449975, "event": "metrics", "frame_processing_max_ms": 46.439, "frame_processing_mean_ms": 17.016166666666667, "interval_s": 30.13469845801592, "rss_bytes": 18857984, "time_unix": 1792290370.7826371, "updates_sent": 1, "version": "1.1.1"}
+{"sequence": 180, "event": "browser_connected", "browser": "155.0.8059.84", "secure": false, "self_signed_test": false, "view_password": false, "canvas": {"width": 564, "height": 1004, "visibleWidth": 339.296875, "visibleHeight": 604}, "frame_sha256": "4cb59d84fe15c8f37941a04be0b456eaa5cb5cbae034b86670f4086336ef6d41", "page_errors": [], "password_field_empty": true, "no_password_storage": true}
+{"sequence": 181, "event": "browser_scale", "canvas": {"width": 564, "height": 1004, "visibleWidth": 255.03125, "visibleHeight": 454}}
+{"sequence": 182, "event": "browser_fullscreen", "entered": true}
+{"sequence": 185, "event": "browser_connected", "browser": "155.0.8059.84", "secure": true, "self_signed_test": true, "view_password": false, "canvas": {"width": 564, "height": 1004, "visibleWidth": 339.296875, "visibleHeight": 604}, "frame_sha256": "f53df350efe20c2b41b43d6e70ea0a6287a6cc4df99c6513569556b9079b38ab", "page_errors": [], "password_field_empty": true, "no_password_storage": true}
+{"sequence": 186, "event": "browser_wss_stress_progress", "completed": 10, "graceful": 5, "abrupt": 5, "frames": 1}
+{"sequence": 187, "event": "browser_wss_stress_progress", "completed": 20, "graceful": 10, "abrupt": 10, "frames": 2}
+{"sequence": 188, "event": "browser_wss_stress_progress", "completed": 30, "graceful": 15, "abrupt": 15, "frames": 3}
+{"sequence": 189, "event": "browser_wss_stress_progress", "completed": 40, "graceful": 20, "abrupt": 20, "frames": 4}
+{"sequence": 190, "event": "browser_wss_stress_progress", "completed": 50, "graceful": 25, "abrupt": 25, "frames": 5}
+{"sequence": 191, "event": "browser_wss_stress_progress", "completed": 60, "graceful": 30, "abrupt": 30, "frames": 6}
+{"sequence": 192, "event": "browser_wss_stress_progress", "completed": 70, "graceful": 35, "abrupt": 35, "frames": 7}
+{"sequence": 193, "event": "browser_wss_stress_progress", "completed": 80, "graceful": 40, "abrupt": 40, "frames": 8}
+{"sequence": 194, "event": "browser_wss_stress_progress", "completed": 90, "graceful": 45, "abrupt": 45, "frames": 9}
+{"sequence": 195, "event": "browser_wss_stress_progress", "completed": 100, "graceful": 50, "abrupt": 50, "frames": 10}
+{"sequence": 196, "event": "browser_wss_stress_passed", "iterations": 100, "worker_unchanged": true, "anchor_connected": true, "elapsed_s": 47.46, "time_unix": 1792290105.389827, "graceful": 50, "abrupt": 50, "frames": 10}
+{"sequence": 198, "event": "browser_input_observation", "task": "capture", "name": "tlsfix-calc-before", "frame_sha256": "9dd9da67324c4eb0f46bb2119287fc595db1b550b5e4bb36c59785a821dd970e"}
+{"sequence": 199, "event": "browser_input_observation", "task": "tap", "name": "accept-zero", "frame_sha256": "0a4f0bc166b894703ca6ed915a8011d02d4212aa2af3c5074f377caf8d925232"}
+{"sequence": 200, "event": "browser_state", "connected": true, "connect_enabled": false}
+{"sequence": 201, "event": "browser_input_observation", "task": "view-only", "name": "accept-view-before", "frame_sha256": "87b8bb093501e501c467c323b3af947dde23961125c1aa7b634db6726c2ae0d1"}
+{"sequence": 202, "event": "browser_input_observation", "task": "tap", "name": "accept-view-after", "frame_sha256": "87b8bb093501e501c467c323b3af947dde23961125c1aa7b634db6726c2ae0d1"}
+{"sequence": 203, "event": "browser_input_observation", "task": "view-only", "name": "accept-control-before", "frame_sha256": "87b8bb093501e501c467c323b3af947dde23961125c1aa7b634db6726c2ae0d1"}
+{"sequence": 204, "event": "browser_input_observation", "task": "tap", "name": "accept-two", "frame_sha256": "b7f3ef122618992938b158c60f926bb9490a32454cb41060320625ea0241874b"}
+{"sequence": 205, "event": "browser_connected", "browser": "155.0.8059.84", "secure": true, "self_signed_test": true, "view_password": true, "canvas": {"width": 564, "height": 1004, "visibleWidth": 339.296875, "visibleHeight": 604}, "frame_sha256": "bf74d8e920aa9be7f8a4858922dab466535bc4af7fbe4ed5538c446e9dd0fd00", "page_errors": [], "password_field_empty": true, "no_password_storage": true}
+{"sequence": 206, "event": "browser_input_observation", "task": "capture", "name": "accept-server-view-before", "frame_sha256": "7d5bb903d6bf33e0a9b462038abf5863737b8b1dd77bad18b30b0f3ccbdc2ece"}
+{"sequence": 207, "event": "browser_input_observation", "task": "tap", "name": "accept-server-view-after", "frame_sha256": "2e21553f7d09a80c804ac85a939728e7f43aa27af686c036fce7baa3af94065e"}
+{"sequence": 209, "event": "browser_connected", "browser": "155.0.8059.84", "secure": true, "self_signed_test": true, "view_password": false, "canvas": {"width": 564, "height": 1004, "visibleWidth": 339.296875, "visibleHeight": 604}, "frame_sha256": "4057fbefbe6944ee53ef6394e8136f28f86a3a902fcb8760efc4a8f346ae6dbe", "page_errors": [], "password_field_empty": true, "no_password_storage": true}
+{"sequence": 210, "event": "browser_input_observation", "task": "capture", "name": "accept-global-off-before", "frame_sha256": "2e21553f7d09a80c804ac85a939728e7f43aa27af686c036fce7baa3af94065e"}
+{"sequence": 211, "event": "browser_input_observation", "task": "tap", "name": "accept-global-off-after", "frame_sha256": "2e21553f7d09a80c804ac85a939728e7f43aa27af686c036fce7baa3af94065e"}
+{"sequence": 213, "event": "browser_wrong_password", "rejected": true}
+{"sequence": 214, "event": "browser_connected", "browser": "155.0.8059.84", "secure": true, "self_signed_test": true, "view_password": false, "canvas": {"width": 564, "height": 1004, "visibleWidth": 339.296875, "visibleHeight": 604}, "frame_sha256": "2e21553f7d09a80c804ac85a939728e7f43aa27af686c036fce7baa3af94065e", "page_errors": [], "password_field_empty": true, "no_password_storage": true}
+{"sequence": 216, "event": "browser_input_observation", "task": "capture", "name": "accept-swipe-before", "frame_sha256": "1c5f433477d995f168bb0753fae8caa638067dc8fadad940fb8605551acb97ae"}
+{"sequence": 217, "event": "browser_input_observation", "task": "swipe", "name": "accept-swipe-after", "frame_sha256": "50ec17e44204d1717005b65975350e3580d455051a1e820b1a16648de2899c2a"}
+{"sequence": 219, "event": "browser_input_observation", "task": "capture", "name": "accept-after-settings-exit", "frame_sha256": "97d2dd2fb5c6096d3529c6f2e6e232dc807d52f5fa4544be9d7707bfa088e04e"}
+{"sequence": 220, "event": "fault_injected", "signal": "KILL"}
+{"sequence": 221, "event": "browser_state", "connected": true, "connect_enabled": false}
+{"sequence": 222, "event": "browser_input_observation", "task": "capture", "name": "accept-after-recovery", "frame_sha256": "6b465167a56011a119568bc4a2fead3827a225253c83c1ea971c5db9ed37e996"}
+{"sequence": 223, "event": "browser_manual_disconnect", "connect_enabled": true, "disconnected": true}
+{"sequence": 224, "event": "browser_state", "connected": false, "connect_enabled": true}

@@ -1,0 +1,272 @@
+{
+  "version": "1.1.1",
+  "date": "2026-10-18",
+  "test_dates": [
+    "2026-10-17",
+    "2026-10-18"
+  ],
+  "device": "iPhone 6s / iPhone8,1, iOS 15.8.4, Dopamine roothide",
+  "checkpoint": "167f88b",
+  "build_commit": "3284c45a958f108cb33ea1560428bbf21032840b",
+  "build_run": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39089452516",
+  "deb_artifact": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39089452516/artifacts/12122510525",
+  "build_logs_artifact": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39089452516/artifacts/12122316981",
+  "deb_sha256": "c529cf75147cccbf42e9ac0080daaadf662157852a624243a14a249368307ebb",
+  "deb_bytes": 1547056,
+  "stability_110_sources_unchanged": true,
+  "tests": [
+    {
+      "name": "Actions build, Python/C++/JS regression checks",
+      "status": "passed",
+      "evidence": "Run 39089452516 succeeded at 3284c45. Eight Python source/archive tests, C++ security/recovery tests and JS reconnect-event contract tests passed; offline bundle reproduced in CI."
+    },
+    {
+      "name": "Concurrent TLS lifecycle sanitizer regression",
+      "status": "passed",
+      "evidence": "12 real-OpenSSL concurrent read/write/peek/pending/close rounds under ASan/UBSan passed in the dedicated CI job. Includes repeated engine path free and rejection of raw writes after TLS teardown. This is host coverage, separate from device coverage."
+    },
+    {
+      "name": "100 Chrome WSS connect/disconnect cycles on physical iPhone",
+      "status": "passed",
+      "evidence": {
+        "event": "browser_wss_stress_passed",
+        "iterations": 100,
+        "worker_unchanged": true,
+        "anchor_connected": true,
+        "elapsed_s": 47.46,
+        "time_unix": 1792290105.389827,
+        "graceful": 50,
+        "abrupt": 50,
+        "frames": 10
+      }
+    },
+    {
+      "name": "Final short-run crash inventory",
+      "status": "passed",
+      "evidence": "No additional trollvncserver crash reports after final install. The only recovery in the final diagnostic window is the explicitly injected SIGKILL; earlier candidate crashes are recorded separately. This is not a 24-hour pass."
+    },
+    {
+      "name": "DEB signatures, architecture and offline payload",
+      "status": "passed",
+      "evidence": {
+        "entries": 204,
+        "binaries": [
+          "Library/ControlCenter/Bundles/CCTrollVNC.bundle/CCTrollVNC",
+          "Library/PreferenceBundles/TrollVNCPrefs.bundle/TrollVNCPrefs",
+          "usr/bin/dkviewphone-watchdog",
+          "usr/bin/trollvncserver"
+        ],
+        "assets": {
+          "index.vnc": "1912cb510df26f593fc1ff3a5af5eb5bd6fe389703a44508746e67e4d1a04bb2",
+          "viewer.css": "b6d3bbd36eb0637a9402f372966d8caa42ac90fad1003ceb18e6939fa663a85f",
+          "viewer.js": "77d309d96df0885bed265e917a47037ed0a2acf091043463534f07a52a0e9f93",
+          "viewer.bundle.js": "532f25911b5379e7a0592f17ae56f4d299c9ad16cd74e0d88d697436e6b5e746",
+          "novnc/core/rfb.js": "18b16349b447518844986a305c7c752d169eaf2067e12a811af14c9242d96e63"
+        },
+        "note": "Local validator independently matches CI SHA256. The separate native test helper is excluded."
+      }
+    },
+    {
+      "name": "Exact final DEB upgrade from 1.1.0",
+      "status": "passed",
+      "evidence": "Restored original preferences, installed verified 1.1.0 baseline, checkpointed all values, upgraded to this exact DEB and compared values before test configuration. Package SHA256 was independently verified on-device with Python (shasum was unavailable). A later comparison after intentional test configuration is expected to differ. Main server and web remained off until explicitly enabled for tests."
+    },
+    {
+      "name": "Direct LAN HTTP, MIME and offline bundle",
+      "status": "passed",
+      "evidence": "Windows Chrome 155.0.8059.84 loaded the page from iPhone port 5801 and authenticated through native WS on VNC port 5901. No CDN, proxy, Node or Python server on iPhone."
+    },
+    {
+      "name": "Live screen, tap and browser View-only",
+      "status": "passed",
+      "evidence": "Final package: Calculator 0 stayed unchanged for a view-only tap; the same full-access tap displayed 2. Frame hashes and local screenshots were inspected. Screenshots are not published."
+    },
+    {
+      "name": "Browser mouse drag/swipe",
+      "status": "passed",
+      "evidence": "Final 3284c45 DEB repeated in Chrome/WSS on 2026-10-18: mouse drag visibly scrolled native Settings from the network section down to wallpaper, Siri and privacy controls. Local screenshots inspected; raw screens excluded."
+    },
+    {
+      "name": "Server-enforced view-only password",
+      "status": "passed",
+      "evidence": "With the browser view-only toggle off, a view-only VNC credential blocked the same Calculator tap. Server restriction source is unchanged."
+    },
+    {
+      "name": "Remote Control off in server preferences",
+      "status": "passed",
+      "evidence": "Full-access credential with browser view-only off remained unable to tap when RemoteControlEnabled=false. No authentication policy change."
+    },
+    {
+      "name": "Auto Scale and Fullscreen",
+      "status": "passed",
+      "evidence": "Chrome entered/exited fullscreen, resized viewport and toggled scale. Canvas aspect ratio was preserved. Portrait 564x1004 and earlier landscape 1000x562 were observed; no new physical-rotation assistance claimed."
+    },
+    {
+      "name": "Browser rejects wrong VNC password",
+      "status": "passed",
+      "evidence": "Entered a generated wrong credential once; browser returned to disconnected state without an authentication retry loop."
+    },
+    {
+      "name": "Credential handling",
+      "status": "passed",
+      "evidence": "Observed empty password field after submission and empty local/session storage in isolated Chrome context. URL has host/ports only. Reconnect uses memory-only session credentials; manual Disconnect clears wrapper intent/credentials."
+    },
+    {
+      "name": "Worker crash recovery and automatic browser reconnect",
+      "status": "passed",
+      "evidence": "Killed the package engine deliberately. Watchdog replaced the worker with backoff; Chrome reauthenticated automatically and received a framebuffer. Initial development candidate failed due to noVNC clean-close semantics; wrapper and JS regression test were corrected."
+    },
+    {
+      "name": "Manual Disconnect stays disconnected",
+      "status": "passed",
+      "evidence": "After manual Disconnect, waited six seconds: no browser reconnect and Connect button remained enabled. JS regression also covers pending retry cancellation and five-attempt budget."
+    },
+    {
+      "name": "HTTPS/WSS and roothide certificate paths",
+      "status": "passed",
+      "evidence": {
+        "tls_probe": {
+          "tls": true,
+          "root_loaded": true,
+          "root_bytes": 5663,
+          "tls_version": "TLSv1.3",
+          "offline_bundle_matches": true,
+          "traversal_rejected": true,
+          "missing_file_404": true,
+          "post_rejected": true,
+          "encoded_traversal_rejected": true,
+          "untrusted_test_certificate_rejected": true
+        },
+        "note": "Final DEB accepted logical /var/tmp certificate/key paths without rewriting preferences. Native HTTPS and existing WSS authenticated in Chrome using isolated test-context certificate bypass for a temporary self-signed IP-SAN certificate. Default validation rejected it. Windows CA trust was not changed; a normally trusted production certificate is still user-provided."
+      }
+    },
+    {
+      "name": "Disabling Web Viewer closes port 5801",
+      "status": "passed",
+      "evidence": {
+        "case": "web-disabled",
+        "web_port_closed": true,
+        "vnc_banner_available": true
+      }
+    },
+    {
+      "name": "HTTP requires explicit trusted-LAN consent",
+      "status": "passed",
+      "evidence": {
+        "case": "no-http-consent",
+        "web_port_closed": true,
+        "vnc_banner_available": true
+      }
+    },
+    {
+      "name": "Bad TLS config has no plaintext fallback",
+      "status": "passed",
+      "evidence": {
+        "case": "invalid-tls-certificate",
+        "web_port_closed": true,
+        "vnc_banner_available": true
+      }
+    },
+    {
+      "name": "HTTP/HTTPS path and method rejection",
+      "status": "passed",
+      "evidence": "Actual device rejected missing files, traversal, encoded traversal over HTTPS and POST; JavaScript MIME and exact bundled contents verified. No general CONNECT proxy enabled."
+    },
+    {
+      "name": "Native VNC regression with optional web TLS unavailable",
+      "status": "passed",
+      "evidence": "Raw TCP VNC authenticated with unchanged VNC security type 2 and returned a 564x1004 framebuffer while an intentionally invalid web certificate kept port 5801 closed."
+    },
+    {
+      "name": "Server survives closing Settings",
+      "status": "passed",
+      "evidence": "Terminated the verified Preferences process; both listeners remained owned by package worker and authenticated browser capture continued. Initial pkill command was unavailable; explicit verified PID termination succeeded."
+    },
+    {
+      "name": "Native Settings presentation and Copy URL",
+      "status": "partial",
+      "evidence": "Opened native preference pane and observed LAN IP, generated URL, HTTP port and certificate fields. Preferences toggles were exercised through the mobile CFPreferences test helper; Copy URL was not executed to avoid modifying the owner clipboard."
+    },
+    {
+      "name": "Physical Wi-Fi loss/rejoin and changed DHCP lease",
+      "status": "not_run",
+      "evidence": "Owner unavailable for assisted device operations in this session. No Wi-Fi power toggle was performed. Engine-crash reconnect is a separate test and is not a Wi-Fi pass. Prior 1.1.0 interface-alias evidence remains historical."
+    },
+    {
+      "name": "Keyboard-specific app acceptance / Edge",
+      "status": "not_run",
+      "evidence": "Wrapper retains bundled noVNC keyboard handling; this session used Chrome. Dedicated app keyboard acceptance and Edge were not separately tested."
+    },
+    {
+      "name": "24-hour soak, reboot and memory-leak qualification",
+      "status": "deferred",
+      "evidence": "Previously deferred by owner. Short CPU/RSS diagnostics and existing timeout controls do not establish leak freedom, FPS improvement or 24-hour stability."
+    }
+  ],
+  "final_state": "Final 1.1.1 DEB installed. Original 17 preference values independently matched after CFPreferences flushed (Enabled=false); web/VNC/control listeners were closed. Temporary on-device test tools, package copies and TLS keys/certificates were removed. The separate TrollStore app files were retained; its conflicting server/manager remain stopped. Original clipboard was not modified.",
+  "development_crashes": [
+    {
+      "date": "2026-10-18 02:34:34.2477 +0700",
+      "signal": "SIGBUS",
+      "symbols": [
+        "webSocketsHasDataInBuffer",
+        "_pthread_start",
+        "thread_start"
+      ],
+      "scope": "Earlier candidate; not a final-build pass"
+    },
+    {
+      "date": "2026-10-18 09:12:05.9543 +0700",
+      "signal": "SIGABRT",
+      "symbols": [
+        "__pthread_kill",
+        "pthread_kill",
+        "abort",
+        "malloc_vreport",
+        "malloc_report",
+        "free",
+        "rfbCloseClient",
+        "rfbSendUpdateBuf",
+        "rfbSendFramebufferUpdate",
+        "_pthread_start",
+        "thread_start"
+      ],
+      "scope": "Earlier candidate; not a final-build pass"
+    },
+    {
+      "date": "2026-10-17 20:11:51.9579 +0700",
+      "signal": "SIGSEGV",
+      "symbols": [
+        "BIO_write",
+        "ssl3_write_pending",
+        "do_ssl3_write",
+        "ssl3_write_bytes",
+        "SSL_write",
+        "rfbssl_write",
+        "rfbWriteExact",
+        "rfbSendUpdateBuf"
+      ],
+      "scope": "Earlier candidate; not a final-build pass"
+    },
+    {
+      "date": "2026-10-18 09:12:17.3925 +0700",
+      "signal": "SIGABRT",
+      "symbols": [
+        "__pthread_kill",
+        "pthread_kill",
+        "abort",
+        "malloc_vreport",
+        "malloc_report",
+        "free",
+        "rfbCloseClient",
+        "rfbSendUpdateBuf",
+        "rfbSendFramebufferUpdate",
+        "_pthread_start",
+        "thread_start"
+      ],
+      "scope": "Earlier candidate; not a final-build pass"
+    }
+  ],
+  "tls_lifecycle_artifact": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39089452516/artifacts/12122610109",
+  "coverage_note": "Earlier candidates crashed during real WSS use/stress. The final candidate contains targeted SSL lifetime and accepted-session request-path fixes; the 100-cycle result is short regression coverage, not a long-term crash-free claim."
+}

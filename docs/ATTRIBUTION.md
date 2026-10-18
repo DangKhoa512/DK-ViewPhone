@@ -33,6 +33,11 @@ upstream, so this is a license reference, not a proven exact source revision.
 The existing pako MIT license and sound credits stay with the web resources.
 LZO is covered by the bundled GPLv2 text and its original header notices.
 
+`src/DKRFBTLS.mm` adapts the six entry points of
+[LibVNCServer 0.9.15 rfbssl_openssl.c](https://github.com/LibVNC/libvncserver/blob/LibVNCServer-0.9.15/src/libvncserver/rfbssl_openssl.c),
+Copyright 2011 Gernot Tenchio, GPL-2.0-or-later. It adds serialized SSL lifecycle
+ownership and bounded nonblocking I/O; the original static archive is unchanged.
+
 Build tools (Theos and ldid) are used to compile/sign; they are not bundled as
 host executables in the iPhone package. Apple SDKs are downloaded by the workflow
 and are not included in the DEB/source artifact.
