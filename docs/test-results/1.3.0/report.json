@@ -1,0 +1,67 @@
+{
+  "version": "1.3.0",
+  "date": "2026-10-18",
+  "device": "iPhone 6s, iOS 15.8.4, Dopamine roothide",
+  "build_commit": "dc84b8a3c0dcf2dc5df44fe7f5775205986c6a48",
+  "build_run": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39113475065",
+  "deb_artifact": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39113475065/artifacts/12131342527",
+  "deb_sha256": "91b2866266ad93a17841a0153cc5e3f02f78b2b5f7ac15eb3271508c4edd97f7",
+  "deb_bytes": 1568368,
+  "tests": [
+    {
+      "name": "Source and packaged web template",
+      "status": "passed",
+      "evidence": "11 Python tests passed; the template has one dashboard, Device Grid and Focus Panel, and no Single View or Multi View tabs."
+    },
+    {
+      "name": "Managed noVNC session contract",
+      "status": "passed",
+      "evidence": "Node tests passed passwordless/password authentication, credential cleanup, bounded reconnect, LAN/USB endpoint selection and separate preview/focus quality."
+    },
+    {
+      "name": "Chrome layout with fallback data",
+      "status": "passed",
+      "evidence": "Six demo cards, five-column grid, selection, Focus Panel, no-reload device switching, search and password-storage checks passed with zero page errors."
+    },
+    {
+      "name": "Concurrent previews and focus priority",
+      "status": "passed",
+      "evidence": "A local RFB/WebSocket protocol fixture kept two previews online. At live limit two, the focused device preview yielded one slot, the other preview stayed online, and focus switched without reload."
+    },
+    {
+      "name": "GitHub Actions roothide build",
+      "status": "passed",
+      "evidence": "Run 39113475065 completed successfully with source/security tests, reproducible web bundle, Theos build and package validation."
+    },
+    {
+      "name": "Independent DEB validation",
+      "status": "passed",
+      "evidence": "Package com.dk.viewphone 1.3.0, iphoneos-arm64e, 206 payload entries and four signed arm64 Mach-O files validated."
+    },
+    {
+      "name": "Upgrade and runtime on physical device",
+      "status": "passed",
+      "evidence": "Upgraded 1.2.0 to 1.3.0; one watchdog and one server remained, device listeners reported 5801/5901, and no new crash report appeared."
+    },
+    {
+      "name": "Installed DEB preview and focus through USB tunnel",
+      "status": "passed",
+      "evidence": "Windows Chrome loaded the page served by the iPhone package; current-device preview and Focus Panel both connected and rendered two noVNC canvases."
+    },
+    {
+      "name": "Direct Windows-to-iPhone LAN connection",
+      "status": "failed_environment",
+      "evidence": "PC 192.168.1.157 can ping and resolve ARP for iPhone 192.168.1.158, but TCP connects to 5801/5901 fail. The same device listeners work through an SSH USB tunnel."
+    },
+    {
+      "name": "Multiple distinct physical iPhones",
+      "status": "not_run",
+      "evidence": "Only one physical iPhone was available. Cross-device bandwidth, touch routing and 2/4/8/12-device behavior remain unverified."
+    },
+    {
+      "name": "Long-run FPS, latency and memory",
+      "status": "not_run",
+      "evidence": "No multi-hour run or glass-to-glass measurement was performed. The dashboard shows dashes instead of invented metrics."
+    }
+  ]
+}
