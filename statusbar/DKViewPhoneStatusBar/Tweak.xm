@@ -66,7 +66,7 @@ static NSString *DKCurrentIPv4(void) {
 
 - (id)contentsImage {
     [DKLegacyTimeViews() addObject:self];
-    return [self imageWithText:DKCurrentIPv4()];
+    return [(id)self imageWithText:DKCurrentIPv4()];
 }
 
 %end
@@ -78,9 +78,9 @@ static NSString *DKCurrentIPv4(void) {
 - (void)applyUpdate:(id)update toDisplayItem:(id)displayItem {
     %orig;
     NSString *address = DKCurrentIPv4();
-    for (id view in @[[self timeView] ?: NSNull.null,
-                      [self shortTimeView] ?: NSNull.null,
-                      [self pillTimeView] ?: NSNull.null]) {
+    for (id view in @[[((id)self) timeView] ?: NSNull.null,
+                      [((id)self) shortTimeView] ?: NSNull.null,
+                      [((id)self) pillTimeView] ?: NSNull.null]) {
         if (view != NSNull.null && [view respondsToSelector:@selector(setText:)]) {
             [DKModernTimeViews() addObject:view];
             [view setText:address];
