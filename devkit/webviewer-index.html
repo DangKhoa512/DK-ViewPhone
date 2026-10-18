@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="vi"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src ws: wss:; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>ĐK ViewPhone · Device Farm</title><link rel="stylesheet" href="viewer.css"><script defer src="viewer.bundle.js"></script>
 </head><body data-rfb-port="$PORT">
 <header class="topbar">
@@ -14,6 +15,7 @@
 <section class="controlbar" aria-label="Công cụ dashboard">
   <div class="control-actions">
     <button class="primary" id="addDevice">+ Thêm thiết bị</button>
+    <button class="scan-button" id="scanLan" hidden>Quét LAN</button>
     <button id="connectSelected">Kết nối đã chọn</button>
     <button id="disconnectSelected">Ngắt đã chọn</button>
     <button id="loadDemo" title="Tạo các card offline để kiểm tra bố cục">Thêm dữ liệu mẫu</button>

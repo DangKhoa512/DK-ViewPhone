@@ -462,7 +462,8 @@ function initDashboard() {
                 !this.focusSession;
             document.querySelector('.online-stat').classList.toggle('active', online > 0);
             const modes = new Set(devices.map(device => device.connection_mode.toUpperCase()));
-            $('modeSummary').textContent = modes.size ? [...modes].join(' + ') : '—';
+            const modeText = modes.size ? [...modes].join(' + ') : 'LAN / USB';
+            $('modeSummary').textContent = window.dkDesktop ? `DESKTOP · ${modeText}` : modeText;
         }
     }
 
@@ -653,6 +654,48 @@ function initDashboard() {
         renderAll();
         setMessage(`Đã thêm ${added} card mẫu offline. Chúng không tự kết nối.`);
     }
+    async function scanLAN() {
+        if (!window.dkDesktop?.scanLAN) return;
+        const button = $('scanLan');
+        const original = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Đang quét…';
+        setMessage('Đang quét các cổng 5801/5901 trên mạng LAN riêng…');
+        try {
+            const result = await window.dkDesktop.scanLAN();
+            const found = Array.isArray(result?.devices) ? result.devices : [];
+            let added = 0;
+            for (const discovered of found) {
+                const port = Number(discovered.vnc_port) || 5901;
+                const exists = devices.some(device => device.connection_mode === 'lan' &&
+                    device.host === discovered.host && device.vnc_port === port);
+                if (exists) continue;
+                const device = cleanDevice({
+                    name: discovered.name || `iPhone ${discovered.host}`,
+                    host: discovered.host, vnc_port: port, connection_mode: 'lan',
+                    auto_reconnect: true,
+                });
+                devices.push(device);
+                const card = cardFor(device);
+                $('deviceGrid').append(card);
+                manager.observe(card, device.device_id);
+                added++;
+            }
+            saveDevices();
+            populateFocusSwitcher();
+            applyFilter();
+            manager.updateSummary();
+            const subnetText = Array.isArray(result?.subnets) ? result.subnets.join(', ') : 'LAN';
+            const webOnly = Array.isArray(result?.web_only) ? result.web_only.length : 0;
+            const webOnlyText = webOnly ? `, ${webOnly} máy chỉ mở HTTP` : '';
+            setMessage(`Quét ${subnetText}: thấy ${found.length} máy VNC${webOnlyText}, thêm ${added} máy mới trong ${result?.duration_ms || 0} ms.`);
+        } catch (error) {
+            setMessage(`Không thể quét LAN: ${error?.message || error}`);
+        } finally {
+            button.disabled = false;
+            button.textContent = original;
+        }
+    }
 
     $('gridColumns').value = String(prefs.columns);
     $('liveLimit').value = String(prefs.limit);
@@ -665,6 +708,10 @@ function initDashboard() {
     $('addDevice').addEventListener('click', () => openEditor());
     $('emptyAddDevice').addEventListener('click', () => openEditor());
     $('loadDemo').addEventListener('click', addDemoDevices);
+    if (window.dkDesktop?.scanLAN) {
+        $('scanLan').hidden = false;
+        $('scanLan').addEventListener('click', scanLAN);
+    }
     $('cancelDevice').addEventListener('click', () => $('deviceEditor').close());
     $('cancelDeviceTop').addEventListener('click', () => $('deviceEditor').close());
     $('deviceForm').addEventListener('submit', event => {

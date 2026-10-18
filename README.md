@@ -9,6 +9,19 @@ Bản tùy biến từ [TrollVNC](https://github.com/owngoal-dev/TrollVNC), dàn
 
 Mã nguồn phát triển: [DangKhoa512/DK-ViewPhone, dev/roothide](https://github.com/DangKhoa512/DK-ViewPhone/tree/dev/roothide).
 
+## Ứng dụng Desktop Windows
+
+Thư mục [desktop](desktop/) chứa ứng dụng Electron tận dụng trực tiếp dashboard
+Device Farm/noVNC hiện tại. Nút **Quét LAN** dò TCP 5801/5901 trong các subnet IPv4
+riêng đang kết nối, thêm máy có cổng VNC 5901 vào grid, sau đó cho phép chọn
+một máy để điều khiển trong panel lớn. Kết quả quét không tự kết nối; preview
+và focus tiếp tục tuân theo giới hạn stream của dashboard.
+
+Build thủ công bằng `cd desktop`, `npm ci`, `npm test`, `npm run build:win`, hoặc chạy
+workflow **Build DK ViewPhone Desktop**. File portable là
+`DKViewPhone_Desktop_1.0.0_x64.exe`; máy sử dụng không cần cài Node.js. Xem
+[hướng dẫn Desktop](desktop/README.md).
+
 ## Build và tải DEB
 
 Mở [Actions](https://github.com/DangKhoa512/DK-ViewPhone/actions/workflows/build-dkviewphone.yml), chọn **Build DK ViewPhone (roothide)** → **Run workflow** trên branch `dev/roothide`. Workflow cũng chạy khi push branch này.

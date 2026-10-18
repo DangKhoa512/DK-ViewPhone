@@ -1,0 +1,68 @@
+name: Build DK ViewPhone Desktop
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev/roothide]
+    paths:
+      - 'desktop/**'
+      - 'devkit/webviewer-index.html'
+      - 'layout/usr/share/trollvnc/webclients/**'
+      - 'tests/web-viewer.mjs'
+      - '.github/workflows/build-desktop.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dkviewphone-desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Install desktop dependencies
+        working-directory: desktop
+        run: npm ci
+
+      - name: Test scanner and shared dashboard
+        run: |
+          npm test --prefix desktop
+          node tests/web-viewer.mjs
+          npm audit --prefix desktop --audit-level=high
+
+      - name: Build portable Windows application
+        working-directory: desktop
+        run: npm run build:win
+
+      - name: Create checksum
+        run: |
+          New-Item -ItemType Directory -Force artifacts/desktop | Out-Null
+          Copy-Item desktop/dist/DKViewPhone_Desktop_1.0.0_x64.exe artifacts/desktop/
+          $hash = (Get-FileHash artifacts/desktop/DKViewPhone_Desktop_1.0.0_x64.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  DKViewPhone_Desktop_1.0.0_x64.exe" | Set-Content -Encoding ascii artifacts/desktop/SHA256SUMS
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DKViewPhone-Desktop-1.0.0-Windows-x64
+          path: artifacts/desktop/
+          if-no-files-found: error
+          retention-days: 30
