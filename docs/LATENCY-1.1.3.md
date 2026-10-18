@@ -9,6 +9,16 @@ gộp bản cập nhật RFB từ 5 ms xuống 1 ms. Vẫn bỏ qua ảnh không
 khi không có người xem và giữ giới hạn cho client chậm. FPS tối thiểu cao hơn có
 thể tăng mức dùng pin. Không tự thay tỷ lệ ảnh hoặc cấu hình FPS đã lưu.
 
+Ở chế độ này, nếu client đang giữ khóa gửi ảnh thì capture giữ ảnh mới nhất trong
+back buffer và thử gửi lại sau 33 ms, thay vì chặn main runloop. Không tạo hàng đợi
+khung hình; lần thử lại vẫn gửi được thay đổi cuối cùng khi màn hình đã đứng yên.
+Phiên gửi một bản cập nhật quá 1 giây bị đóng; bộ kiểm tra hạn chạy mỗi 100 ms khi
+có bản cập nhật đang gửi. Tắt chế độ này giữ hạn 10 giây và chu kỳ kiểm tra 2 giây
+cũ. Client rất chậm có thể cần kết nối lại khi bật chế độ độ trễ thấp.
+
+Log `frame_processing_*` đo thời gian xử lý capture, không bao gồm khoảng chờ thử
+gửi lại và không đại diện cho độ trễ từ lệnh chạm đến ảnh trên trình duyệt.
+
 Giữ FPS ưu tiên khoảng 30 cho iPhone 6s là cấu hình đang được kiểm tra trong đợt
 này; không mặc định ép 60 FPS. Tỷ lệ xuất ảnh trên máy thử giữ khoảng 0.5.
 

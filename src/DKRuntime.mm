@@ -13,6 +13,19 @@ static std::atomic<uint64_t> frames(0), updates(0), frameMicros(0), maxMicros(0)
 static std::atomic<int> clients(0);
 static volatile sig_atomic_t terminating = 0;
 static NSMutableDictionary *pendingUpdates;
+static dispatch_source_t orphanTimer;
+static bool lowLatency = false, fastDeadlineTimer = false;
+// Call only under pendingUpdates' monitor. Idle polling retains the old cadence.
+static void refreshDeadlineTimerLocked(void) {
+    bool fast = lowLatency && pendingUpdates.count > 0;
+    if (!orphanTimer || fast == fastDeadlineTimer) return;
+    fastDeadlineTimer = fast;
+    uint64_t interval = fast ? 100 * NSEC_PER_MSEC : 2 * NSEC_PER_SEC;
+    dispatch_source_set_timer(orphanTimer, dispatch_time(DISPATCH_TIME_NOW, interval), interval, interval / 10);
+}
+void DKConfigureLatencyMode(bool enabled) {
+    @synchronized(pendingUpdates) { lowLatency = enabled; refreshDeadlineTimerLocked(); }
+}
 void DKRequestTermination(void) { terminating = 1; }
 bool DKTerminationRequested(void) { return terminating != 0; }
 void DKClientDelta(int delta) { clients.fetch_add(delta); }
@@ -21,6 +34,7 @@ void DKUpdateEnd(void *client, bool success) {
         NSValue *key = [NSValue valueWithPointer:client];
         NSArray *entry = pendingUpdates[key];
         if (entry) { close([entry[0] intValue]); [pendingUpdates removeObjectForKey:key]; }
+        refreshDeadlineTimerLocked();
     }
     if (success) updates.fetch_add(1);
 }
@@ -32,7 +46,8 @@ void DKUpdateBegin(void *client, int socket) {
         NSValue *key = [NSValue valueWithPointer:client];
         NSArray *old = pendingUpdates[key];
         if (old) close([old[0] intValue]);
-        pendingUpdates[key] = @[@(fd), @(clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW) / 1e9 + 10)];
+        pendingUpdates[key] = @[@(fd), @(clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW) / 1e9 + (lowLatency ? 1 : 10))];
+        refreshDeadlineTimerLocked();
     }
 }
 void DKFrameCompleted(double ms) {
@@ -47,7 +62,7 @@ void DKStartRuntime(void) {
     const char *value = getenv("DK_VIEWPHONE_HEARTBEAT_FD");
     int fd = value ? atoi(value) : -1;
     if (fd != 198) fd = -1;
-    static dispatch_source_t timer, orphanTimer;
+    static dispatch_source_t timer;
     // Main-runloop progress, independent of capture/dirty frames and connected viewers.
     timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
     dispatch_source_set_timer(timer, DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC, NSEC_PER_SEC / 5);
@@ -107,6 +122,7 @@ void DKStartRuntime(void) {
                     shutdown(stalled, SHUT_RDWR); close(stalled);
                     [pendingUpdates removeObjectForKey:key];
                 }
+                refreshDeadlineTimerLocked();
             }
           }
         });

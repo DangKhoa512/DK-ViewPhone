@@ -5,8 +5,12 @@
 Adds optional low-latency scheduling: 1 ms RFB update batching instead of 5 ms,
 and capture's minimum cadence equal to the configured preferred FPS while
 viewers are connected. Dirty-frame skipping, zero-viewer stop, image scale,
-gesture coordinates, socket deadlines and authentication modes are retained.
+gesture coordinates and authentication modes are retained.
 Existing preferences keep the old scheduling unless this option is enabled.
+In low-latency mode, a busy sender defers publication of the latest back buffer
+without blocking the main runloop; one retry preserves the final static change.
+The send deadline is 1 second with a 100 ms active sweep, instead of the retained
+10 second/2 second defaults. Slow viewers may reconnect. Idle polling is unchanged.
 
 Vietnamese Settings covers labels, explanations, option lists, alerts, client
 actions and log controls. Preference keys/defaults and existing values are

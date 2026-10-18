@@ -38,6 +38,8 @@ jobs:
           openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=localhost -keyout "$RUNNER_TEMP/test-key.pem" -out "$RUNNER_TEMP/test-cert.pem" 2>/dev/null
           g++ -x c++ -std=c++20 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -DDK_TLS_TESTING -idirafter include src/DKRFBTLS.mm tests/rfb-tls.cpp -pthread -lssl -lcrypto -o "$RUNNER_TEMP/rfb-tls-test"
           "$RUNNER_TEMP/rfb-tls-test" "$RUNNER_TEMP/test-cert.pem" "$RUNNER_TEMP/test-key.pem" 2>&1 | tee artifacts/tls-test/result.log
+          g++ -std=c++20 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer tests/frame-publication.cpp -pthread -o "$RUNNER_TEMP/frame-publication-test"
+          "$RUNNER_TEMP/frame-publication-test" 2>&1 | tee artifacts/tls-test/frame-publication.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -121,6 +123,8 @@ jobs:
           "$RUNNER_TEMP/dk-policy-test" | tee artifacts/logs/security-policy.log
           xcrun clang++ -std=c++20 -Wall -Wextra -Werror tests/recovery-policy.cpp -o "$RUNNER_TEMP/dk-recovery-test"
           "$RUNNER_TEMP/dk-recovery-test" | tee artifacts/logs/recovery-policy.log
+          xcrun clang++ -std=c++20 -Wall -Wextra -Werror tests/frame-publication.cpp -pthread -o "$RUNNER_TEMP/frame-publication-test"
+          "$RUNNER_TEMP/frame-publication-test" | tee artifacts/logs/frame-publication.log
           node tests/web-viewer.mjs | tee artifacts/logs/web-viewer-tests.log
 
       - name: Verify offline web bundle is reproducible

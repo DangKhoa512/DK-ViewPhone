@@ -48,6 +48,7 @@
 #import "Control.h"
 #import "DKViewPhonePolicy.h"
 #import "DKRuntime.h"
+#import "DKFramePublication.h"
 #import "DKWebTLS.h"
 #import "DKWebPolicy.h"
 #import "DKWebSession.h"
@@ -1633,17 +1634,26 @@ NS_INLINE void swapBuffers(void) {
     gScreen->frameBuffer = (char *)gFrontBuffer;
 }
 
-// Blocking lock helpers (original behavior): lock all clients, then unlock all.
+// Retain the snapshot until publication finishes, including failed try-locks.
 static std::vector<rfbClientPtr> gPublishClients;
-NS_INLINE void lockAllClientsBlocking(void) {
+static dkviewphone::LatestFramePublication gPublication;
+NS_INLINE bool lockAllClientsForPublication(void) {
     rfbClientIteratorPtr it = rfbGetClientIterator(gScreen);
     rfbClientPtr cl;
     while ((cl = rfbClientIteratorNext(it))) {
         rfbIncrClientRef(cl);
         gPublishClients.push_back(cl);
-        pthread_mutex_lock(&cl->sendMutex);
     }
     rfbReleaseClientIterator(it);
+    if (gLowLatency) {
+        if (dkviewphone::tryLockAll(gPublishClients, [](rfbClientPtr client) { return &client->sendMutex; }))
+            return true;
+        for (rfbClientPtr client : gPublishClients) rfbDecrClientRef(client);
+        gPublishClients.clear();
+        return false;
+    }
+    for (rfbClientPtr client : gPublishClients) pthread_mutex_lock(&client->sendMutex);
+    return true;
 }
 
 NS_INLINE void unlockAllClientsBlocking(void) {
@@ -1654,6 +1664,19 @@ NS_INLINE void unlockAllClientsBlocking(void) {
         rfbDecrClientRef(cl);
     }
     gPublishClients.clear();
+}
+
+static void publishLatestFrame(void) {
+    if (!gScreen) { gPublication.invalidate(); return; }
+    gPublication.attempt(lockAllClientsForPublication, [] {
+        swapBuffers();
+        rfbMarkRectAsModified(gScreen, 0, 0, gWidth, gHeight);
+    }, unlockAllClientsBlocking, [] {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 33 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+            gPublication.retryFired();
+            publishLatestFrame();
+        });
+    });
 }
 
 static void handleFramebuffer(CMSampleBufferRef sampleBuffer) {
@@ -1669,6 +1692,9 @@ static void handleFramebuffer(CMSampleBufferRef sampleBuffer) {
         TVLogVerbose(@"sampleBuffer has no image buffer (skip)");
         return;
     }
+
+    // This capture replaces any deferred back buffer. Never queue old frames.
+    gPublication.invalidate();
 
 #if DEBUG
     CFAbsoluteTime __tv_tLock0 = CFAbsoluteTimeGetCurrent();
@@ -1876,16 +1902,14 @@ static void handleFramebuffer(CMSampleBufferRef sampleBuffer) {
     TVLogVerbose(@"unlock pixel buffer took %.3f ms", __tv_msUnlock);
 #endif
 
-    // Publish every captured change. LibVNCServer coalesces pending client regions;
-    // there is no frame queue to bound, and dropping here can lose the final change.
+    // Defer publication without blocking capture/main-runloop behind a slow writer.
+    // The retry also publishes a final static change after dirty capture stops.
 #if DEBUG
     CFAbsoluteTime __tv_tSwap0 = CFAbsoluteTimeGetCurrent();
 #endif
 
-    lockAllClientsBlocking();
-    swapBuffers();
-    rfbMarkRectAsModified(gScreen, 0, 0, gWidth, gHeight);
-    unlockAllClientsBlocking();
+    gPublication.ready = true;
+    publishLatestFrame();
     DKFrameCompleted((clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW) / 1e9 - dkStarted) * 1000);
 
 #if DEBUG
@@ -3527,6 +3551,7 @@ static void prepareClipboardManager(void) {
 }
 
 static void prepareScreenCapturer(void) {
+    DKConfigureLatencyMode(gLowLatency);
     // Apply preferred frame rate (if provided)
     if (gFpsMin > 0 || gFpsPref > 0 || gFpsMax > 0) {
         TVLog(@"Applying preferred FPS to ScreenCapturer: min=%d pref=%d max=%d", gFpsMin, gFpsPref, gFpsMax);
