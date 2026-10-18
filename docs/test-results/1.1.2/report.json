@@ -1,0 +1,119 @@
+{
+  "version": "1.1.2",
+  "date": "2026-10-18",
+  "device": "iPhone 6s, iOS 15.8.4, Dopamine roothide",
+  "checkpoint": "bfb1d6f",
+  "build_commit": "b69002d8ea65ec899f93a97ddc8e477553703cd3",
+  "build_run": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39091082276",
+  "deb_artifact": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39091082276/artifacts/12122438621",
+  "build_logs_artifact": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39091082276/artifacts/12122428668",
+  "deb_sha256": "31f839f9ebd328d8106281d30cc46a6031e8a7dbf704bb37ffddd02d1f2c1c62",
+  "stability_and_tls_sources_unchanged": true,
+  "tests": [
+    {
+      "name": "Actions and host regression",
+      "status": "passed",
+      "evidence": "Eight Python tests, C++ passwordless LAN boundary and existing policy tests, JS server-challenge/no-auth/cancel/reconnect tests, and 12 concurrent TLS ASan/UBSan rounds passed."
+    },
+    {
+      "name": "DEB integrity and safe defaults",
+      "status": "passed",
+      "evidence": "Local validator matches CI SHA256: com.dk.viewphone 1.1.2, roothide, four signed arm64 binaries, 204 payload entries, assets match source; passwordless defaults off."
+    },
+    {
+      "name": "Password mode retained",
+      "status": "passed",
+      "evidence": "Real native VNC offered security type 2 and returned a framebuffer; Chrome login succeeded with the temporary valid credential and rejected one wrong credential."
+    },
+    {
+      "name": "Passwordless LAN HTTP/WS",
+      "status": "passed",
+      "evidence": "Chrome connected without submitting a password; native RFB offered security type None (1) and returned a framebuffer. Saved passwords are ignored only in opted-in mode."
+    },
+    {
+      "name": "100 passwordless LAN connections",
+      "status": "passed",
+      "evidence": {
+        "event": "browser_lan_stress_passed",
+        "secure": false,
+        "no_password": true,
+        "iterations": 100,
+        "worker_unchanged": true,
+        "anchor_connected": true,
+        "elapsed_s": 60.05,
+        "time_unix": 1792292024.85033,
+        "graceful": 50,
+        "abrupt": 50,
+        "frames": 10
+      }
+    },
+    {
+      "name": "Tap and client view-only",
+      "status": "passed",
+      "evidence": "Calculator 0 remained unchanged for a view-only tap, then the same full-control tap displayed 2; private screenshots inspected."
+    },
+    {
+      "name": "Server Remote Control off",
+      "status": "passed",
+      "evidence": "Passwordless full-control viewer remained unable to tap with RemoteControlEnabled=false."
+    },
+    {
+      "name": "Automatic no-password recovery",
+      "status": "passed",
+      "evidence": "Injected SIGKILL; watchdog recovered and Chrome reconnected without a login dialog within the 15-second observation window, then received a framebuffer."
+    },
+    {
+      "name": "Manual Disconnect",
+      "status": "passed",
+      "evidence": "After manual Disconnect, waited six seconds: remained disconnected with Connect enabled."
+    },
+    {
+      "name": "HTTPS/WSS passwordless",
+      "status": "passed",
+      "evidence": "Actual HTTPS/WSS connected without a password. Temporary self-signed IP-SAN fixture accepted only in isolated test context; Windows trust store unchanged."
+    },
+    {
+      "name": "Trusted LAN opt-in required",
+      "status": "passed",
+      "evidence": "With passwordless enabled and Trusted LAN disabled, both listeners closed and the existing invalid-configuration guard switched Enabled off. Restoring consent and explicitly enabling the server again recovered native None and web access."
+    },
+    {
+      "name": "Original preferences retained and final URL active",
+      "status": "passed",
+      "evidence": "After restoring original preferences, applied only the requested LAN/no-password settings. Independent compare confirmed unrelated values, including existing credentials, were preserved; final Chrome None login and native listener checks passed."
+    },
+    {
+      "name": "Final short-run crash inventory",
+      "status": "passed",
+      "evidence": "Final crash inventory contained only the four previously recorded 1.1.1 development-candidate reports. No new report during this 1.1.2 session; deliberate SIGKILL and the policy guard disabling the server are distinguished in diagnostics."
+    },
+    {
+      "name": "New native Settings toggle UI acceptance",
+      "status": "partial",
+      "evidence": "Compiled/parsed the Settings resource and exercised its preference via CFPreferences. Full manual toggle/Apply UI acceptance not run."
+    },
+    {
+      "name": "Physical Wi-Fi loss and DHCP change",
+      "status": "not_run",
+      "evidence": "No physical Wi-Fi or lease-change test in this session."
+    },
+    {
+      "name": "24-hour soak and reboot",
+      "status": "deferred",
+      "evidence": "Owner previously deferred these checks; no long-term or leak-free claim."
+    },
+    {
+      "name": "Edge and keyboard-specific acceptance",
+      "status": "not_run",
+      "evidence": "This session used Chrome; these cases were not separately rerun."
+    }
+  ],
+  "final_state": "1.1.2 installed; HTTP 5801 and native VNC 5901 enabled on the requested LAN IP with passwordless mode explicitly on. Original unrelated preferences, including saved credentials and screen scale, matched the backup. Temporary test tools and certificate/key fixtures removed. Clipboard unchanged.",
+  "limits": [
+    "24-hour/reboot/physical Wi-Fi cycles and lease change remain deferred or unperformed.",
+    "New native Settings toggle was exercised via CFPreferences; full manual Settings UI acceptance was not run.",
+    "First stress attempt checked an empty initial canvas too early; harness corrected to wait up to ten seconds for actual pixels before rerun.",
+    "Initial auth-mode connection attempts saw server off; repeated after closing Settings and reapplying test preferences. No failed attempts counted as passes.",
+    "This session used Chrome; Edge and dedicated keyboard acceptance not rerun."
+  ]
+}

@@ -1,11 +1,20 @@
 name: Export LAN Web Viewer device results
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: Recorded result version
+        type: choice
+        options: ['1.1.2', '1.1.1']
+        default: '1.1.2'
+        required: true
 permissions:
   contents: read
 jobs:
   export:
     runs-on: ubuntu-latest
+    env:
+      RESULT_VERSION: ${{ inputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -13,10 +22,12 @@ jobs:
       - name: Validate recorded report format
         run: |
           python3 - <<'PY'
-          import json, pathlib, re
-          root = pathlib.Path('docs/test-results/1.1.1')
+          import json, os, pathlib, re
+          version = os.environ['RESULT_VERSION']
+          assert version in ('1.1.1', '1.1.2')
+          root = pathlib.Path('docs/test-results') / version
           report = json.loads((root / 'report.json').read_text())
-          assert report['version'] == '1.1.1'
+          assert report['version'] == version
           assert re.fullmatch('[0-9a-f]{64}', report['deb_sha256'])
           assert all(t['status'] in ('passed', 'partial', 'failed', 'not_run', 'deferred') for t in report['tests'])
           for line in (root / 'device-events.jsonl').read_text().splitlines():
@@ -25,10 +36,11 @@ jobs:
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: DKViewPhone-1.1.1-LAN-Web-Viewer-results
+          name: DKViewPhone-${{ inputs.version }}-LAN-Web-Viewer-results
           path: |
-            docs/test-results/1.1.1/
+            docs/test-results/${{ inputs.version }}/
             docs/WEB-VIEWER-RESULTS.md
             docs/LAN-WEB-VIEWER.md
+            docs/PASSWORDLESS-LAN-1.1.2.md
           if-no-files-found: error
           retention-days: 30
