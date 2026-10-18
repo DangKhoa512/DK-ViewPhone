@@ -13,6 +13,7 @@ class Element extends EventTarget {
 const elements = new Map();
 const el = id => { if (!elements.has(id)) elements.set(id, new Element()); return elements.get(id); };
 el('reconnect').checked = el('autoScale').checked = true;
+el('usbPort').value = '5901';
 const timers = new Map(); let timerId = 0;
 const connections = [];
 class RFB extends EventTarget {
@@ -74,4 +75,16 @@ for (let i = 0; i < 5; ++i) { latest().emit('disconnect', { clean: false }); del
 latest().emit('disconnect', { clean: false });
 assert.deepEqual(delays, [2000, 4000, 8000, 16000, 16000]);
 assert.equal(timers.size, 0); assert.equal(el('connect').disabled, false);
-console.log('Passwordless/challenged authentication, cancel, reconnect intent and retry budget checks passed');
+
+// USB mode targets the PC loopback forward and supports a unique local VNC
+// port for each attached iPhone. Switching transport ends the old session.
+el('modeUsb').checked = true; el('modeLan').checked = false;
+el('modeUsb').dispatchEvent(new Event('change'));
+el('usbPort').value = '5907'; el('usbPort').dispatchEvent(new Event('change'));
+el('connect').click();
+assert.equal(latest().url, 'ws://127.0.0.1:5907/websockify');
+assert.match(el('address').textContent, /USB.*5907/); el('disconnect').click();
+el('modeUsb').checked = false; el('modeLan').checked = true;
+el('modeLan').dispatchEvent(new Event('change')); el('connect').click();
+assert.equal(latest().url, 'ws://192.168.50.2:5901/websockify'); el('disconnect').click();
+console.log('Authentication, reconnect budget and LAN/USB endpoint checks passed');

@@ -1,17 +1,21 @@
 <!doctype html>
 <html lang="vi"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
-<title>ĐK ViewPhone · LAN Viewer</title><link rel="stylesheet" href="viewer.css"><script defer src="viewer.bundle.js"></script>
+<title>ĐK ViewPhone · USB / LAN Viewer</title><link rel="stylesheet" href="viewer.css"><script defer src="viewer.bundle.js"></script>
 </head><body data-rfb-port="$PORT">
 <header><div class="brand"><span class="logo" aria-hidden="true">ĐK</span><span class="wordmark">ĐK ViewPhone</span></div>
-<div class="device"><strong id="deviceName">iPhone · LAN Viewer</strong><span id="address"></span></div>
-<div id="status" class="status" role="status"><span class="dot"></span><span id="state">Chưa kết nối</span></div><button id="headerDisconnect" disabled>Disconnect</button></header>
+<div class="device"><strong id="deviceName">iPhone · USB / LAN Viewer</strong><span id="address"></span></div>
+<div id="status" class="status" role="status"><span class="dot"></span><span id="state">Chưa kết nối</span></div><button id="headerDisconnect" disabled>Ngắt kết nối</button></header>
+<div class="connection-bar"><span class="connection-label">Chế độ kết nối</span>
+<label class="mode"><input id="modeLan" name="connectionMode" type="radio" value="lan" checked><span>LAN</span></label>
+<label class="mode"><input id="modeUsb" name="connectionMode" type="radio" value="usb"><span>USB</span></label>
+<label id="usbPortField" class="usb-port" hidden>Cổng VNC trên PC <input id="usbPort" type="number" min="1" max="65535" value="5901" inputmode="numeric"></label></div>
 <div class="notice" id="transport"></div>
 <main class="workspace" id="workspace"><div id="screen" class="screen" aria-label="Màn hình iPhone"></div>
 <div id="empty" class="empty"><div><div class="phone"></div><h1>iPhone, ngay trên máy tính.</h1><p>Nhấn Connect để xem và điều khiển. Chỉ hỏi mật khẩu nếu iPhone bật xác thực VNC. Chế độ không mật khẩu cho phép mọi người truy cập được máy trong LAN kết nối.</p></div></div></main>
 <div id="message" class="message" role="status"></div>
-<footer class="toolbar"><button class="primary" id="connect">Connect</button><button id="disconnect" disabled>Disconnect</button><button id="fullscreen">Fullscreen</button>
-<label><input id="viewOnly" type="checkbox">View-only</label><label><input id="autoScale" type="checkbox" checked>Auto Scale</label><label><input id="reconnect" type="checkbox" checked>Reconnect</label>
+<footer class="toolbar"><button class="primary" id="connect">Kết nối</button><button id="disconnect" disabled>Ngắt kết nối</button><button id="fullscreen">Toàn màn hình</button>
+<label><input id="viewOnly" type="checkbox">Chỉ xem</label><label><input id="autoScale" type="checkbox" checked>Tự co giãn</label><label><input id="reconnect" type="checkbox" checked>Tự kết nối lại</label>
 <span class="metrics" title="noVNC hiện tại không xuất số đo FPS và độ trễ chính xác; không hiển thị số ước đoán.">FPS — · Latency —</span></footer>
 <dialog id="login"><form id="loginForm"><h2>Kết nối iPhone</h2><p>Nhập mật khẩu VNC trong Settings → ĐK ViewPhone. Dùng mật khẩu chỉ xem nếu bạn không cần điều khiển.</p>
 <label for="password">Mật khẩu VNC</label><input id="password" type="password" required autocomplete="off" spellcheck="false" maxlength="8">

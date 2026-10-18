@@ -150,7 +150,7 @@ def validate(path):
     payload = tar_members(members[data_names[0]])
     control = controls['control'][1].decode('utf-8')
     fields = dict(line.split(': ', 1) for line in control.splitlines() if ': ' in line and not line.startswith(' '))
-    for name, expected in {'Package':'com.dk.viewphone', 'Version':'1.1.3', 'Architecture':'iphoneos-arm64e',
+    for name, expected in {'Package':'com.dk.viewphone', 'Version':'1.1.4', 'Architecture':'iphoneos-arm64e',
                            'Name':'ĐK ViewPhone', 'Conflicts':'com.82flex.trollvnc',
                            'Replaces':'com.82flex.trollvnc', 'Provides':'com.82flex.trollvnc'}.items():
         require(fields.get(name) == expected, f'Invalid {name}: {fields.get(name)}')
@@ -175,7 +175,9 @@ def validate(path):
                 'usr/share/trollvnc/webclients/index.vnc', 'usr/share/trollvnc/webclients/viewer.css',
                 'usr/share/trollvnc/webclients/viewer.js', 'usr/share/trollvnc/webclients/viewer.bundle.js',
                 'usr/share/doc/com.dk.viewphone/third-party/OpenSSL-LICENSE',
-                'usr/share/doc/com.dk.viewphone/third-party/noVNC-MPL-2.0', 'usr/bin/dkviewphone-watchdog']
+                'usr/share/doc/com.dk.viewphone/third-party/noVNC-MPL-2.0', 'usr/bin/dkviewphone-watchdog',
+                'Library/MobileSubstrate/DynamicLibraries/DKViewPhoneStatusBar.dylib',
+                'Library/MobileSubstrate/DynamicLibraries/DKViewPhoneStatusBar.plist']
     for name in required:
         require(name in payload and payload[name][1], f'Missing required payload: {name}')
     binaries = {}
@@ -194,6 +196,8 @@ def validate(path):
                 f'Possible bundled secret: {name}')
     require(all(name in binaries for name in required[:3]), 'Missing required Mach-O binaries')
     require('usr/bin/dkviewphone-watchdog' in binaries, 'Missing watchdog Mach-O')
+    require('Library/MobileSubstrate/DynamicLibraries/DKViewPhoneStatusBar.dylib' in binaries,
+            'Missing status-bar IPv4 tweak')
     watchdog_entitlements = plistlib.loads((Path(__file__).resolve().parents[1] / 'src/dkviewphone-watchdog.entitlements').read_bytes())
     require(binaries['usr/bin/dkviewphone-watchdog']['entitlements'] == watchdog_entitlements, 'Watchdog entitlements mismatch')
     for name in required[1:3]:

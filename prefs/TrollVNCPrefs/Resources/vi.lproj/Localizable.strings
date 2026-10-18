@@ -37,7 +37,7 @@
 "Clients" = "Thiết bị kết nối";
 "Clipboard Sync" = "Đồng bộ bộ nhớ tạm";
 "Confirm" = "Xác nhận";
-"Connect/Disconnect Notifications" = "Thông báo kết nối/ngắt kết nối";
+"Connect/Disconnect Notifications" = "Lưu lịch sử kết nối ẩn";
 "Connected %@" = "Đã kết nối %@";
 "Copy" = "Sao chép";
 "Copy Host" = "Sao chép địa chỉ máy";
@@ -123,9 +123,9 @@
 "Set Bind Address to the iPhone Wi-Fi IPv4" = "Đặt Địa chỉ lắng nghe bằng IPv4 Wi-Fi của iPhone";
 "Set HTTP Port to 5801" = "Đặt cổng Web thành 5801";
 "Set a unique random full-access password: exactly 8 visible ASCII characters including uppercase, lowercase, digit and symbol. The optional view-only password must meet the same rules and be different. Classic VNC uses only 8 bytes; use an encrypted tunnel on untrusted networks." = "Đặt mật khẩu điều khiển riêng: đúng 8 ký tự ASCII hiển thị gồm chữ hoa, chữ thường, số và ký hiệu. Mật khẩu chỉ xem, nếu có, cũng phải đủ điều kiện và khác mật khẩu điều khiển. VNC cổ điển chỉ dùng 8 byte; hãy dùng kết nối mã hóa trên mạng không tin cậy.";
-"Show notifications when clients connect or disconnect." = "Hiển thị thông báo khi có thiết bị kết nối hoặc ngắt kết nối.";
+"Show notifications when clients connect or disconnect." = "Thông báo chỉ được lưu ẩn trong Trung tâm thông báo, không hiện biểu ngữ và không phát âm thanh.";
 "Shown to VNC clients" = "Tên hiển thị cho người xem";
-"Silence Notifications" = "Tắt thông báo";
+"Silence Notifications" = "Thông báo trạng thái ẩn";
 "Single fps (e.g. 60), range min-max (e.g. 30-60), or full spec min:pref:max (e.g. 30:60:120). iOS 15+ uses range; iOS 14 uses preferred/max." = "Nhập một mức FPS (60), khoảng tối thiểu–tối đa (30-60), hoặc tối thiểu:ưu tiên:tối đa (30:60:120). iOS 15 trở lên dùng khoảng FPS. Để trống để dùng mặc định 15:30:30.";
 "Skip This Version" = "Bỏ qua phiên bản này";
 "Standard" = "Tiêu chuẩn";

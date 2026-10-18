@@ -1,5 +1,12 @@
 # ĐK ViewPhone changes
 
+## 1.1.4
+
+- Chuyển thông báo kết nối/ngắt kết nối sang mức ẩn: không biểu ngữ và không âm thanh.
+- Thêm lựa chọn LAN/USB trong Web Viewer; USB hỗ trợ cổng chuyển tiếp riêng cho từng iPhone.
+- Thay đồng hồ giữa thanh trạng thái bằng IPv4 hiện tại trong SpringBoard.
+- Giới hạn kiểm thử tải thiết bị ở tối đa 10 phiên theo mô hình một PC điều khiển nhiều iPhone.
+
 ## 1.1.3
 
 Adds optional low-latency scheduling: 1 ms RFB update batching instead of 5 ms,

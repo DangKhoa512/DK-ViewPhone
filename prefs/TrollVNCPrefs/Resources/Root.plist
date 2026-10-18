@@ -232,7 +232,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Hiển thị thông báo khi có thiết bị kết nối hoặc ngắt kết nối.</string>
+			<string>Thông báo chỉ được lưu ẩn trong Trung tâm thông báo, không hiện biểu ngữ và không phát âm thanh.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -242,7 +242,7 @@
 			<key>key</key>
 			<string>SingleNotifEnabled</string>
 			<key>label</key>
-			<string>Tắt thông báo</string>
+			<string>Thông báo trạng thái ẩn</string>
 			<key>default</key>
 			<true/>
 		</dict>
@@ -254,7 +254,7 @@
 			<key>key</key>
 			<string>ClientNotifsEnabled</string>
 			<key>label</key>
-			<string>Thông báo kết nối/ngắt kết nối</string>
+			<string>Lưu lịch sử kết nối ẩn</string>
 			<key>default</key>
 			<true/>
 		</dict>

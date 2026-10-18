@@ -92,13 +92,25 @@ class SourceTests(unittest.TestCase):
                 if tag == 'script': self.scripts.append(attrs.get('src'))
         web = ROOT / 'layout/usr/share/trollvnc/webclients'
         html = (web / 'index.vnc').read_text(encoding='utf-8')
-        self.assertIn('<title>ĐK ViewPhone · LAN Viewer</title>', html)
+        self.assertIn('<title>ĐK ViewPhone · USB / LAN Viewer</title>', html)
         self.assertNotIn('\ufffd', html)
         self.assertLess(len(html.encode()), 32768)
         parser = Parser(); parser.feed(html)
         self.assertEqual(parser.scripts, ['viewer.bundle.js'])
         for name in parser.scripts:
             self.assertGreater((web / name).stat().st_size, 10000)
+
+    def test_notifications_are_passive_and_status_bar_is_scoped(self):
+        bulletins = (ROOT / 'src/BulletinManager.mm').read_text(encoding='utf-8')
+        pop = bulletins.split('- (void)popBannerWithContent:', 1)[1].split('- (void)revokeSingleNotification', 1)[0]
+        self.assertIn('UNNotificationInterruptionLevelPassive', pop)
+        self.assertNotIn('UNNotificationInterruptionLevelActive', pop)
+        self.assertNotIn('defaultSound', pop)
+        tweak = (ROOT / 'statusbar/DKViewPhoneStatusBar/Tweak.xm').read_text(encoding='utf-8')
+        self.assertIn('StatusBarTimeItemView', tweak)
+        self.assertIn('getifaddrs', tweak)
+        filter_plist = plistlib.loads((ROOT / 'statusbar/DKViewPhoneStatusBar/DKViewPhoneStatusBar.plist').read_bytes())
+        self.assertEqual(filter_plist['Filter']['Bundles'], ['com.apple.springboard'])
 
     def test_archive_parser_rejects_fake_deb(self):
         for raw in (b'', b'pretend deb', b'!<arch>\ntruncated'):

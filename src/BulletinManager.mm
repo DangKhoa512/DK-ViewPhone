@@ -113,11 +113,12 @@
     content.categoryIdentifier = @BANNER_CATEGORY;
     content.threadIdentifier = mSectionIdentifier;
     content.userInfo = userInfo;
-    content.sound = [UNNotificationSound defaultSound];
-
+    // Connection churn is useful in Notification Center, but a viewer must
+    // never cover the captured screen with a banner or play a sound. Passive
+    // delivery keeps the event available without interrupting the user.
     if (@available(iOS 15, *)) {
         if ([content respondsToSelector:@selector(setInterruptionLevel:)])
-            content.interruptionLevel = UNNotificationInterruptionLevelActive;
+            content.interruptionLevel = UNNotificationInterruptionLevelPassive;
     }
 
     NSString *uuidString = [[NSUUID UUID] UUIDString];
