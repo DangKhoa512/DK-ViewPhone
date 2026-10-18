@@ -51,4 +51,13 @@ static NSString *DKCurrentIPv4(void) {
     return %orig;
 }
 
+- (void)setDateTimeString:(NSString *)text {
+    Class timeItemClass = objc_getClass("UIStatusBarTimeItemView");
+    if (timeItemClass && [(id)self isKindOfClass:timeItemClass]) {
+        %orig(DKCurrentIPv4());
+        return;
+    }
+    %orig(text);
+}
+
 %end
