@@ -12,6 +12,12 @@ without blocking the main runloop; one retry preserves the final static change.
 The send deadline is 1 second with a 100 ms active sweep, instead of the retained
 10 second/2 second defaults. Slow viewers may reconnect. Idle polling is unchanged.
 
+Fixes a device-observed exit-time crash in rfbShutdownServer/rfbCloseClient when
+live configuration changes terminate a worker. The exiting worker delegates
+resource reclamation to the kernel with _exit, avoiding concurrent engine-client
+destruction and C++ TLS-registry destructors. Restart policy and persistent logs
+remain in the existing supervisor; no in-process engine restart is introduced.
+
 Vietnamese Settings covers labels, explanations, option lists, alerts, client
 actions and log controls. Preference keys/defaults and existing values are
 retained. Build checks validate formatting placeholders and packaged translations.

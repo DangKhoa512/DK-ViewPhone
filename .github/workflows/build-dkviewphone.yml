@@ -40,6 +40,8 @@ jobs:
           "$RUNNER_TEMP/rfb-tls-test" "$RUNNER_TEMP/test-cert.pem" "$RUNNER_TEMP/test-key.pem" 2>&1 | tee artifacts/tls-test/result.log
           g++ -std=c++20 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer tests/frame-publication.cpp -pthread -o "$RUNNER_TEMP/frame-publication-test"
           "$RUNNER_TEMP/frame-publication-test" 2>&1 | tee artifacts/tls-test/frame-publication.log
+          g++ -std=c++20 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer tests/worker-exit.cpp -pthread -o "$RUNNER_TEMP/worker-exit-test"
+          "$RUNNER_TEMP/worker-exit-test" 2>&1 | tee artifacts/tls-test/worker-exit.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -125,6 +127,8 @@ jobs:
           "$RUNNER_TEMP/dk-recovery-test" | tee artifacts/logs/recovery-policy.log
           xcrun clang++ -std=c++20 -Wall -Wextra -Werror tests/frame-publication.cpp -pthread -o "$RUNNER_TEMP/frame-publication-test"
           "$RUNNER_TEMP/frame-publication-test" | tee artifacts/logs/frame-publication.log
+          xcrun clang++ -std=c++20 -Wall -Wextra -Werror tests/worker-exit.cpp -pthread -o "$RUNNER_TEMP/worker-exit-test"
+          "$RUNNER_TEMP/worker-exit-test" | tee artifacts/logs/worker-exit.log
           node tests/web-viewer.mjs | tee artifacts/logs/web-viewer-tests.log
 
       - name: Verify offline web bundle is reproducible

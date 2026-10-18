@@ -49,6 +49,7 @@
 #import "DKViewPhonePolicy.h"
 #import "DKRuntime.h"
 #import "DKFramePublication.h"
+#import "DKWorkerExit.h"
 #import "DKWebTLS.h"
 #import "DKWebPolicy.h"
 #import "DKWebSession.h"
@@ -4187,15 +4188,10 @@ static void cleanupAndExit(int code) {
         rfbUnregisterTightVNCFileTransferExtension();
     }
 
-    if (gScreen) {
-        DKWebTLSStop();
-        rfbShutdownServer(gScreen, YES);
-        rfbScreenCleanup(gScreen);
-        gScreen = NULL;
-    }
-
-    // There’s no need to free other resources because we’re going to exit the process. Yay!
-    exit(code);
+    // Only used when the entire worker is exiting, never for in-process restart.
+    // Do not traverse/free clients that LibVNCServer threads can retire at once.
+    // The supervisor owns restart policy and persistent diagnostic state.
+    DKExitWorker(code);
 }
 
 #ifdef THEBOOTSTRAP
