@@ -50,6 +50,7 @@
 #import "DKRuntime.h"
 #import "DKWebTLS.h"
 #import "DKWebPolicy.h"
+#import "DKWebSession.h"
 #import "FBSOrientationObserver.h"
 #import "IOKitSPI.h"
 #import "Logging.h"
@@ -3192,6 +3193,7 @@ static void clientGoneHook(rfbClientPtr cl) {
 
 static enum rfbNewClientAction newClientHook(rfbClientPtr cl) {
   @autoreleasepool {
+    DKReleaseWebSocketRequestPath(cl);
     DKClientDelta(1);
     int yes = 1, idle = 60, interval = 10, count = 3;
     setsockopt(cl->sock, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(yes));

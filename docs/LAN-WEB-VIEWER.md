@@ -59,6 +59,13 @@ archive TLS adapter only; VNC authentication, WS framing, capture and input
 remain in the existing engine. Concurrent real-OpenSSL teardown tests run with
 ASan/UBSan in CI. Device WSS reconnect stress is recorded separately.
 
+Device stress also exposed a separate 0.9.15 teardown issue: `rfbCloseClient`
+can free `wspath` twice while input/output threads await socket shutdown.
+The accepted-client hook now disposes this unused request-path metadata after
+the WebSocket handshake and before those threads start. Both subsequent engine
+closes see NULL. This applies to WS and WSS; no routing or VNC authentication
+depends on the path in this application.
+
 ## Implementation and limits
 
 Reuses LibVNCServer's HTTP server for HTTP, its WebSocket implementation for

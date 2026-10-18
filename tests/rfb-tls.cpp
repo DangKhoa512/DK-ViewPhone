@@ -12,6 +12,8 @@
 #include <thread>
 #include <unistd.h>
 #include <iostream>
+#include <cstring>
+#include "../src/DKWebSession.h"
 extern "C" {
 int rfbssl_init(rfbClientPtr);
 int rfbssl_read(rfbClientPtr, char *, int);
@@ -44,6 +46,12 @@ int main(int argc, char **argv) {
             poll(&p, 1, 10);
         }
         handshake.join(); assert(connected && accepted == 0); assert(DKTestTLSSessions() == 1);
+        // Match the accepted-session hook boundary, then exercise the repeated
+        // free performed by 0.9.15 input/output close paths under ASan.
+        client.wspath = strdup("/websockify"); assert(client.wspath);
+        DKReleaseWebSocketRequestPath(&client);
+        assert(client.wspath == nullptr);
+        std::free(client.wspath); std::free(client.wspath);
         std::atomic<bool> active(true);
         std::atomic<unsigned> reads(0), writes(0), pending(0);
         std::thread reader([&] { char b[2048]; while (active) { if (rfbssl_read(&client, b, sizeof(b)) > 0) ++reads; std::this_thread::yield(); } });
