@@ -1,0 +1,72 @@
+{
+  "version": "1.2.0",
+  "date": "2026-10-18",
+  "device": "iPhone 6s, iOS 15.8.4, Dopamine roothide",
+  "build_commit": "51d906544deda915b530dd5e106a2788639d9f56",
+  "build_run": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39111854823",
+  "deb_artifact": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39111854823/artifacts/12130647292",
+  "deb_sha256": "d1b84c7da312c7a8f0e8c430a987355651b21bcc1d1bff19cf5c1a1839eb245c",
+  "deb_bytes": 1566510,
+  "tests": [
+    {
+      "name": "Source, plist and packaged-default tests",
+      "status": "passed",
+      "evidence": "11 Python tests passed; defaults are LowLatency=true, AllowUnauthenticatedLAN=true, Scale=0.40, FrameRateSpec=30:60:120, LANWebViewerEnabled=true, WebViewerTrustedLAN=true, RemoteControlEnabled=true and HttpPort=5801."
+    },
+    {
+      "name": "Existing Single View authentication/reconnect/LAN/USB behavior",
+      "status": "passed",
+      "evidence": "Node wrapper test passed password challenge, security failure, reconnect budget and LAN/USB endpoint selection."
+    },
+    {
+      "name": "Multi View online/offline isolation",
+      "status": "passed",
+      "evidence": "Chrome connected one real LAN RFB endpoint while a second closed endpoint remained offline; the online canvas stayed active and no page error occurred."
+    },
+    {
+      "name": "Lazy/capped Multi View manager",
+      "status": "passed",
+      "evidence": "Eight cards requested against the available iPhone; exactly six sessions became live and two waited at the configured limit. This is not an eight-device physical test."
+    },
+    {
+      "name": "Credential storage",
+      "status": "passed",
+      "evidence": "Browser storage contained device configuration only; no password field or value was persisted. Passwords remain in per-session tab memory."
+    },
+    {
+      "name": "GitHub Actions roothide build",
+      "status": "passed",
+      "evidence": "Run 39111854823 completed successfully, including TLS lifecycle, upstream baseline, source/security tests, Theos build and package validation."
+    },
+    {
+      "name": "Independent DEB validation",
+      "status": "passed",
+      "evidence": "Package com.dk.viewphone 1.2.0, iphoneos-arm64e, 206 payload entries and four signed arm64 Mach-O files validated; stopped status-bar dylib is absent."
+    },
+    {
+      "name": "Upgrade and runtime on physical device",
+      "status": "passed",
+      "evidence": "Upgraded 1.1.4 to 1.2.0, resprung, observed one watchdog and one server on 5801/5901, no new SpringBoard/server report, and confirmed the old status-bar tweak file was removed."
+    },
+    {
+      "name": "Web assets served by installed DEB",
+      "status": "passed",
+      "evidence": "Windows Chrome loaded the 1.2.0 Multi-Device Viewer from http://192.168.1.158:5801, opened Multi View, connected the current iPhone and rendered one canvas with zero page errors."
+    },
+    {
+      "name": "Two, four, eight or twelve distinct physical iPhones",
+      "status": "not_run",
+      "evidence": "Only one physical iPhone was available. Multi-device correctness across separate phones, per-device CPU/RAM, LAN bandwidth and independent touch routing remains unverified."
+    },
+    {
+      "name": "Long-run memory, FPS and end-to-end latency",
+      "status": "not_run",
+      "evidence": "No multi-hour leak test or glass-to-glass FPS/latency measurement was performed. The UI deliberately does not invent FPS or latency values."
+    },
+    {
+      "name": "Fresh physical install defaults",
+      "status": "partial",
+      "evidence": "Source and packaged Root.plist defaults were validated. The physical device was upgraded so its saved 1.1.4 preferences were intentionally preserved rather than overwritten."
+    }
+  ]
+}

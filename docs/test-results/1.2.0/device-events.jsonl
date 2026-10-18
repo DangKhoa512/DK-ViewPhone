@@ -1,0 +1,4 @@
+{"event":"package_installed","version":"1.2.0","device":"iPhone 6s / iOS 15.8.4 / Dopamine roothide","status":"passed"}
+{"event":"listeners_verified","version":"1.2.0","http_port":5801,"vnc_port":5901,"watchdog_count":1,"server_count":1,"status":"passed"}
+{"event":"multi_view_browser","version":"1.2.0","live_limit":6,"canvas_count":1,"page_errors":0,"status":"passed"}
+{"event":"statusbar_tweak_removed","version":"1.2.0","status":"passed"}
