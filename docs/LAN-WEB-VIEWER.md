@@ -49,6 +49,16 @@ files leave the optional web service unavailable without disabling normal VNC.
 Raw VNC on 5901 retains its original transport; selecting HTTPS does not encrypt
 third-party raw VNC connections.
 
+Two development-candidate device crash reports implicated the legacy
+LibVNCServer OpenSSL adapter (`BIO_write` and `webSocketsHasDataInBuffer`). Its
+SSL read/write/pending operations had no shared lifetime lock, and destroy left
+a stale opaque pointer after freeing SSL. `DKRFBTLS.mm` supplies the same six
+TLS entry points with retained per-session ownership, serialized SSL operations,
+idempotent teardown and bounded nonblocking handshake/I/O. It replaces the
+archive TLS adapter only; VNC authentication, WS framing, capture and input
+remain in the existing engine. Concurrent real-OpenSSL teardown tests run with
+ASan/UBSan in CI. Device WSS reconnect stress is recorded separately.
+
 ## Implementation and limits
 
 Reuses LibVNCServer's HTTP server for HTTP, its WebSocket implementation for

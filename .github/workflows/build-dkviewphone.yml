@@ -21,7 +21,30 @@ env:
   UPSTREAM_COMMIT: cfdb737e72977d961eb7d0a8110d2fe1a58551d7
 
 jobs:
+  tls-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install host TLS test dependencies
+        run: sudo apt-get update -qq && sudo apt-get install -y libssl-dev zlib1g-dev libjpeg-dev
+      - name: Concurrent OpenSSL lifecycle regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/tls-test
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=localhost -keyout "$RUNNER_TEMP/test-key.pem" -out "$RUNNER_TEMP/test-cert.pem" 2>/dev/null
+          g++ -x c++ -std=c++20 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -DDK_TLS_TESTING -idirafter include src/DKRFBTLS.mm tests/rfb-tls.cpp -pthread -lssl -lcrypto -o "$RUNNER_TEMP/rfb-tls-test"
+          "$RUNNER_TEMP/rfb-tls-test" "$RUNNER_TEMP/test-cert.pem" "$RUNNER_TEMP/test-key.pem" 2>&1 | tee artifacts/tls-test/result.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: DKViewPhone-TLS-lifecycle-regression
+          path: artifacts/tls-test/
   build:
+    needs: tls-regression
     runs-on: macos-15
     timeout-minutes: 60
     defaults:
