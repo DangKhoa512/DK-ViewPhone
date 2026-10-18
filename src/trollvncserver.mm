@@ -849,7 +849,8 @@ static void parseDaemonOptions(void) {
     [cfg appendFormat:@"fileXfer=%@ ", gFileTransferEnabled ? @"on" : @"off"];
 
     // Auth and paths
-    [cfg appendFormat:@"auth(full=%@,view=%@,8char) ", hasFullPwd ? @"on" : @"off", hasViewPwd ? @"on" : @"off"];
+    if (gNoPasswordLAN) [cfg appendString:@"auth=noneLAN "];
+    else [cfg appendFormat:@"auth(full=%@,view=%@,8char) ", hasFullPwd ? @"on" : @"off", hasViewPwd ? @"on" : @"off"];
     NSString *dirStr = gHttpDirOverride ? [NSString stringWithUTF8String:gHttpDirOverride] : nil;
     NSString *certStr = gSslCertPath ? [NSString stringWithUTF8String:gSslCertPath] : nil;
     NSString *keyStr = gSslKeyPath ? [NSString stringWithUTF8String:gSslKeyPath] : nil;
@@ -3723,7 +3724,7 @@ static BOOL validateSecurityConfiguration(void) {
     in_addr_t noAuthAddress = 0;
     if (gNoPasswordLAN &&
         (tvClassifyBindHost(gBindHost, &noAuthAddress, NULL) != kTVBindHostKindIPv4 ||
-         !dkviewphone::allowPasswordlessLAN(true, gTrustedLAN, isRepeaterEnabled(), ntohl(noAuthAddress)))) {
+         !dkviewphone::allowPasswordlessLAN(true, gTrustedLAN, gRepeaterMode > 0, ntohl(noAuthAddress)))) {
         TVPrintError("Passwordless mode requires explicit Trusted LAN consent, a concrete private/loopback IPv4 bind and reverse mode off.");
         return NO;
     }
