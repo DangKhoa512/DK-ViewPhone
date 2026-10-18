@@ -3,9 +3,10 @@
 Ứng dụng Windows bọc dashboard noVNC 1.3.0 hiện tại bằng Electron. Giao diện
 không có quyền Node.js; preload chỉ cung cấp một lệnh quét LAN giới hạn.
 
-Bản 1.0.1 dùng bố cục console phone-farm gọn: lưới thiết bị đánh số ở bên trái,
+Bản 1.0.2 dùng bố cục console phone-farm gọn: lưới thiết bị đánh số ở bên trái,
 màn hình điều khiển lớn ở giữa và rail thao tác bên phải. Card hiển thị IP, trạng thái
-kết nối và viền màu để có thể theo dõi nhiều máy trên màn hình desktop rộng.
+kết nối và viền màu để có thể theo dõi nhiều máy trên màn hình desktop rộng. Khung
+preview/focus tự bám tỷ lệ framebuffer khi xoay máy nên không giữ dải trắng hoặc đen thừa.
 
 ## Chạy phát triển
 

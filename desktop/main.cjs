@@ -108,7 +108,7 @@ function createWindow() {
                     document.getElementById('loadDemo').click();
                     document.querySelector('.open-device')?.click();
                 `);
-                await new Promise(resolve => setTimeout(resolve, 700));
+                await new Promise(resolve => setTimeout(resolve, 2500));
                 const image = await mainWindow.webContents.capturePage();
                 fs.writeFileSync(previewPath, image.toPNG());
                 app.exit(0);

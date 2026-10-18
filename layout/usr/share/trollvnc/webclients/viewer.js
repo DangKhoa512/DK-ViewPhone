@@ -23,6 +23,51 @@ function socketURL(device) {
     return `${secure ? 'wss' : 'ws'}://${host}:${device.vnc_port}/websockify`;
 }
 
+function trackScreenAspect(target, surface) {
+    if (typeof MutationObserver !== 'function' || !target || !surface) return;
+    target.__dkAspectObserver?.disconnect();
+    if (target.__dkAspectResize && typeof window !== 'undefined')
+        window.removeEventListener('resize', target.__dkAspectResize);
+    let ratio = 9 / 16;
+    const fitFocusSurface = () => {
+        if (!surface.classList.contains('focus-workspace')) return;
+        const panel = surface.parentElement;
+        const rail = panel?.querySelector('.focus-toolbar');
+        const header = panel?.querySelector('.focus-header');
+        if (!panel || !rail || !header) return;
+        const maxWidth = Math.max(180, panel.clientWidth - rail.offsetWidth - 18);
+        const maxHeight = Math.max(260, panel.clientHeight - header.offsetHeight - 18);
+        const width = Math.min(maxWidth, maxHeight * ratio);
+        const height = width / ratio;
+        panel.style.setProperty('--focus-screen-width', `${Math.floor(width)}px`);
+        surface.style.width = `${Math.floor(width)}px`;
+        surface.style.height = `${Math.floor(height)}px`;
+    };
+    const update = () => {
+        const canvas = target.querySelector('canvas');
+        const width = Number(canvas?.width) || 0;
+        const height = Number(canvas?.height) || 0;
+        if (width > 0 && height > 0) {
+            ratio = width / height;
+            surface.style.setProperty('--screen-ratio', `${width} / ${height}`);
+            surface.classList.add('screen-ready');
+        } else {
+            surface.style.removeProperty('--screen-ratio');
+            surface.classList.remove('screen-ready');
+        }
+        fitFocusSurface();
+    };
+    const observer = new MutationObserver(update);
+    observer.observe(target, {
+        childList: true, subtree: true, attributes: true, attributeFilter: ['width', 'height'],
+    });
+    target.__dkAspectObserver = observer;
+    target.__dkAspectResize = surface.classList.contains('focus-workspace') ? fitFocusSurface : null;
+    if (target.__dkAspectResize && typeof window !== 'undefined')
+        window.addEventListener('resize', target.__dkAspectResize);
+    update();
+}
+
 class ManagedRfbSession {
     constructor(options) {
         Object.assign(this, {
@@ -290,6 +335,7 @@ function initDashboard() {
             this.device = device;
             this.card = card;
             this.placeholder = card.querySelector('.card-placeholder');
+            trackScreenAspect(screen, card.querySelector('.card-preview'));
             this.requestSlot = () => manager.requestPreview(this);
             this.onCredentials = request => requestCredentials(device, request);
             this.onRelease = () => manager.release(this);
@@ -619,6 +665,7 @@ function initDashboard() {
             onRelease: () => manager.release(),
             onDesktopName: name => { if (name) $('focusName').textContent = name; },
         });
+        trackScreenAspect($('focusScreen'), $('focusWorkspace'));
         manager.focusSession = session;
         manager.updateSummary();
         setFocusState('connecting');
