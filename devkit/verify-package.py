@@ -150,7 +150,7 @@ def validate(path):
     payload = tar_members(members[data_names[0]])
     control = controls['control'][1].decode('utf-8')
     fields = dict(line.split(': ', 1) for line in control.splitlines() if ': ' in line and not line.startswith(' '))
-    for name, expected in {'Package':'com.dk.viewphone', 'Version':'1.2.0', 'Architecture':'iphoneos-arm64e',
+    for name, expected in {'Package':'com.dk.viewphone', 'Version':'1.3.0', 'Architecture':'iphoneos-arm64e',
                            'Name':'ĐK ViewPhone', 'Conflicts':'com.82flex.trollvnc',
                            'Replaces':'com.82flex.trollvnc', 'Provides':'com.82flex.trollvnc'}.items():
         require(fields.get(name) == expected, f'Invalid {name}: {fields.get(name)}')

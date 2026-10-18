@@ -97,9 +97,12 @@ class SourceTests(unittest.TestCase):
                 if tag == 'script': self.scripts.append(attrs.get('src'))
         web = ROOT / 'layout/usr/share/trollvnc/webclients'
         html = (web / 'index.vnc').read_text(encoding='utf-8')
-        self.assertIn('<title>ĐK ViewPhone · Multi-Device Viewer</title>', html)
-        self.assertIn('id="multiPanel"', html)
+        self.assertIn('<title>ĐK ViewPhone · Device Farm</title>', html)
+        self.assertIn('id="dashboard"', html)
         self.assertIn('id="deviceGrid"', html)
+        self.assertIn('id="focusPanel"', html)
+        self.assertNotIn('id="singleTab"', html)
+        self.assertNotIn('id="multiTab"', html)
         self.assertNotIn('\ufffd', html)
         self.assertLess(len(html.encode()), 32768)
         parser = Parser(); parser.feed(html)
@@ -118,13 +121,16 @@ class SourceTests(unittest.TestCase):
 
     def test_multi_view_does_not_persist_passwords(self):
         source = (ROOT / 'layout/usr/share/trollvnc/webclients/viewer.js').read_text(encoding='utf-8')
-        self.assertIn('class DeviceSession', source)
-        self.assertIn('class MultiConnectionManager', source)
+        self.assertIn('class ManagedRfbSession', source)
+        self.assertIn('class PreviewSession', source)
+        self.assertIn('class DashboardManager', source)
         self.assertIn("const STORAGE_KEY = 'dk-viewphone-devices-v1'", source)
         storage_lines = [line for line in source.splitlines() if 'localStorage.setItem' in line]
         self.assertTrue(storage_lines)
         self.assertTrue(all('password' not in line.lower() for line in storage_lines))
-        self.assertIn('prefs.limit = Math.min(12,Math.max(1,Number(prefs.limit)||6))', source)
+        self.assertIn('prefs.limit = Math.min(12, Math.max(1, Number(prefs.limit) || 6))', source)
+        self.assertIn("role: 'focus'", source)
+        self.assertIn("role: 'preview'", source)
 
     def test_archive_parser_rejects_fake_deb(self):
         for raw in (b'', b'pretend deb', b'!<arch>\ntruncated'):

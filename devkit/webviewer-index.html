@@ -1,54 +1,75 @@
 <!doctype html>
 <html lang="vi"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
-<title>ĐK ViewPhone · Multi-Device Viewer</title><link rel="stylesheet" href="viewer.css"><script defer src="viewer.bundle.js"></script>
+<title>ĐK ViewPhone · Device Farm</title><link rel="stylesheet" href="viewer.css"><script defer src="viewer.bundle.js"></script>
 </head><body data-rfb-port="$PORT">
-<header class="app-header"><div class="brand"><span class="logo" aria-hidden="true">ĐK</span><span class="wordmark">ĐK ViewPhone</span></div>
-<div class="device"><strong id="deviceName">iPhone · USB / LAN Viewer</strong><span id="address"></span></div>
-<div id="status" class="status" role="status"><span class="dot"></span><span id="state">Chưa kết nối</span></div><button id="headerDisconnect" disabled>Ngắt kết nối</button></header>
-<nav class="view-switch" aria-label="Chế độ hiển thị">
-<button id="singleTab" class="view-tab active" aria-pressed="true">Single View</button>
-<button id="multiTab" class="view-tab" aria-pressed="false">Multi View</button>
-</nav>
-<section id="singlePanel">
-<div class="connection-bar"><span class="connection-label">Chế độ kết nối</span>
-<label class="mode"><input id="modeLan" name="connectionMode" type="radio" value="lan" checked><span>LAN</span></label>
-<label class="mode"><input id="modeUsb" name="connectionMode" type="radio" value="usb"><span>USB</span></label>
-<label id="usbPortField" class="usb-port" hidden>Cổng VNC trên PC <input id="usbPort" type="number" min="1" max="65535" value="5901" inputmode="numeric"></label></div>
-<div class="notice" id="transport"></div>
-<main class="workspace" id="workspace"><div id="screen" class="screen" aria-label="Màn hình iPhone"></div>
-<div id="empty" class="empty"><div><div class="phone"></div><h1>iPhone, ngay trên máy tính.</h1><p>Nhấn Kết nối để xem và điều khiển. Chế độ không mật khẩu chỉ phù hợp với LAN tin cậy.</p></div></div></main>
-<div id="message" class="message" role="status"></div>
-<footer class="toolbar"><button class="primary" id="connect">Kết nối</button><button id="disconnect" disabled>Ngắt kết nối</button><button id="fullscreen">Toàn màn hình</button>
-<label><input id="viewOnly" type="checkbox">Chỉ xem</label><label><input id="autoScale" type="checkbox" checked>Tự co giãn</label><label><input id="reconnect" type="checkbox" checked>Tự kết nối lại</label>
-<span class="metrics" title="noVNC hiện tại không xuất số đo FPS và độ trễ chính xác; không hiển thị số ước đoán.">FPS — · Latency —</span></footer>
+<header class="topbar">
+  <div class="brand-block"><span class="logo" aria-hidden="true">ĐK</span><div><strong>ĐK ViewPhone</strong><span>Device Farm Dashboard</span></div></div>
+  <div class="top-mode"><span class="eyebrow">Kết nối</span><strong id="modeSummary">LAN</strong></div>
+  <div class="top-stat online-stat"><span class="stat-icon"></span><div><strong id="onlineCount">0</strong><span>thiết bị online</span></div></div>
+  <div class="top-stat"><div><strong id="liveCount">0 / 6</strong><span>phiên live</span></div></div>
+  <button id="disconnectAll" class="danger-button" disabled>Ngắt tất cả</button>
+</header>
+
+<section class="controlbar" aria-label="Công cụ dashboard">
+  <div class="control-actions">
+    <button class="primary" id="addDevice">+ Thêm thiết bị</button>
+    <button id="connectSelected">Kết nối đã chọn</button>
+    <button id="disconnectSelected">Ngắt đã chọn</button>
+    <button id="loadDemo" title="Tạo các card offline để kiểm tra bố cục">Thêm dữ liệu mẫu</button>
+  </div>
+  <label class="search-field"><span class="sr-only">Tìm thiết bị</span><input id="deviceSearch" type="search" placeholder="Tìm tên hoặc địa chỉ IP…"></label>
+  <label class="compact-field">Trạng thái<select id="deviceFilter"><option value="all">Tất cả</option><option value="online">Online</option><option value="offline">Offline</option></select></label>
+  <label class="compact-field">Số cột<select id="gridColumns"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></label>
+  <label class="compact-field">Live tối đa<input id="liveLimit" class="number-input" type="number" min="1" max="12" value="6"></label>
 </section>
-<section id="multiPanel" class="multi-panel" hidden>
-<div class="multi-toolbar">
-<div class="multi-actions"><button class="primary" id="addDevice">Thêm thiết bị</button><button id="connectSelected">Kết nối đã chọn</button><button id="disconnectSelected">Ngắt kết nối đã chọn</button></div>
-<label class="search-field">Tìm kiếm <input id="deviceSearch" type="search" placeholder="Tên hoặc IP"></label>
-<label>Bộ lọc <select id="deviceFilter"><option value="all">Tất cả</option><option value="online">Online</option><option value="offline">Offline</option></select></label>
-<label>Số cột <select id="gridColumns"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></label>
-<label>Live tối đa <input id="liveLimit" class="number-input" type="number" min="1" max="12" value="6"></label>
-</div>
-<div class="notice">Multi View ưu tiên chỉ xem và chỉ tạo stream khi card hiện trong vùng nhìn. Trang này có thể kết nối tới các iPhone LAN khác; nếu iPhone đang phục vụ giao diện mất mạng, trang không thể tải lại.</div>
-<div id="multiMessage" class="message" role="status">Thêm iPhone bằng IPv4 LAN. Mật khẩu chỉ giữ trong bộ nhớ của tab hiện tại.</div>
-<main id="deviceGrid" class="device-grid columns-3" aria-live="polite"></main>
-<div id="noDevices" class="multi-empty" hidden>Không có thiết bị phù hợp.</div>
-</section>
-<dialog id="deviceEditor"><form id="deviceForm"><h2 id="deviceEditorTitle">Thêm thiết bị</h2>
-<input id="deviceId" type="hidden">
-<label>Tên thiết bị<input id="deviceLabel" required maxlength="60" placeholder="iPhone 01"></label>
-<label>Chế độ<select id="deviceMode"><option value="lan">LAN</option><option value="usb">USB</option></select></label>
-<label>IPv4 iPhone<input id="deviceHost" required inputmode="decimal" placeholder="192.168.1.158"></label>
-<label>Cổng VNC / cổng forward trên PC<input id="deviceVncPort" required type="number" min="1" max="65535" value="5901"></label>
-<label>WebSocket URL tùy chọn<input id="deviceWebsocket" type="url" placeholder="ws://192.168.1.158:5901/websockify"></label>
-<label class="check-row"><input id="deviceViewOnly" type="checkbox" checked> Chỉ xem trong Multi View</label>
-<label class="check-row"><input id="deviceReconnect" type="checkbox" checked> Tự kết nối lại</label>
-<p class="form-help">Không nhập mật khẩu tại đây. Với USB, mỗi iPhone cần một cổng forward riêng trên PC. URL tùy chọn không được chứa tài khoản hoặc mật khẩu.</p>
-<div id="deviceFormError" class="form-error" role="alert"></div>
-<div class="actions"><button type="button" id="cancelDevice">Hủy</button><button type="submit" class="primary">Lưu</button></div></form></dialog>
-<dialog id="login"><form id="loginForm"><h2 id="loginTitle">Kết nối iPhone</h2><p>Nhập mật khẩu VNC trong Settings → ĐK ViewPhone. Mật khẩu chỉ nằm trong bộ nhớ của tab và không được lưu.</p>
-<label for="password">Mật khẩu VNC</label><input id="password" type="password" required autocomplete="off" spellcheck="false" maxlength="8">
-<div class="actions"><button type="button" id="cancel">Hủy</button><button type="submit" class="primary">Kết nối</button></div></form></dialog>
+
+<div class="trust-notice" id="transportNotice">HTTP/WS không mã hóa. Chỉ sử dụng trong mạng LAN tin cậy và không mở cổng ra Internet.</div>
+<div id="dashboardMessage" class="dashboard-message" role="status">Chọn một card để đánh dấu; bấm đúp để mở bảng điều khiển lớn.</div>
+
+<main id="dashboard" class="dashboard-shell">
+  <section class="fleet-area" aria-label="Danh sách thiết bị">
+    <div class="section-heading"><div><span class="eyebrow">Thiết bị</span><h1>Phone farm</h1></div><span id="visibleCount" class="count-pill">0 máy</span></div>
+    <div id="deviceGrid" class="device-grid columns-3" aria-live="polite"></div>
+    <div id="noDevices" class="empty-fleet" hidden>
+      <div class="empty-phone" aria-hidden="true"></div><h2>Chưa có thiết bị</h2>
+      <p>Thêm iPhone bằng IPv4 LAN hoặc cổng USB forward riêng.</p><button class="primary" id="emptyAddDevice">Thêm thiết bị đầu tiên</button>
+    </div>
+  </section>
+
+  <aside id="focusPanel" class="focus-panel" aria-label="Bảng điều khiển thiết bị" hidden>
+    <div class="focus-header">
+      <div class="focus-title"><span class="eyebrow">Đang điều khiển</span><strong id="focusName">iPhone</strong><span id="focusAddress"></span></div>
+      <div id="focusStatus" class="session-status"><i></i><span>Chưa kết nối</span></div>
+      <button id="closeFocus" class="icon-button" title="Đóng bảng điều khiển" aria-label="Đóng bảng điều khiển">×</button>
+    </div>
+    <div class="focus-switcher"><label>Chuyển nhanh<select id="focusDevice"></select></label><button id="previousDevice" title="Máy trước">←</button><button id="nextDevice" title="Máy tiếp theo">→</button></div>
+    <div id="focusWorkspace" class="focus-workspace">
+      <div id="focusScreen" class="focus-screen"></div>
+      <div id="focusPlaceholder" class="focus-placeholder"><div class="empty-phone"></div><strong>Đang chuẩn bị Live View</strong><span>Phiên điều khiển được ưu tiên hơn các preview.</span></div>
+    </div>
+    <div class="focus-toolbar">
+      <button class="primary" id="focusConnect">Kết nối</button><button id="focusDisconnect" disabled>Ngắt</button><button id="focusFullscreen">Toàn màn hình</button>
+      <label><input id="focusViewOnly" type="checkbox"> Chỉ xem</label><label><input id="focusAutoScale" type="checkbox" checked> Tự co giãn</label>
+    </div>
+    <div class="focus-footer"><span id="focusMessage">Tap, swipe và bàn phím được gửi qua noVNC.</span><span class="metrics" title="noVNC không cung cấp số đo chính xác trong bản tích hợp này">FPS — · Latency —</span></div>
+  </aside>
+</main>
+
+<dialog id="deviceEditor"><form id="deviceForm">
+  <div class="dialog-heading"><div><span class="eyebrow">Cấu hình</span><h2 id="deviceEditorTitle">Thêm thiết bị</h2></div><button type="button" id="cancelDeviceTop" class="icon-button" aria-label="Đóng">×</button></div>
+  <input id="deviceId" type="hidden">
+  <label>Tên thiết bị<input id="deviceLabel" required maxlength="60" placeholder="iPhone 01"></label>
+  <div class="form-grid"><label>Chế độ<select id="deviceMode"><option value="lan">LAN</option><option value="usb">USB</option></select></label><label>Cổng VNC / forward<input id="deviceVncPort" required type="number" min="1" max="65535" value="5901"></label></div>
+  <label>IPv4 iPhone<input id="deviceHost" required inputmode="decimal" placeholder="192.168.1.158"></label>
+  <label>WebSocket URL tùy chọn<input id="deviceWebsocket" type="url" placeholder="ws://192.168.1.158:5901/websockify"></label>
+  <label class="check-row"><input id="deviceReconnect" type="checkbox" checked> Tự kết nối lại khi mất mạng</label>
+  <p class="form-help">Preview luôn ở chế độ chỉ xem. Mỗi iPhone USB cần một cổng forward riêng. URL không được chứa tài khoản hoặc mật khẩu.</p>
+  <div id="deviceFormError" class="form-error" role="alert"></div>
+  <div class="dialog-actions"><button type="button" id="cancelDevice">Hủy</button><button type="submit" class="primary">Lưu thiết bị</button></div>
+</form></dialog>
+
+<dialog id="login"><form id="loginForm"><h2 id="loginTitle">Kết nối iPhone</h2><p>Nhập mật khẩu VNC trong Cài đặt → ĐK ViewPhone. Mật khẩu chỉ giữ trong bộ nhớ của tab và không được lưu.</p>
+<label>Mật khẩu VNC<input id="password" type="password" required autocomplete="off" spellcheck="false" maxlength="8"></label>
+<div class="dialog-actions"><button type="button" id="cancelLogin">Hủy</button><button type="submit" class="primary">Kết nối</button></div></form></dialog>
 </body></html>

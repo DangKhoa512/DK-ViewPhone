@@ -1,4 +1,4 @@
-# LAN Web Viewer và Multi View — 1.2.0
+# LAN Web Viewer Device Farm — 1.3.0
 
 This extends the existing 1.1.0 tree, checkpoint `167f88b`; package ID remains
 `com.dk.viewphone`. Capture, HID input, watchdog, backoff, network recovery and
@@ -6,10 +6,10 @@ runtime diagnostics remain in place. No Node/Python server is installed on iPhon
 
 ## Enable from Settings
 
-1. Install the 1.2.0 Dopamine roothide DEB. Open Settings → ĐK ViewPhone.
+1. Install the 1.3.0 Dopamine roothide DEB. Open Settings → ĐK ViewPhone.
 2. Keep VNC Port at 5901. Set Bind Address to the concrete private Wi-Fi IPv4
    shown under Local IP Address; loopback remains the safe initial default.
-3. The 1.2.0 new-install profile enables passwordless trusted LAN, Low Latency,
+3. The 1.3.0 new-install profile enables passwordless trusted LAN, Low Latency,
    Web Viewer and Remote Control by default. HTTP is 5801, VNC is 5901, scale is
    0.40 and FPS is 30:60:120. Saved values from an upgrade take precedence.
 4. Passwordless HTTP/WS exposes screen and input to anyone who can reach the
@@ -28,23 +28,27 @@ by manual Disconnect or closing the page. The page offers Disconnect, Fullscreen
 View-only, Auto Scale and bounded reconnect (2/4/8/16 seconds, at most five attempts).
 An IP change requires opening the new URL shown in Settings.
 
-## Multi View
+## Dashboard một trang
 
-Open the Web Viewer and choose **Multi View**. Add each iPhone with a name,
-private IPv4 and VNC port. The list is stored in the current browser profile;
-passwords are never written to localStorage. Each card owns a separate noVNC RFB
-instance, DOM container, timeout and reconnect budget. Select cards and use
-Connect Selected or Disconnect Selected. Cards outside the visible viewport wait
-instead of opening a stream. The default Live View limit is six and can be set
-from 1 to 12; start with four to six devices on older iPhones.
+Web Viewer không còn tab Single View/Multi View. Thêm từng iPhone bằng tên,
+IPv4 nội bộ và cổng VNC. Danh sách tiếp tục dùng storage key của 1.2.0 nên không
+mất thiết bị khi nâng cấp; mật khẩu không bao giờ được ghi vào localStorage.
+Mỗi card có RFB preview, timeout và reconnect budget riêng. Preview luôn ở chế
+độ chỉ xem. Chọn checkbox để kết nối/ngắt theo nhóm hoặc dùng nút riêng trên card.
 
-Choose two, three or four grid columns. Search and Online/Offline filters do not
-create connections. Clicking a preview or **Open control** releases Multi View
-streams and moves that device to Single View, where tap, swipe, keyboard,
-fullscreen, view-only and auto-scale continue to use the existing noVNC path.
-Multi View defaults to view-only. The current frontend makes only one control
-session per tab; the server does not arbitrate control ownership across separate
-browsers or PCs.
+Click một card để chọn. Double-click preview hoặc bấm **Điều khiển** để mở Focus
+Panel mà không rời lưới. Focus Panel có RFB riêng, quyền tap/swipe/keyboard,
+fullscreen, View Only, Auto Scale, chuyển nhanh và máy trước/sau. Chỉ một focus
+session tồn tại trong mỗi tab; khi đổi máy, các preview khác vẫn tiếp tục. Nếu đã
+đạt giới hạn live, một preview tạm nhường slot cho focus rồi được xếp lại khi panel
+đóng. Server chưa phân xử quyền điều khiển giữa các trình duyệt hoặc PC khác nhau.
+
+Chọn lưới hai, ba, bốn hoặc năm cột. Search và bộ lọc Online/Offline không tạo
+kết nối. Card ngoài viewport tạm dừng hoặc chờ; khi quay lại vùng nhìn, session
+được xếp vào hàng đợi. Giới hạn mặc định là sáu và chỉnh được từ 1 đến 12. Nút
+**Thêm dữ liệu mẫu** tạo sáu card offline để kiểm tra layout, không tự kết nối.
+Preview đặt quality thấp hơn focus khi encoding noVNC hỗ trợ các mức này; server
+vẫn quyết định tốc độ khung hình thực tế.
 
 For USB, forward a different local VNC port for every attached iPhone and store
 that port on its card. When the UI is served from one iPhone, WebSockets to other

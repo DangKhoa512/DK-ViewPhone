@@ -1,5 +1,14 @@
 # ĐK ViewPhone changes
 
+## 1.3.0
+
+- Thay Single View/Multi View bằng dashboard một trang kiểu phone farm: lưới thiết bị luôn hiển thị và panel điều khiển lớn mở bên phải hoặc dạng overlay trên màn hình hẹp.
+- Click chọn card, double-click hoặc nút Điều khiển mở Focus Panel; có chuyển máy trước/sau, chọn nhanh, fullscreen, View Only và Auto Scale mà không reload trang.
+- Preview và focus dùng RFB instance độc lập. Preview luôn chỉ xem và dùng chất lượng thấp hơn; focus được ưu tiên chất lượng và một slot live khi đạt giới hạn.
+- Tiếp tục lazy-load theo viewport, giới hạn 1–12 phiên, reconnect 2/4/8/16/16 giây, cô lập lỗi từng máy và giữ các stream khác khi đổi máy focus.
+- Thêm lưới 2/3/4/5 cột, số máy online/live trên top bar, tìm kiếm/lọc, ngắt toàn bộ và dữ liệu mẫu offline để kiểm tra bố cục.
+- Giữ storage key 1.2.0 để không mất danh sách thiết bị. Mật khẩu chỉ nằm trong bộ nhớ phiên và không được ghi vào localStorage.
+
 ## 1.2.0
 
 - Thêm Single View và Multi View 2/3/4 cột, quản lý thiết bị LAN/USB, tìm kiếm, lọc, kết nối theo lựa chọn và mở card sang màn hình điều khiển lớn.

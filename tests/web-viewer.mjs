@@ -1,90 +1,138 @@
-// Behavioral wrapper tests with noVNC's public event contract. No browser secrets.
-import { readFileSync } from 'node:fs';
-import { runInNewContext } from 'node:vm';
+// Behavioral tests for the shared noVNC session used by previews and focus control.
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
 import assert from 'node:assert/strict';
 
-class Element extends EventTarget {
-    checked = false; disabled = false; value = ''; textContent = ''; hidden = false;
-    classList = { toggle() {} };
-    open = false;
-    focus() {} showModal() { this.open = true; } close() { this.open = false; }
-    click() { this.dispatchEvent(new Event('click')); }
-}
-const elements = new Map();
-const el = id => { if (!elements.has(id)) elements.set(id, new Element()); return elements.get(id); };
-el('reconnect').checked = el('autoScale').checked = true;
-el('usbPort').value = '5901';
-const timers = new Map(); let timerId = 0;
+const timers = new Map();
+let timerId = 0;
 const connections = [];
+
 class RFB extends EventTarget {
-    constructor(target, url, options) { super(); this.url = url; this.options = options; connections.push(this); }
+    constructor(target, url, options) {
+        super();
+        this.target = target;
+        this.url = url;
+        this.options = options;
+        this.qualityLevel = 6;
+        this.compressionLevel = 2;
+        connections.push(this);
+    }
     focus() {}
-    disconnect() { this.emit('disconnect', { clean: true }); }
+    disconnect() { this.emit('disconnect', {clean: true}); }
     sendCredentials(value) { this.credentials = value; }
-    emit(name, detail = {}) { const event = new Event(name); event.detail = detail; this.dispatchEvent(event); }
+    emit(name, detail = {}) {
+        const event = new Event(name);
+        event.detail = detail;
+        this.dispatchEvent(event);
+    }
 }
-const window = new EventTarget(); window.confirm = () => true;
+
+const window = new EventTarget();
+const document = {
+    body: {dataset: {rfbPort: '5901'}},
+    getElementById() { return null; },
+};
 const source = readFileSync(new URL('../layout/usr/share/trollvnc/webclients/viewer.js', import.meta.url), 'utf8')
     .replace(/^import RFB from [^\n]+\n/m, '');
-runInNewContext(source, { RFB, window, document: { getElementById: el, body: { dataset: { rfbPort: '5901' } } },
-    location: { hostname: '192.168.50.2', port: '5801', protocol: 'http:' },
-    setTimeout: (fn, ms) => { timers.set(++timerId, { fn, ms }); return timerId; },
-    clearTimeout: id => timers.delete(id) });
+runInNewContext(source, {
+    RFB, window, document,
+    location: {hostname: '192.168.50.2', port: '5801', protocol: 'http:'},
+    setTimeout: (fn, ms) => { timers.set(++timerId, {fn, ms}); return timerId; },
+    clearTimeout: id => timers.delete(id),
+});
+
+const {ManagedRfbSession, privateIPv4, retryDelay, socketURL} = window.__DK_VIEWPHONE_TEST__;
+const target = {children: [], replaceChildren() { this.children = []; }};
+let state = '';
+let credentialRequest = null;
+const makeSession = (overrides = {}) => new ManagedRfbSession({
+    role: 'focus',
+    target,
+    url: () => 'ws://192.168.50.2:5901/websockify',
+    onState: next => { state = next; },
+    onCredentials: request => { credentialRequest = request; },
+    ...overrides,
+});
 const latest = () => connections.at(-1);
-function login() {
-    el('connect').click(); latest().emit('credentialsrequired', { types: ['password'] });
-    assert.equal(el('login').open, true); el('password').value = 'synthetic-test-only';
-    el('loginForm').dispatchEvent(new Event('submit', { cancelable: true }));
-    assert.equal(el('password').value, '');
-    assert.equal(latest().url, 'ws://192.168.50.2:5901/websockify');
-    assert.ok(!latest().url.includes('synthetic'));
-    assert.equal(latest().credentials.password, 'synthetic-test-only');
-    assert.equal(el('login').open, false);
-}
-function retry() {
+const runOnlyTimer = expectedDelay => {
     assert.equal(timers.size, 1);
-    const [id, task] = timers.entries().next().value; timers.delete(id); task.fn(); return task.ms;
+    const [id, task] = timers.entries().next().value;
+    timers.delete(id);
+    assert.equal(task.ms, expectedDelay);
+    task.fn();
+};
+
+assert.equal(privateIPv4('192.168.1.158'), true);
+assert.equal(privateIPv4('8.8.8.8'), false);
+assert.deepEqual([1, 2, 3, 4, 5].map(retryDelay), [2000, 4000, 8000, 16000, 16000]);
+assert.equal(socketURL({host: '192.168.1.10', vnc_port: 5901, connection_mode: 'lan'}),
+    'ws://192.168.1.10:5901/websockify');
+assert.equal(socketURL({host: '192.168.1.10', vnc_port: 5907, connection_mode: 'usb'}),
+    'ws://127.0.0.1:5907/websockify');
+
+// Security type None starts without an invented password.
+let session = makeSession();
+session.requestStart();
+assert.equal(state, 'connecting');
+assert.deepEqual(Object.keys(latest().options.credentials), []);
+assert.equal(latest().viewOnly, true);
+assert.equal(latest().qualityLevel, 8);
+latest().emit('connect');
+assert.equal(state, 'online');
+assert.equal(timers.size, 0);
+
+// A focus session accepts a real challenge, keeps the credential in memory only,
+// and never places it in the WebSocket URL.
+latest().emit('credentialsrequired');
+assert.equal(state, 'auth');
+credentialRequest.submit('synthetic-test-only');
+assert.equal(latest().credentials.password, 'synthetic-test-only');
+assert.ok(!latest().url.includes('synthetic'));
+latest().emit('connect');
+session.disconnect();
+assert.equal(state, 'offline');
+assert.equal(timers.size, 0);
+
+// Cancelling authentication is a manual disconnect, not a reconnect loop.
+credentialRequest = null;
+session = makeSession();
+session.requestStart();
+latest().emit('credentialsrequired');
+credentialRequest.cancel();
+assert.equal(state, 'offline');
+assert.equal(timers.size, 0);
+
+// Both clean and unclean server disconnects consume the bounded exponential budget.
+session = makeSession();
+session.requestStart();
+latest().emit('connect');
+const expected = [2000, 4000, 8000, 16000, 16000];
+for (const delay of expected) {
+    latest().emit('disconnect', {clean: delay === 2000});
+    runOnlyTimer(delay);
 }
-// Security type None connects without opening a password dialog or inventing a
-// credential. Authentication remains driven by the server's noVNC event.
-el('connect').click(); assert.equal(el('login').open, false);
-assert.equal(Object.keys(latest().options.credentials).length, 0);
-latest().emit('connect'); el('disconnect').click();
-// Cancelling a real password challenge closes the pending session and retries.
-el('connect').click(); latest().emit('credentialsrequired'); el('cancel').click();
-assert.equal(el('login').open, false); assert.equal(timers.size, 0);
-assert.equal(el('connect').disabled, false);
-login(); latest().emit('connect');
-// Actual regression: noVNC uses clean=true for a server-side close of an
-// established session. That must still reconnect unless the user opted out.
-const before = connections.length;
-latest().emit('disconnect', { clean: true }); assert.equal(retry(), 2000);
-assert.equal(connections.length, before + 1);
-latest().emit('connect'); el('disconnect').click();
-assert.equal(timers.size, 0); assert.equal(el('connect').disabled, false);
+latest().emit('disconnect', {clean: false});
+assert.equal(state, 'offline');
+assert.equal(timers.size, 0);
 
-login(); latest().emit('securityfailure');
-assert.equal(timers.size, 0); assert.equal(el('connect').disabled, false);
-login(); latest().emit('disconnect', { clean: false });
-el('disconnect').click(); assert.equal(timers.size, 0);
-login(); el('reconnect').checked = false; latest().emit('disconnect', { clean: true });
-assert.equal(timers.size, 0); el('reconnect').checked = true;
+// Preview and focus tune separate noVNC instances; view-only can change live.
+session = makeSession({role: 'preview'});
+session.requestStart();
+assert.equal(latest().qualityLevel, 3);
+assert.equal(latest().compressionLevel, 6);
+session.setViewOnly(false);
+assert.equal(latest().viewOnly, false);
+session.setScale(false);
+assert.equal(latest().scaleViewport, false);
+session.disconnect();
 
-login(); const delays = [];
-for (let i = 0; i < 5; ++i) { latest().emit('disconnect', { clean: false }); delays.push(retry()); }
-latest().emit('disconnect', { clean: false });
-assert.deepEqual(delays, [2000, 4000, 8000, 16000, 16000]);
-assert.equal(timers.size, 0); assert.equal(el('connect').disabled, false);
+// Authentication failure clears the in-memory password and never retries.
+session = makeSession();
+session.password = 'temporary';
+session.requestStart();
+latest().emit('securityfailure');
+assert.equal(session.password, null);
+assert.equal(state, 'error');
+assert.equal(timers.size, 0);
 
-// USB mode targets the PC loopback forward and supports a unique local VNC
-// port for each attached iPhone. Switching transport ends the old session.
-el('modeUsb').checked = true; el('modeLan').checked = false;
-el('modeUsb').dispatchEvent(new Event('change'));
-el('usbPort').value = '5907'; el('usbPort').dispatchEvent(new Event('change'));
-el('connect').click();
-assert.equal(latest().url, 'ws://127.0.0.1:5907/websockify');
-assert.match(el('address').textContent, /USB.*5907/); el('disconnect').click();
-el('modeUsb').checked = false; el('modeLan').checked = true;
-el('modeLan').dispatchEvent(new Event('change')); el('connect').click();
-assert.equal(latest().url, 'ws://192.168.50.2:5901/websockify'); el('disconnect').click();
-console.log('Authentication, reconnect budget and LAN/USB endpoint checks passed');
+console.log('Dashboard session authentication, reconnect, LAN/USB and focus/preview checks passed');
