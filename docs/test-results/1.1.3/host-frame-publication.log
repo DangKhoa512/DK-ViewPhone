@@ -1,0 +1,1 @@
+PASS: lock rollback, immutable front, latest static frame, one retry, invalidation, zero clients

@@ -80,3 +80,11 @@ Changed tracked files relative to checkpoint:
 - `tests/web-viewer.mjs`
 
 The separate results workflow and generated report files are also included in the report commit.
+
+## 1.1.3 — Vietnamese Settings and latency investigation
+
+Current results are in [the 1.1.3 report](test-results/1.1.3/report.json) and
+[the Vietnamese notes](LATENCY-1.1.3.md). Prior 1.1.1/1.1.2 passes above remain
+historical. Latency improvement is unproven; the new option remains off on the
+test device. The final build also addresses a candidate crash while exiting a
+worker during a live configuration change; the report records that incident.

@@ -5,8 +5,8 @@ on:
       version:
         description: Recorded result version
         type: choice
-        options: ['1.1.2', '1.1.1']
-        default: '1.1.2'
+        options: ['1.1.3', '1.1.2', '1.1.1']
+        default: '1.1.3'
         required: true
 permissions:
   contents: read
@@ -24,7 +24,7 @@ jobs:
           python3 - <<'PY'
           import json, os, pathlib, re
           version = os.environ['RESULT_VERSION']
-          assert version in ('1.1.1', '1.1.2')
+          assert version in ('1.1.1', '1.1.2', '1.1.3')
           root = pathlib.Path('docs/test-results') / version
           report = json.loads((root / 'report.json').read_text())
           assert report['version'] == version
@@ -42,5 +42,6 @@ jobs:
             docs/WEB-VIEWER-RESULTS.md
             docs/LAN-WEB-VIEWER.md
             docs/PASSWORDLESS-LAN-1.1.2.md
+            docs/LATENCY-1.1.3.md
           if-no-files-found: error
           retention-days: 30

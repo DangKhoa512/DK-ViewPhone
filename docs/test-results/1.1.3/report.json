@@ -1,0 +1,289 @@
+{
+  "version": "1.1.3",
+  "date": "2026-10-18",
+  "device": "iPhone 6s, iOS 15.8.4, Dopamine roothide",
+  "checkpoint": "c99c897",
+  "build_commit": "26e3094b8347dd3d68664d31e27c92d9b2133c92",
+  "build_run": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39095534142",
+  "deb_artifact": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39095534142/artifacts/12124850105",
+  "build_logs_artifact": "https://github.com/DangKhoa512/DK-ViewPhone/actions/runs/39095534142/artifacts/12124232607",
+  "deb_sha256": "d20fe698d7bd92926663a2f37fe6431adefa770dbe12754022c1b33f9d28aaab",
+  "capture_input_watchdog_tls_sources_unchanged": true,
+  "runtime_changes": "Optional nonblocking frame publication and 1-second stalled-send deadline; old scheduling/deadlines preserved when disabled. Final build uses process exit to avoid concurrent client destruction on shutdown.",
+  "tests": [
+    {
+      "name": "GitHub Actions build and host regression",
+      "status": "passed",
+      "evidence": "Final run 39095534142: 9 Python tests, C++ policy/recovery, JS authentication/reconnect, reproducible offline web bundle; Theos roothide build succeeded."
+    },
+    {
+      "name": "Concurrent frame publication, worker exit and TLS sanitizer regression",
+      "status": "passed",
+      "evidence": "Real pthread writer contention verified rollback, immutable front buffer, final static frame delivery, single retry, invalidation and zero clients. Twenty live-writer child exits verified EOF/status 75/no concurrent destructors. Linux ASan/UBSan and macOS host runs passed. 12 concurrent OpenSSL lifecycle rounds passed without retained sessions."
+    },
+    {
+      "name": "Independent DEB validation",
+      "status": "passed",
+      "evidence": {
+        "sha256": "d20fe698d7bd92926663a2f37fe6431adefa770dbe12754022c1b33f9d28aaab",
+        "entries": 206,
+        "signed_arm64_binaries": 4,
+        "translations": "165 Vietnamese strings match source; Root preferences retain existing keys/defaults"
+      }
+    },
+    {
+      "name": "Upgrade 1.1.2 to candidate 1.1.3; final candidate reinstalled",
+      "status": "passed",
+      "evidence": {
+        "all_saved_preferences_preserved": true
+      }
+    },
+    {
+      "name": "LAN HTTP and HTTPS assets",
+      "status": "passed",
+      "evidence": "HTTP initially loaded matching offline bundle and rejected missing/path traversal/POST. Current HTTPS TLS 1.3 does the same, including encoded traversal. Self-signed certificate rejected by default trust; only isolated test browser bypassed validation."
+    },
+    {
+      "name": "Browser display and no-password mode",
+      "status": "passed",
+      "evidence": "Chrome 155 received 376x670 frames over real LAN HTTP/WS and HTTPS/WSS with None security and no password prompt or browser password storage; native RFB None frame received via SSH tunnel."
+    },
+    {
+      "name": "Native Vietnamese Settings visual acceptance",
+      "status": "partial",
+      "evidence": "165 packaged Vietnamese strings equal source; labels, lists, alerts, clients and diagnostics translated; full manual native UI acceptance not completed."
+    },
+    {
+      "name": "Latency reduction remains unproven",
+      "status": "partial",
+      "evidence": {
+        "measurements": [
+          {
+            "event": "browser_latency_measured",
+            "name": "baseline-1.1.2",
+            "samples_ms": [
+              138.1,
+              324.2,
+              352,
+              311.3,
+              138.6,
+              368.3,
+              145.9,
+              319.1,
+              179.1,
+              131.5,
+              171.6,
+              124.9
+            ],
+            "median_ms": 175.35,
+            "p95_ms": 368.3,
+            "method": "browser command start to changed Calculator number ROI; includes 20 ms mouse press, same browser clock; two warmups excluded",
+            "canvas": {
+              "w": 376,
+              "h": 670
+            },
+            "time_unix": 1792292827.3330965
+          },
+          {
+            "event": "browser_latency_measured",
+            "name": "baseline-1.1.2-single-viewer",
+            "samples_ms": [
+              256.3,
+              157.3,
+              330.1,
+              153.7,
+              313.2,
+              154.4,
+              184.3,
+              140.9,
+              198.4,
+              337.6,
+              218.1,
+              434
+            ],
+            "median_ms": 208.25,
+            "p95_ms": 434,
+            "method": "browser command start to changed Calculator number ROI; includes 20 ms mouse press, same browser clock; two warmups excluded",
+            "canvas": {
+              "w": 376,
+              "h": 670
+            },
+            "time_unix": 1792294611.2186446
+          },
+          {
+            "event": "browser_latency_measured",
+            "name": "1.1.3-https-mode-off",
+            "samples_ms": [
+              288.7,
+              181.3,
+              145.7,
+              143.7,
+              203.4,
+              303.4,
+              155.6,
+              326.9,
+              187.2,
+              133.1,
+              120,
+              119.2
+            ],
+            "median_ms": 168.45,
+            "p95_ms": 326.9,
+            "method": "browser command start to changed Calculator number ROI; includes 20 ms mouse press, same browser clock; two warmups excluded",
+            "canvas": {
+              "w": 376,
+              "h": 670
+            },
+            "time_unix": 1792295166.056792
+          },
+          {
+            "event": "browser_latency_measured",
+            "name": "1.1.3-https-scale30-off",
+            "samples_ms": [
+              97.9,
+              141.8,
+              150.3,
+              113.7,
+              109.8,
+              115.3,
+              107.7,
+              167.7,
+              167.9,
+              277.3,
+              190.7,
+              119.3
+            ],
+            "median_ms": 130.55,
+            "p95_ms": 277.3,
+            "method": "browser command start to changed Calculator number ROI; includes 20 ms mouse press, same browser clock; two warmups excluded",
+            "canvas": {
+              "w": 224,
+              "h": 399
+            },
+            "time_unix": 1792295420.0973337
+          },
+          {
+            "event": "browser_latency_measured",
+            "name": "1.1.3-https-scale30-on",
+            "samples_ms": [
+              162.3,
+              92.4,
+              86.6,
+              120.8,
+              107.9,
+              78.6,
+              147,
+              351.3,
+              273.9,
+              274,
+              289.6,
+              295.3
+            ],
+            "median_ms": 154.65,
+            "p95_ms": 351.3,
+            "method": "browser command start to changed Calculator number ROI; includes 20 ms mouse press, same browser clock; two warmups excluded",
+            "canvas": {
+              "w": 224,
+              "h": 399
+            },
+            "time_unix": 1792295469.5842927
+          }
+        ],
+        "interpretation": "Matched HTTPS/WSS, scale 0.2966216206550598, 224x399 canvas, one automated viewer plus a second connected client observed in both heartbeat windows, 12 samples per batch after two warmups. Off median 130.55 ms / sample p95 277.3 ms; on 154.65 / 351.3 ms. No demonstrated single-viewer improvement. Final mode will be off. Earlier HTTP and 50-percent-scale batches are reference only and not pooled.",
+        "measured_candidate": "54b48e9",
+        "final_release_repeated": false
+      }
+    },
+    {
+      "name": "Slow viewer isolation (candidate 54b48e9)",
+      "status": "passed",
+      "evidence": "With low-latency mode enabled, a raw viewer requesting 357504 bytes stopped reading (SO_RCVBUF=1024). Remote socket was closed when drained 1.67 seconds later, after 262800 bytes. Healthy Chrome WSS viewer displayed Calculator 0 to 2 and retained the final static frame; private screenshots inspected."
+    },
+    {
+      "name": "100 Chrome WSS connection cycles on final build",
+      "status": "passed",
+      "evidence": {
+        "event": "browser_lan_stress_passed",
+        "secure": true,
+        "no_password": true,
+        "iterations": 100,
+        "worker_unchanged": true,
+        "anchor_connected": true,
+        "elapsed_s": 82.65,
+        "time_unix": 1792296528.7726245,
+        "graceful": 50,
+        "abrupt": 50,
+        "frames": 10
+      }
+    },
+    {
+      "name": "Web Viewer disabled listener (candidate 54b48e9)",
+      "status": "passed",
+      "evidence": {
+        "case": "web-disabled113",
+        "web_port_closed": true,
+        "vnc_banner_available": true
+      }
+    },
+    {
+      "name": "Tap and client view-only",
+      "status": "partial",
+      "evidence": "Tap 0 to 2 verified during slow-reader test. Subsequent client view-only toggle/hash observation occurred after the phone returned to Home, so controlled view-only acceptance is not marked passed."
+    },
+    {
+      "name": "Remote Control off",
+      "status": "not_run",
+      "evidence": "Pending"
+    },
+    {
+      "name": "Scale/fullscreen/manual disconnect (candidate 54b48e9)",
+      "status": "passed",
+      "evidence": "Auto Scale preserved 224:399 aspect at 254.875x454 display size; Fullscreen entered; manual Disconnect remained disconnected for six seconds."
+    },
+    {
+      "name": "Final configuration preserved",
+      "status": "passed",
+      "evidence": {
+        "event": "final_preferences_verified",
+        "original_values_preserved_cf_and_disk": true,
+        "low_latency": false,
+        "enabled": true,
+        "preference_keys": 28
+      }
+    },
+    {
+      "name": "Short-run crash inventory",
+      "status": "passed",
+      "evidence": "Five baseline crash reports remain unchanged after final 26e3094 install, 10 live configuration reloads and 100 WSS connections. The 10:46:48 candidate 54b48e9 SIGSEGV is retained and documented. No recovery event occurred after the final supervisor start; no long-term crash-free claim."
+    },
+    {
+      "name": "Exit-time crash fix and live configuration reloads",
+      "status": "passed",
+      "evidence": "Final 26e3094: 10 live LowLatencyMode configuration changes, 10/10 automatic WSS reconnection checks passed (six seconds after preference write plus four seconds browser wait). No additional crash report and no recovery event in the final supervisor window."
+    },
+    {
+      "name": "Physical Wi-Fi cycles/IP change, rotation, respring",
+      "status": "not_run",
+      "evidence": "Not repeated for 1.1.3. PC Wi-Fi changed mid-session; this is not an iPhone Wi-Fi recovery pass."
+    },
+    {
+      "name": "24-hour soak, reboot, leak-free claim",
+      "status": "deferred",
+      "evidence": "Owner deferred long run/reboot. Short RSS telemetry and host sanitizers do not establish absence of device memory leaks."
+    },
+    {
+      "name": "Edge, clipboard and dedicated keyboard regression",
+      "status": "not_run",
+      "evidence": "Not separately rerun on this release."
+    }
+  ],
+  "final_state": "Enabled; passwordless HTTPS/WSS LAN on 5801/5901; user certificate and scale ~0.2966 retained; LowLatencyMode off; CFPreferences and disk match all 28 expected keys.",
+  "limits": [
+    "12 samples per batch; browser command-to-canvas measurement, not physical input-to-photon. Heartbeats recorded two connected clients in both comparison windows.",
+    "Latency, slow-reader and initial 1.1.2 upgrade observations came from candidate 54b48e9; final 26e3094 changes only the worker exit path, with no numerical improvement claim. Final build reinstalled over the candidate.",
+    "Initial HTTP control batch interrupted by live Settings/configuration changes; excluded. Baseline HTTP versus HTTPS cannot establish the mode effect.",
+    "USB disconnected; resumed over LAN SSH pinned to previously verified USB host key. A queued on-mode measurement was interrupted because the preference write failed; excluded.",
+    "Self-signed test trust bypass applied only in isolated Chrome context, not Windows trust store.",
+    "No 24-hour, reboot, iPhone Wi-Fi cycle or leak-free pass is claimed."
+  ]
+}

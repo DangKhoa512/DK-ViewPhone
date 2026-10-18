@@ -1,0 +1,29 @@
+{
+  "candidate": "54b48e9",
+  "capture_time": "2026-10-18 10:46:47.9645 +0700",
+  "exception": "EXC_BAD_ACCESS / SIGSEGV",
+  "termination_signal": 11,
+  "frames": [
+    {
+      "symbol": "rfbCloseClient",
+      "symbolLocation": 296
+    },
+    {
+      "symbol": "rfbCloseClient",
+      "symbolLocation": 296
+    },
+    {
+      "symbol": "rfbShutdownServer",
+      "symbolLocation": 100
+    },
+    {
+      "symbol": "main",
+      "symbolLocation": 6876
+    },
+    {
+      "symbol": "start",
+      "symbolLocation": 444
+    }
+  ],
+  "fix_commit": "26e3094b8347dd3d68664d31e27c92d9b2133c92"
+}
