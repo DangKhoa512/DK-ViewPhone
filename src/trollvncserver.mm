@@ -121,6 +121,7 @@ static int gHttpPort = 0;
 static BOOL gLANWebEnabled = NO;
 static BOOL gWebTLS = NO;
 static BOOL gTrustedLAN = NO;
+static BOOL gNoPasswordLAN = NO;
 static char *gHttpDirOverride = NULL;
 static char *gSslCertPath = NULL;
 static char *gSslKeyPath = NULL;
@@ -571,6 +572,7 @@ static void parseDaemonOptions(void) {
     gLANWebEnabled = [prefs[@"LANWebViewerEnabled"] boolValue];
     gWebTLS = [prefs[@"WebViewerTLS"] boolValue];
     gTrustedLAN = [prefs[@"WebViewerTrustedLAN"] boolValue];
+    gNoPasswordLAN = [prefs[@"AllowUnauthenticatedLAN"] boolValue];
     if (!prefs[@"HttpPort"] && gLANWebEnabled) gHttpPort = 5801;
     if (!gLANWebEnabled) gHttpPort = 0;
     NSNumber *enableN = [prefs objectForKey:@"Enabled"];
@@ -3194,6 +3196,13 @@ static void clientGoneHook(rfbClientPtr cl) {
 static enum rfbNewClientAction newClientHook(rfbClientPtr cl) {
   @autoreleasepool {
     DKReleaseWebSocketRequestPath(cl);
+    // Passwordless sessions must still honor the existing blocked-host list.
+    if (gNoPasswordLAN && gBlockedHosts && cl->host) {
+        NSString *host = [NSString stringWithUTF8String:cl->host];
+        @synchronized(gBlockedHosts) {
+            if ([gBlockedHosts containsObject:host]) return RFB_CLIENT_REFUSE;
+        }
+    }
     DKClientDelta(1);
     int yes = 1, idle = 60, interval = 10, count = 3;
     setsockopt(cl->sock, SOL_SOCKET, SO_KEEPALIVE, &yes, sizeof(yes));
@@ -3711,11 +3720,18 @@ static void setupRfbScreen(int argc, const char *argv[]) {
 static BOOL validateSecurityConfiguration(void) {
     const char *full = getenv("TROLLVNC_PASSWORD");
     const char *view = getenv("TROLLVNC_VIEWONLY_PASSWORD");
-    if (!dkviewphone::strongPassword(full)) {
+    in_addr_t noAuthAddress = 0;
+    if (gNoPasswordLAN &&
+        (tvClassifyBindHost(gBindHost, &noAuthAddress, NULL) != kTVBindHostKindIPv4 ||
+         !dkviewphone::allowPasswordlessLAN(true, gTrustedLAN, isRepeaterEnabled(), ntohl(noAuthAddress)))) {
+        TVPrintError("Passwordless mode requires explicit Trusted LAN consent, a concrete private/loopback IPv4 bind and reverse mode off.");
+        return NO;
+    }
+    if (!gNoPasswordLAN && !dkviewphone::strongPassword(full)) {
         TVPrintError("Set a full-access password: exactly 8 visible ASCII characters including uppercase, lowercase, digit and symbol.");
         return NO;
     }
-    if (view && *view && (!dkviewphone::strongPassword(view) || strcmp(full, view) == 0)) {
+    if (!gNoPasswordLAN && view && *view && (!dkviewphone::strongPassword(view) || strcmp(full, view) == 0)) {
         TVPrintError("The optional view-only password must meet the same policy and differ from the full-access password.");
         return NO;
     }
@@ -3784,6 +3800,13 @@ static rfbBool tvCheckPasswordByList(rfbClientPtr cl, const char *passwd, int le
 }
 
 static void setupRfbClassicAuthentication(void) {
+    if (gNoPasswordLAN) {
+        // Validated above. Reuse LibVNCServer's built-in RFB security type None.
+        // Saved credentials are retained for returning to password mode.
+        gScreen->authPasswdData = NULL;
+        TVLog(@"WARNING: passwordless LAN mode enabled; reachable LAN peers can access VNC.");
+        return;
+    }
     // Enable classic VNC authentication if environment variables are provided
     const char *envPwd = getenv("TROLLVNC_PASSWORD");
     const char *envViewPwd = getenv("TROLLVNC_VIEWONLY_PASSWORD");

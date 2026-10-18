@@ -454,6 +454,17 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 }
 
 - (BOOL)dkValidateAuthentication {
+    if ([[self dkPreferenceValueForKey:@"AllowUnauthenticatedLAN"] boolValue]) {
+        NSString *reverse = [self dkPreferenceValueForKey:@"ReverseMode"];
+        BOOL reverseOff = !reverse.length || [reverse isEqualToString:@"none"];
+        if ([[self dkPreferenceValueForKey:@"WebViewerTrustedLAN"] boolValue] && reverseOff &&
+            TVNCIsValidBindHostLiteral([self dkPreferenceValueForKey:@"BindHost"])) return YES;
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Passwordless LAN"
+            message:@"Enable Trusted LAN, choose this iPhone's private LAN IPv4 or loopback Bind Address, and turn Reverse Mode off. Anyone who can reach this listener can view/control the phone. Saved passwords are ignored while this mode is on."
+            preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+        [self presentViewController:alert animated:YES completion:nil]; return NO;
+    }
     NSString *full = [self dkPreferenceValueForKey:@"FullPassword"];
     NSString *view = [self dkPreferenceValueForKey:@"ViewOnlyPassword"];
     if (TVNCHasValidVNCPasswords(full, view)) return YES;

@@ -18,19 +18,21 @@ function stop() {
     manual = true; password = null; retries = 0;
     clearTimeout(retryTimer); retryTimer = null;
     const previous = rfb; rfb = null; if (previous) previous.disconnect();
-    $('password').value = ''; $('empty').hidden = false; status('Đã ngắt kết nối');
+    $('password').value = ''; if ($('login').open) $('login').close();
+    $('empty').hidden = false; status('Đã ngắt kết nối');
 }
 function connect() {
     clearTimeout(retryTimer); retryTimer = null;
     if (manual) return;
     const current = new RFB($('screen'), `${secure ? 'wss' : 'ws'}://${host}:${port}/websockify`,
-        { credentials: { password }, shared: true });
+        { credentials: password === null ? {} : { password }, shared: true });
     rfb = current; current.viewOnly = $('viewOnly').checked;
     current.scaleViewport = $('autoScale').checked; current.resizeSession = false;
     current.background = '#eaf0f8'; status('Đang kết nối…');
     current.addEventListener('credentialsrequired', () => {
         if (current !== rfb) return;
-        stop(); message('Máy chủ yêu cầu xác thực lại. Nhấn Connect và nhập mật khẩu VNC.');
+        $('login').showModal(); $('password').focus();
+        message('Máy chủ đang dùng chế độ mật khẩu VNC.');
     });
     current.addEventListener('connect', () => {
         if (current !== rfb) return;
@@ -57,14 +59,14 @@ function connect() {
 }
 $('connect').addEventListener('click', () => {
     if (!secure && !window.confirm('HTTP/WS không mã hóa màn hình và thao tác. Chỉ tiếp tục trên LAN tin cậy.')) return;
-    $('login').showModal(); $('password').focus();
+    manual = false; retries = 0; connect();
 });
 $('loginForm').addEventListener('submit', event => {
     event.preventDefault(); password = $('password').value; $('password').value = '';
-    $('login').close(); manual = false; retries = 0; connect();
+    $('login').close(); if (rfb && !manual) rfb.sendCredentials({ password });
 });
-$('cancel').addEventListener('click', () => { $('password').value = ''; $('login').close(); });
-$('login').addEventListener('cancel', () => { $('password').value = ''; });
+$('cancel').addEventListener('click', () => { $('login').close(); stop(); });
+$('login').addEventListener('cancel', stop);
 $('disconnect').addEventListener('click', stop); $('headerDisconnect').addEventListener('click', stop);
 $('viewOnly').addEventListener('change', () => {
     if (rfb) rfb.viewOnly = $('viewOnly').checked;

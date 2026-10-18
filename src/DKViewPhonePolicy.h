@@ -26,4 +26,9 @@ inline bool privateIPv4(uint32_t address) {
            (address & 0xfff00000u) == 0xac100000u ||
            (address & 0xffff0000u) == 0xc0a80000u;
 }
+
+// Explicit local opt-in only. Never offer unauthenticated reverse connections.
+inline bool allowPasswordlessLAN(bool enabled, bool trustedLAN, bool reverse, uint32_t address) {
+    return enabled && trustedLAN && !reverse && privateIPv4(address);
+}
 } // namespace dkviewphone

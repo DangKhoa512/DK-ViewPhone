@@ -111,6 +111,19 @@
 			<string>5901</string>
 		</dict>
 
+		<dict>
+            <key>cell</key><string>PSGroupCell</string>
+            <key>label</key><string>Passwordless LAN</string>
+            <key>footerText</key><string>Default off. When enabled, anyone who can reach this private LAN listener can view/control the phone without a password. Requires Trusted LAN consent and Reverse Mode off. Saved passwords are retained but ignored; use global View-only or disable Remote Control to restrict input.</string>
+        </dict>
+        <dict>
+            <key>cell</key><string>PSSwitchCell</string>
+            <key>defaults</key><string>com.82flex.trollvnc</string>
+            <key>key</key><string>AllowUnauthenticatedLAN</string>
+            <key>label</key><string>No Password on Trusted LAN</string>
+            <key>default</key><false/>
+        </dict>
+
 		<!-- Full-access Password -->
 		<dict>
 			<key>cell</key>
@@ -118,7 +131,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Required before enabling: exactly 8 visible ASCII characters, including uppercase, lowercase, a digit and a symbol. Generate a unique random password. Classic VNC limits authentication to 8 bytes; use an encrypted tunnel on untrusted networks.</string>
+			<string>Required in password mode: exactly 8 visible ASCII characters, including uppercase, lowercase, a digit and a symbol. Generate a unique random password. Classic VNC limits authentication to 8 bytes; use an encrypted tunnel on untrusted networks.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -561,7 +574,7 @@
 	<key>key</key>
 	<string>WebViewerTrustedLAN</string>
 	<key>label</key>
-	<string>Allow HTTP/WS on Trusted LAN</string>
+	<string>Trusted LAN (HTTP / No Password)</string>
 	<key>default</key>
 	<false/>
 </dict>

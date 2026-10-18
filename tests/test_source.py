@@ -29,7 +29,8 @@ class SourceTests(unittest.TestCase):
                     'ClipboardEnabled':True, 'OrientationSync':True, 'ViewOnly':False,
                     'BonjourEnabled':False}
         expected.update(LANWebViewerEnabled=False, WebViewerTrustedLAN=False,
-                        WebViewerTLS=False, HttpPort=5801, RemoteControlEnabled=True)
+                        WebViewerTLS=False, HttpPort=5801, RemoteControlEnabled=True,
+                        AllowUnauthenticatedLAN=False)
         for key, value in expected.items():
             self.assertEqual(items[key]['default'], value, key)
         for key in ('FullPassword', 'ViewOnlyPassword'):

@@ -1,5 +1,15 @@
 # ĐK ViewPhone changes
 
+## 1.1.2
+
+Adds explicit optional passwordless LAN mode at the owner's request. Reuses
+LibVNCServer security type None; default remains password authentication. The
+new mode requires Trusted LAN consent, a concrete private/loopback IPv4 bind,
+and Reverse Mode off. Existing credentials are retained. Global view-only,
+Remote Control restriction and blocked-host checks still apply. The web client
+opens a password dialog only when challenged by the server.
+See [setup and actual results](PASSWORDLESS-LAN-1.1.2.md).
+
 ## 1.1.1
 
 Integrates an offline blue LAN Web Viewer around the bundled noVNC. Reuses

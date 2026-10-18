@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 class Element extends EventTarget {
     checked = false; disabled = false; value = ''; textContent = ''; hidden = false;
     classList = { toggle() {} };
-    focus() {} showModal() {} close() {}
+    open = false;
+    focus() {} showModal() { this.open = true; } close() { this.open = false; }
     click() { this.dispatchEvent(new Event('click')); }
 }
 const elements = new Map();
@@ -18,6 +19,7 @@ class RFB extends EventTarget {
     constructor(target, url, options) { super(); this.url = url; this.options = options; connections.push(this); }
     focus() {}
     disconnect() { this.emit('disconnect', { clean: true }); }
+    sendCredentials(value) { this.credentials = value; }
     emit(name, detail = {}) { const event = new Event(name); event.detail = detail; this.dispatchEvent(event); }
 }
 const window = new EventTarget(); window.confirm = () => true;
@@ -29,16 +31,28 @@ runInNewContext(source, { RFB, window, document: { getElementById: el, body: { d
     clearTimeout: id => timers.delete(id) });
 const latest = () => connections.at(-1);
 function login() {
-    el('connect').click(); el('password').value = 'synthetic-test-only';
+    el('connect').click(); latest().emit('credentialsrequired', { types: ['password'] });
+    assert.equal(el('login').open, true); el('password').value = 'synthetic-test-only';
     el('loginForm').dispatchEvent(new Event('submit', { cancelable: true }));
     assert.equal(el('password').value, '');
     assert.equal(latest().url, 'ws://192.168.50.2:5901/websockify');
     assert.ok(!latest().url.includes('synthetic'));
+    assert.equal(latest().credentials.password, 'synthetic-test-only');
+    assert.equal(el('login').open, false);
 }
 function retry() {
     assert.equal(timers.size, 1);
     const [id, task] = timers.entries().next().value; timers.delete(id); task.fn(); return task.ms;
 }
+// Security type None connects without opening a password dialog or inventing a
+// credential. Authentication remains driven by the server's noVNC event.
+el('connect').click(); assert.equal(el('login').open, false);
+assert.equal(Object.keys(latest().options.credentials).length, 0);
+latest().emit('connect'); el('disconnect').click();
+// Cancelling a real password challenge closes the pending session and retries.
+el('connect').click(); latest().emit('credentialsrequired'); el('cancel').click();
+assert.equal(el('login').open, false); assert.equal(timers.size, 0);
+assert.equal(el('connect').disabled, false);
 login(); latest().emit('connect');
 // Actual regression: noVNC uses clean=true for a server-side close of an
 // established session. That must still reconnect unless the user opted out.
@@ -60,4 +74,4 @@ for (let i = 0; i < 5; ++i) { latest().emit('disconnect', { clean: false }); del
 latest().emit('disconnect', { clean: false });
 assert.deepEqual(delays, [2000, 4000, 8000, 16000, 16000]);
 assert.equal(timers.size, 0); assert.equal(el('connect').disabled, false);
-console.log('Viewer reconnect intent, retry budget, manual-off and authentication failure checks passed');
+console.log('Passwordless/challenged authentication, cancel, reconnect intent and retry budget checks passed');

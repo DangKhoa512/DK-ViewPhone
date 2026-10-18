@@ -5,6 +5,13 @@
 
 int main() {
     using namespace dkviewphone;
+    assert(allowPasswordlessLAN(true, true, false, 0xc0a8019e));
+    assert(allowPasswordlessLAN(true, true, false, 0x7f000001));
+    assert(!allowPasswordlessLAN(false, true, false, 0xc0a8019e));
+    assert(!allowPasswordlessLAN(true, false, false, 0xc0a8019e));
+    assert(!allowPasswordlessLAN(true, true, true, 0xc0a8019e));
+    for (uint32_t addr : {0u, 0xffffffffu, 0x08080808u, 0xa9fe0001u})
+        assert(!allowPasswordlessLAN(true, true, false, addr));
     assert(containsCurrentRoot("/var/containers/.jbroot-123/var/cert.pem", "/var/containers/.jbroot-123/"));
     assert(containsCurrentRoot("/private/var/mobile/.jbroot-123/var/cert.pem", "/var/containers/.jbroot-123/"));
     assert(!containsCurrentRoot("/var/cert.pem", "/var/containers/.jbroot-123/"));
