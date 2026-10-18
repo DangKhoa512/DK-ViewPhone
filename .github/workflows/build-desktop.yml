@@ -55,14 +55,14 @@ jobs:
       - name: Create checksum
         run: |
           New-Item -ItemType Directory -Force artifacts/desktop | Out-Null
-          Copy-Item desktop/dist/DKViewPhone_Desktop_1.0.0_x64.exe artifacts/desktop/
-          $hash = (Get-FileHash artifacts/desktop/DKViewPhone_Desktop_1.0.0_x64.exe -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  DKViewPhone_Desktop_1.0.0_x64.exe" | Set-Content -Encoding ascii artifacts/desktop/SHA256SUMS
+          Copy-Item desktop/dist/DKViewPhone_Desktop_1.0.1_x64.exe artifacts/desktop/
+          $hash = (Get-FileHash artifacts/desktop/DKViewPhone_Desktop_1.0.1_x64.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  DKViewPhone_Desktop_1.0.1_x64.exe" | Set-Content -Encoding ascii artifacts/desktop/SHA256SUMS
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DKViewPhone-Desktop-1.0.0-Windows-x64
+          name: DKViewPhone-Desktop-1.0.1-Windows-x64
           path: artifacts/desktop/
           if-no-files-found: error
           retention-days: 30

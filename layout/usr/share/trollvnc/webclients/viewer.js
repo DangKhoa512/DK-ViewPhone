@@ -295,6 +295,7 @@ function initDashboard() {
             this.onRelease = () => manager.release(this);
             this.onState = (state, detail) => {
                 device.connection_status = state;
+                card.dataset.state = state;
                 const layer = card.querySelector('.card-state-layer');
                 layer.className = `card-state-layer ${state}`;
                 layer.querySelector('span').textContent = detail || STATES[state] || state;
@@ -486,7 +487,7 @@ function initDashboard() {
         const card = document.createElement('article');
         card.className = 'device-card';
         card.dataset.id = device.device_id;
-        card.innerHTML = '<div class="card-top"><input class="card-select" type="checkbox" aria-label="Chọn thiết bị"><div class="card-title"><strong></strong><span></span></div><div class="card-menu"><button class="edit-device" title="Sửa thiết bị">Sửa</button><button class="delete-device" title="Xóa thiết bị">Xóa</button></div></div><button class="card-preview" title="Bấm đúp để điều khiển"><div class="card-screen"></div><div class="card-placeholder"><div><div class="empty-phone"></div><strong>Chưa có Live View</strong><span>Nhấn Kết nối để bắt đầu preview</span></div></div><div class="card-state-layer idle"><i></i><span>Chưa kết nối</span></div><span class="focus-badge" hidden>ĐANG ĐIỀU KHIỂN</span></button><div class="card-bottom"><span class="transport-chip"></span><button class="connect-device">Kết nối</button><button class="disconnect-device" disabled>Ngắt</button><button class="open-device">Điều khiển</button></div>';
+        card.innerHTML = '<div class="card-top"><span class="device-slot" aria-hidden="true"></span><input class="card-select" type="checkbox" aria-label="Chọn thiết bị"><div class="card-title"><strong></strong><span></span></div><div class="card-menu"><button class="edit-device" title="Sửa thiết bị">Sửa</button><button class="delete-device" title="Xóa thiết bị">Xóa</button></div></div><button class="card-preview" title="Bấm đúp để điều khiển"><div class="card-screen"></div><div class="card-placeholder"><div><div class="empty-phone"></div><strong>Chưa có Live View</strong><span>Nhấn Kết nối để bắt đầu preview</span></div></div><div class="card-state-layer idle"><i></i><span>Chưa kết nối</span></div><span class="focus-badge" hidden>ĐANG ĐIỀU KHIỂN</span></button><div class="card-bottom"><span class="transport-chip"></span><button class="connect-device">Kết nối</button><button class="disconnect-device" disabled>Ngắt</button><button class="open-device">Điều khiển</button></div>';
         card.querySelector('.card-title strong').textContent = device.name;
         card.querySelector('.card-title span').textContent = endpointLabel(device);
         card.querySelector('.transport-chip').textContent = device.connection_mode.toUpperCase();

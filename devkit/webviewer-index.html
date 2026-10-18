@@ -2,10 +2,10 @@
 <html lang="vi"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src ws: wss:; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
-<title>ĐK ViewPhone · Device Farm</title><link rel="stylesheet" href="viewer.css"><script defer src="viewer.bundle.js"></script>
+<title>ĐK ViewPhone · Device Farm</title><link rel="stylesheet" href="viewer.css"><link rel="stylesheet" href="viewer-farm.css"><script defer src="viewer.bundle.js"></script>
 </head><body data-rfb-port="$PORT">
 <header class="topbar">
-  <div class="brand-block"><span class="logo" aria-hidden="true">ĐK</span><div><strong>ĐK ViewPhone</strong><span>Device Farm Dashboard</span></div></div>
+  <div class="brand-block"><span class="logo" aria-hidden="true">ĐK</span><div><strong>ĐK ViewPhone</strong><span>LAN Device Console</span></div></div>
   <div class="top-mode"><span class="eyebrow">Kết nối</span><strong id="modeSummary">LAN</strong></div>
   <div class="top-stat online-stat"><span class="stat-icon"></span><div><strong id="onlineCount">0</strong><span>thiết bị online</span></div></div>
   <div class="top-stat"><div><strong id="liveCount">0 / 6</strong><span>phiên live</span></div></div>
@@ -31,7 +31,7 @@
 
 <main id="dashboard" class="dashboard-shell">
   <section class="fleet-area" aria-label="Danh sách thiết bị">
-    <div class="section-heading"><div><span class="eyebrow">Thiết bị</span><h1>Phone farm</h1></div><span id="visibleCount" class="count-pill">0 máy</span></div>
+    <div class="section-heading"><div><span class="eyebrow">Thiết bị</span><h1>Danh sách màn hình</h1></div><span id="visibleCount" class="count-pill">0 máy</span></div>
     <div id="deviceGrid" class="device-grid columns-3" aria-live="polite"></div>
     <div id="noDevices" class="empty-fleet" hidden>
       <div class="empty-phone" aria-hidden="true"></div><h2>Chưa có thiết bị</h2>
@@ -50,7 +50,7 @@
       <div id="focusScreen" class="focus-screen"></div>
       <div id="focusPlaceholder" class="focus-placeholder"><div class="empty-phone"></div><strong>Đang chuẩn bị Live View</strong><span>Phiên điều khiển được ưu tiên hơn các preview.</span></div>
     </div>
-    <div class="focus-toolbar">
+    <div class="focus-toolbar"><div class="focus-tools-title"><span class="eyebrow">Thao tác nhanh</span><strong>Điều khiển thiết bị</strong></div>
       <button class="primary" id="focusConnect">Kết nối</button><button id="focusDisconnect" disabled>Ngắt</button><button id="focusFullscreen">Toàn màn hình</button>
       <label><input id="focusViewOnly" type="checkbox"> Chỉ xem</label><label><input id="focusAutoScale" type="checkbox" checked> Tự co giãn</label>
     </div>

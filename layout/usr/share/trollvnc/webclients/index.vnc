@@ -17,10 +17,10 @@
 dialog{border:1px solid var(--line);border-radius:17px;padding:24px;max-width:480px;width:calc(100% - 28px);box-shadow:0 28px 90px rgba(17,35,62,.3)}dialog::backdrop{background:rgba(15,28,48,.48);backdrop-filter:blur(4px)}dialog h2{margin:2px 0 0;font-size:20px}dialog form>label:not(.check-row),.form-grid label{display:flex;flex-direction:column;gap:5px;margin:12px 0;color:#52677f;font-size:11px;font-weight:700}dialog input,dialog select{width:100%;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);padding:9px}.dialog-heading{display:flex;align-items:start;justify-content:space-between}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.check-row{display:flex;align-items:center;gap:7px;font-size:11px}.check-row input{width:auto}.form-help,dialog p{font-size:11px;line-height:1.6;color:var(--muted)}.form-error{min-height:16px;color:var(--red);font-size:11px}.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 
 @media(max-width:1450px){.device-grid.columns-5{--columns:4}.dashboard-shell.focus-open .device-grid.columns-4,.dashboard-shell.focus-open .device-grid.columns-5{--columns:3}.card-preview{height:240px}}@media(max-width:1180px){.topbar{gap:14px}.brand-block{min-width:210px}.dashboard-shell.focus-open{display:block}.focus-panel{position:fixed;z-index:60;top:82px;right:18px;bottom:18px;width:min(480px,calc(100vw - 36px));max-height:none}.focus-workspace{height:auto;flex:1;min-height:300px}.dashboard-shell.focus-open:after{content:"";position:fixed;inset:0;z-index:50;background:rgba(16,31,53,.24);pointer-events:none}.focus-panel{z-index:61}.device-grid.columns-5{--columns:4}}@media(max-width:980px){.controlbar{position:static;flex-wrap:wrap;align-items:center}.control-actions{width:100%;margin:0}.search-field{flex:1}.search-field input{width:100%}.focus-panel{top:18px}.top-mode{display:none}.device-grid.columns-4,.device-grid.columns-5{--columns:3}.card-preview{height:270px}}@media(max-width:760px){.topbar{height:auto;padding:10px 14px;flex-wrap:wrap}.brand-block{min-width:0;margin-right:auto}.top-stat{min-width:auto}.top-stat div span{display:none}.controlbar{padding:10px 14px}.control-actions{overflow-x:auto;padding-bottom:3px}.control-actions button{white-space:nowrap}.trust-notice,.dashboard-message{padding-left:14px;padding-right:14px}.dashboard-shell{padding:14px}.device-grid{--columns:2!important}.card-preview{height:310px}}@media(max-width:520px){.brand-block div span,.online-stat{display:none}.topbar .danger-button{padding:8px}.compact-field{flex:1}.compact-field select,.compact-field input{width:100%!important}.device-grid{--columns:1!important}.card-preview{height:390px}.focus-panel{top:8px;right:8px;bottom:8px;width:calc(100vw - 16px)}.form-grid{grid-template-columns:1fr}}
-</style><script defer src="viewer.bundle.js"></script>
+</style><link rel="stylesheet" href="viewer-farm.css"><script defer src="viewer.bundle.js"></script>
 </head><body data-rfb-port="$PORT">
 <header class="topbar">
-  <div class="brand-block"><span class="logo" aria-hidden="true">ĐK</span><div><strong>ĐK ViewPhone</strong><span>Device Farm Dashboard</span></div></div>
+  <div class="brand-block"><span class="logo" aria-hidden="true">ĐK</span><div><strong>ĐK ViewPhone</strong><span>LAN Device Console</span></div></div>
   <div class="top-mode"><span class="eyebrow">Kết nối</span><strong id="modeSummary">LAN</strong></div>
   <div class="top-stat online-stat"><span class="stat-icon"></span><div><strong id="onlineCount">0</strong><span>thiết bị online</span></div></div>
   <div class="top-stat"><div><strong id="liveCount">0 / 6</strong><span>phiên live</span></div></div>
@@ -46,7 +46,7 @@ dialog{border:1px solid var(--line);border-radius:17px;padding:24px;max-width:48
 
 <main id="dashboard" class="dashboard-shell">
   <section class="fleet-area" aria-label="Danh sách thiết bị">
-    <div class="section-heading"><div><span class="eyebrow">Thiết bị</span><h1>Phone farm</h1></div><span id="visibleCount" class="count-pill">0 máy</span></div>
+    <div class="section-heading"><div><span class="eyebrow">Thiết bị</span><h1>Danh sách màn hình</h1></div><span id="visibleCount" class="count-pill">0 máy</span></div>
     <div id="deviceGrid" class="device-grid columns-3" aria-live="polite"></div>
     <div id="noDevices" class="empty-fleet" hidden>
       <div class="empty-phone" aria-hidden="true"></div><h2>Chưa có thiết bị</h2>
@@ -65,7 +65,7 @@ dialog{border:1px solid var(--line);border-radius:17px;padding:24px;max-width:48
       <div id="focusScreen" class="focus-screen"></div>
       <div id="focusPlaceholder" class="focus-placeholder"><div class="empty-phone"></div><strong>Đang chuẩn bị Live View</strong><span>Phiên điều khiển được ưu tiên hơn các preview.</span></div>
     </div>
-    <div class="focus-toolbar">
+    <div class="focus-toolbar"><div class="focus-tools-title"><span class="eyebrow">Thao tác nhanh</span><strong>Điều khiển thiết bị</strong></div>
       <button class="primary" id="focusConnect">Kết nối</button><button id="focusDisconnect" disabled>Ngắt</button><button id="focusFullscreen">Toàn màn hình</button>
       <label><input id="focusViewOnly" type="checkbox"> Chỉ xem</label><label><input id="focusAutoScale" type="checkbox" checked> Tự co giãn</label>
     </div>

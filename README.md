@@ -19,7 +19,7 @@ và focus tiếp tục tuân theo giới hạn stream của dashboard.
 
 Build thủ công bằng `cd desktop`, `npm ci`, `npm test`, `npm run build:win`, hoặc chạy
 workflow **Build DK ViewPhone Desktop**. File portable là
-`DKViewPhone_Desktop_1.0.0_x64.exe`; máy sử dụng không cần cài Node.js. Xem
+`DKViewPhone_Desktop_1.0.1_x64.exe`; máy sử dụng không cần cài Node.js. Xem
 [hướng dẫn Desktop](desktop/README.md).
 
 ## Build và tải DEB

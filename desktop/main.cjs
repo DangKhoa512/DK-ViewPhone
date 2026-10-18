@@ -15,6 +15,7 @@ if (!gotLock) app.quit();
 
 let mainWindow = null;
 const smokeResultPath = process.env.DK_DESKTOP_SMOKE_RESULT || '';
+const previewPath = process.env.DK_DESKTOP_PREVIEW_PATH || '';
 
 function viewerRoot() {
     return app.isPackaged
@@ -56,7 +57,7 @@ function createWindow() {
         minWidth: 1000,
         minHeight: 680,
         backgroundColor: '#eef3f9',
-        show: !smokeResultPath,
+        show: !smokeResultPath && !previewPath,
         icon: app.isPackaged
             ? path.join(process.resourcesPath, 'icon.png')
             : path.join(__dirname, 'build', 'icon.png'),
@@ -97,6 +98,22 @@ function createWindow() {
                 app.exit(0);
             } catch (error) {
                 fs.writeFileSync(smokeResultPath, JSON.stringify({status: 'failed', error: String(error)}, null, 2));
+                app.exit(1);
+            }
+        });
+    } else if (previewPath) {
+        mainWindow.webContents.once('did-finish-load', async () => {
+            try {
+                await mainWindow.webContents.executeJavaScript(`
+                    document.getElementById('loadDemo').click();
+                    document.querySelector('.open-device')?.click();
+                `);
+                await new Promise(resolve => setTimeout(resolve, 700));
+                const image = await mainWindow.webContents.capturePage();
+                fs.writeFileSync(previewPath, image.toPNG());
+                app.exit(0);
+            } catch (error) {
+                console.error(error);
                 app.exit(1);
             }
         });
