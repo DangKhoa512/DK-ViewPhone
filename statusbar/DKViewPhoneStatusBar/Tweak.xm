@@ -37,14 +37,18 @@ static NSString *DKCurrentIPv4(void) {
     return best ?: @"IPv4 --";
 }
 
-// Non-notched devices such as the iPhone 6s render the clock as an image.
-// Override only the model getter and let UIKit own all image/cache/layout work.
-// Calling contentsImage/updateContentsAndWidth from a tweak is intentionally
-// avoided because those private methods recurse on iOS 15.8.4.
-%hook UIStatusBarTimeItemView
+// UIStatusBarTimeItemView inherits dateTimeString from
+// UIStatusBarDateTimeItemView on iOS 15. Hook the class which actually owns the
+// getter, then limit the replacement to time items so date views remain intact.
+// UIKit continues to own all image/cache/layout work; calling private rendering
+// methods from the tweak can recurse on iOS 15.8.4.
+%hook UIStatusBarDateTimeItemView
 
 - (NSString *)dateTimeString {
-    return DKCurrentIPv4();
+    Class timeItemClass = objc_getClass("UIStatusBarTimeItemView");
+    if (timeItemClass && [self isKindOfClass:timeItemClass])
+        return DKCurrentIPv4();
+    return %orig;
 }
 
 %end
