@@ -49,6 +49,8 @@
 #import "DKViewPhonePolicy.h"
 #import "DKRuntime.h"
 #import "DKFramePublication.h"
+#import "DKFrameDamage.h"
+#import "DKNetworkAddress.h"
 #import "DKWorkerExit.h"
 #import "DKWebTLS.h"
 #import "DKWebPolicy.h"
@@ -79,7 +81,7 @@ int gOrientationFixQuad = 0; // 0=0°, 1=90°CW, 2=180°, 3=270°CW
 static BOOL gEnabled = YES;
 static int gPort = 5901;
 static int gTvCtlPort = 0;        // port for control connections (0 = disabled)
-static NSString *gBindHost = @"127.0.0.1"; // explicitly choose a LAN IPv4 address in Settings
+static NSString *gBindHost = @"auto"; // resolve this iPhone's current private LAN IPv4 before binding
 static NSString *gDesktopName = @"ĐK ViewPhone";
 static BOOL gViewOnly = NO;
 static double gKeepAliveSec = 0.0; // 15..86400
@@ -89,8 +91,8 @@ static BOOL gIsDaemonMode = NO; // set when launched with -daemon
 static double gScale = 0.40; // 0 < scale <= 1.0, 1.0 = no scaling
 // Preferred frame rate range (0 = unspecified)
 static int gFpsMin = 30;
-static int gFpsPref = 60;
-static int gFpsMax = 120;
+static int gFpsPref = 30;
+static int gFpsMax = 30;
 
 // Wheel scroll coalescing state (async, non-blocking)
 static double gWheelStepPx = 48.0;        // base pixels per wheel tick (lower = slower)
@@ -142,8 +144,8 @@ static int gRepeaterPort = 5500;
 static int gRepeaterId = 12345679;
 
 // User notifications
-static BOOL gUserClientNotifsEnabled = YES;
-static BOOL gUserSingleNotifsEnabled = YES;
+static BOOL gUserClientNotifsEnabled = NO;
+static BOOL gUserSingleNotifsEnabled = NO;
 
 // Blocked hosts (temporary blacklist)
 static NSMutableSet<NSString *> *gBlockedHosts = nil;
@@ -310,7 +312,7 @@ static void printUsageAndExit(const char *prog) {
     fprintf(stderr, "Usage: %s [-p port] [-n name] [options]\n\n", prog);
 
     fprintf(stderr, "Basic:\n");
-    fprintf(stderr, "  -b host    Bind host address (IPv4/IPv6 literal, default to all)\n");
+    fprintf(stderr, "  -b host    Bind private/loopback IPv4 or auto (default: auto, prefer Wi-Fi)\n");
     fprintf(stderr, "  -p port    VNC TCP port (default: %d)\n", gPort);
     fprintf(stderr, "  -c port    Client management TCP port (0=off, default: 0)\n");
     fprintf(stderr, "  -n name    Desktop name (default: %s)\n", [gDesktopName UTF8String]);
@@ -319,7 +321,7 @@ static void printUsageAndExit(const char *prog) {
 
     fprintf(stderr, "Display/Perf:\n");
     fprintf(stderr, "  -s scale   Output scale 0<s<=1 (default: %.2f)\n", gScale);
-    fprintf(stderr, "  -F spec    Frame rate: fps | min-max | min:pref:max\n\n");
+    fprintf(stderr, "  -F spec    Frame rate: fps | min-max | min:pref:max (default: 30:30:30)\n\n");
 
     fprintf(stderr, "Scroll/Input:\n");
     fprintf(stderr, "  -W px      Wheel step in pixels (0=disable, default: %.0f)\n", gWheelStepPx);
@@ -344,8 +346,8 @@ static void printUsageAndExit(const char *prog) {
     fprintf(stderr, "  -U on|off  Enable server-side cursor X (default: off)\n\n");
 
     fprintf(stderr, "Notifications:\n");
-    fprintf(stderr, "  -i on|off  Single notification when first client connects (default: on)\n");
-    fprintf(stderr, "  -I on|off  User notifications for client connect/disconnect (default: on)\n\n");
+    fprintf(stderr, "  -i on|off  Single notification when first client connects (default: off)\n");
+    fprintf(stderr, "  -I on|off  User notifications for client connect/disconnect (default: off)\n\n");
 
     fprintf(stderr, "Extensions:\n");
     fprintf(stderr, "  -C on|off  Clipboard sync (default: on)\n");
@@ -490,8 +492,8 @@ static void parseDaemonOptions(void) {
             gBindHost = bindHost;
             TVLog(@"-daemon: BindHost=%@", gBindHost);
         } else {
-            gBindHost = @"127.0.0.1";
-            TVLog(@"-daemon: BindHost empty; using loopback");
+            gBindHost = @"auto";
+            TVLog(@"-daemon: BindHost empty; using automatic LAN IPv4");
         }
     }
 
@@ -1555,26 +1557,39 @@ NS_INLINE int ensureRotateScratch(size_t w, size_t h) {
 }
 
 NS_INLINE int ensureScaleTemp(size_t srcW, size_t srcH, size_t dstW, size_t dstH, vImage_Flags flags) {
-    vImage_Buffer s = {.data = NULL,
-                       .height = (vImagePixelCount)srcH,
-                       .width = (vImagePixelCount)srcW,
-                       .rowBytes = srcW * (size_t)gBytesPerPixel};
-    vImage_Buffer d = {.data = NULL,
-                       .height = (vImagePixelCount)dstH,
-                       .width = (vImagePixelCount)dstW,
-                       .rowBytes = dstW * (size_t)gBytesPerPixel};
-    vImage_Error need = vImageScale_ARGB8888(&s, &d, NULL, flags | kvImageGetTempBufferSize);
-    if (need < 0)
-        return -1;
-    size_t nbytes = (size_t)need;
+    // Capture/scaling runs on the main thread. Re-query only when the geometry
+    // or filter changes; allocation can still be retried after a failed realloc.
+    struct ScaleWorkspaceRequest {
+        size_t srcW = 0, srcH = 0, dstW = 0, dstH = 0;
+        vImage_Flags flags = kvImageNoFlags;
+        size_t bytes = 0;
+        bool valid = false;
+    };
+    static ScaleWorkspaceRequest cached;
+    if (!cached.valid || cached.srcW != srcW || cached.srcH != srcH || cached.dstW != dstW ||
+        cached.dstH != dstH || cached.flags != flags) {
+        vImage_Buffer s = {.data = NULL,
+                           .height = (vImagePixelCount)srcH,
+                           .width = (vImagePixelCount)srcW,
+                           .rowBytes = srcW * (size_t)gBytesPerPixel};
+        vImage_Buffer d = {.data = NULL,
+                           .height = (vImagePixelCount)dstH,
+                           .width = (vImagePixelCount)dstW,
+                           .rowBytes = dstW * (size_t)gBytesPerPixel};
+        vImage_Error need = vImageScale_ARGB8888(&s, &d, NULL, flags | kvImageGetTempBufferSize);
+        if (need < 0)
+            return -1;
+        cached = {srcW, srcH, dstW, dstH, flags, (size_t)need, true};
+    }
+    size_t nbytes = cached.bytes;
     if (nbytes == 0)
         return 0;
     if (gScaleTempSize >= nbytes && gScaleTemp)
         return 0;
     void *nbuf = realloc(gScaleTemp, nbytes);
-    memset(nbuf, 0, nbytes);
     if (!nbuf)
         return -1;
+    memset(nbuf, 0, nbytes);
     gScaleTemp = nbuf;
     gScaleTempSize = nbytes;
     return 0;
@@ -1670,8 +1685,14 @@ NS_INLINE void unlockAllClientsBlocking(void) {
 static void publishLatestFrame(void) {
     if (!gScreen) { gPublication.invalidate(); return; }
     gPublication.attempt(lockAllClientsForPublication, [] {
+        // Both buffers remain stable on the main thread, and all retained
+        // senders are locked. Only mark pixels that differ from the published
+        // image; pending client damage is accumulated by LibVNCServer.
+        const auto damage = dkviewphone::changedBoundsRGBA32(
+            gFrontBuffer, gBackBuffer, gWidth, gHeight, (size_t)gWidth * gBytesPerPixel);
+        if (damage.empty()) return;
         swapBuffers();
-        rfbMarkRectAsModified(gScreen, 0, 0, gWidth, gHeight);
+        rfbMarkRectAsModified(gScreen, damage.left, damage.top, damage.right, damage.bottom);
     }, unlockAllClientsBlocking, [] {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 33 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
             gPublication.retryFired();
@@ -1865,13 +1886,15 @@ static void handleFramebuffer(CMSampleBufferRef sampleBuffer) {
             CFAbsoluteTime __tv_tScale0 = CFAbsoluteTimeGetCurrent();
 #endif
 
-            if (ensureScaleTemp(stage.width, stage.height, dstBuf.width, dstBuf.height, kvImageHighQualityResampling) !=
-                0) {
+            // Standard Lanczos-3 reduces filter work in low-latency mode;
+            // retain the existing Lanczos-5 quality when the option is off.
+            vImage_Flags scaleFlags = gLowLatency ? kvImageNoFlags : kvImageHighQualityResampling;
+            if (ensureScaleTemp(stage.width, stage.height, dstBuf.width, dstBuf.height, scaleFlags) != 0) {
                 CVPixelBufferUnlockBaseAddress(pb, kCVPixelBufferLock_ReadOnly);
                 return;
             }
 
-            vImage_Error err = vImageScale_ARGB8888(&stage, &dstBuf, gScaleTemp, kvImageHighQualityResampling);
+            vImage_Error err = vImageScale_ARGB8888(&stage, &dstBuf, gScaleTemp, scaleFlags);
             if (err != kvImageNoError) {
                 static BOOL sLoggedVImageErrOnce = NO;
                 if (!sLoggedVImageErrOnce) {
@@ -2193,6 +2216,7 @@ static uint64_t threadCpuTimeNs(void) {
 
 // These hooks bracket encoding AND synchronous socket writes, not just encoding.
 static void displayHook(rfbClientPtr cl) {
+    DKUpdateBegin(cl, cl->sock);
     TVClientState *st = tvGetClientState(cl);
     if (!st)
         return;
@@ -2204,6 +2228,7 @@ static void displayHook(rfbClientPtr cl) {
 }
 
 static void displayFinishedHook(rfbClientPtr cl, int result) {
+    DKUpdateEnd(cl, result != 0);
     TVClientState *st = tvGetClientState(cl);
     if (!st)
         return;
@@ -3569,7 +3594,10 @@ static void prepareScreenCapturer(void) {
 
 static void prepareBulletinManager(void) {
     BulletinManager *mgr = [BulletinManager sharedManager];
-    [mgr revokeSingleNotification];
+    if (!gUserSingleNotifsEnabled && !gUserClientNotifsEnabled)
+        [mgr revokeAllNotifications];
+    else
+        [mgr revokeSingleNotification];
 }
 
 static void setupGeometry(void) {
@@ -4327,11 +4355,18 @@ int main(int argc, const char *argv[]) {
             if (!copy) { TVPrintError("Could not resolve web resource path"); return EXIT_FAILURE; }
             free(*path); *path = copy;
         }
-        // Supervisor follows only the previously selected private interface.
-        // Saved 1.0 preferences are never rewritten to the temporary runtime IP.
+        // The supervisor resolves auto or follows the explicitly selected private
+        // interface. Never rewrite saved preferences to a temporary runtime IP.
         const char *runtimeBind = getenv("DK_VIEWPHONE_BIND");
         if (gIsDaemonMode && getenv("DK_VIEWPHONE_HEARTBEAT_FD") && runtimeBind)
             gBindHost = @(runtimeBind); // validated by the unchanged security policy below
+
+        gBindHost = [gBindHost stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+        if (DKBindHostIsAutomatic(gBindHost.UTF8String)) {
+            char address[INET_ADDRSTRLEN];
+            DKAutomaticLANIPv4(address);
+            gBindHost = [NSString stringWithUTF8String:address];
+        }
 
         // Validate before capture, socket creation, or LibVNCServer startup.
         if (gEnabled && !validateSecurityConfiguration()) {

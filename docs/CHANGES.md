@@ -1,5 +1,13 @@
 # ĐK ViewPhone changes
 
+## Đang phát triển — tối ưu Desktop/DEB
+
+- Dùng chung một kết nối RFB cho preview và điều khiển mỗi thiết bị; ảnh preview phụ sao chép cục bộ khi đang điều khiển. Giới hạn live tối đa 10.
+- DEB mặc định `BindHost=auto`, ưu tiên IPv4 Wi-Fi hiện tại và tự chọn lại khi mạng thay đổi; giữ địa chỉ đã nhập thủ công.
+- Mặc định tắt thông báo trạng thái và lịch sử kết nối. Giữ tùy chọn bật lại và giữ giá trị người dùng đã lưu.
+- Mặc định capture `30:30:30`, scale `0.40`; chỉ đánh dấu vùng pixel thực sự thay đổi, bỏ cập nhật framebuffer giống nhau. Giữ lựa chọn FPS cao hơn.
+- Xem [chi tiết và giới hạn kiểm chứng](DEB-FARM-TUNING.md). Chưa build DEB/EXE hoặc đo tải nhiều điện thoại cho các thay đổi này.
+
 ## 1.3.0
 
 - Thay Single View/Multi View bằng dashboard một trang kiểu phone farm: lưới thiết bị luôn hiển thị và panel điều khiển lớn mở bên phải hoặc dạng overlay trên màn hình hẹp.

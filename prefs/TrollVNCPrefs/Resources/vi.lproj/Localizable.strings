@@ -4,7 +4,7 @@
 "/path/to/cert.pem" = "/duong/dan/cert.pem";
 "/path/to/key.pem" = "/duong/dan/key.pem";
 "0.1–1.0. Lower scale reduces bandwidth/CPU; 1.0 is pixel-perfect. Balance quality, latency and battery." = "Từ 0.1 đến 1.0. Tỷ lệ nhỏ giảm băng thông và CPU; 1.0 giữ độ phân giải gốc. Cân đối độ nét, độ trễ và pin.";
-"127.0.0.1 or private Wi-Fi IPv4" = "127.0.0.1 hoặc IPv4 Wi-Fi nội bộ";
+"127.0.0.1 or private Wi-Fi IPv4" = "auto hoặc IPv4 LAN nội bộ";
 "270° Clockwise" = "270° theo chiều kim đồng hồ";
 "8 mixed ASCII characters" = "8 ký tự: hoa, thường, số, ký hiệu";
 "90° Clockwise" = "90° theo chiều kim đồng hồ";
@@ -27,7 +27,7 @@
 "Assistive Touch Auto-Activation" = "Tự bật AssistiveTouch";
 "Automatically enables iOS AssistiveTouch while clients are connected to improve input support." = "Tự bật AssistiveTouch của iOS khi có người xem để hỗ trợ thao tác.";
 "Bind Address" = "Địa chỉ lắng nghe";
-"Bind address must be a valid IPv4/IPv6 literal, or empty to listen on all interfaces." = "Nhập địa chỉ IPv4 nội bộ hợp lệ. Để trống để dùng 127.0.0.1.";
+"Bind address must be a valid IPv4/IPv6 literal, or empty to listen on all interfaces." = "Nhập auto hoặc IPv4 LAN nội bộ hợp lệ. Để trống để tự dùng IPv4 LAN hiện tại.";
 "Block" = "Chặn";
 "Block Client" = "Chặn thiết bị";
 "Cancel" = "Hủy";
@@ -46,7 +46,7 @@
 "Current IP Address: %@" = "Địa chỉ IP hiện tại: %@";
 "Default off. HTTP/WS exposes screen and input without encryption: use trusted LAN only. Both services use the configured concrete Bind Address. Apply changes reconnects sessions. HTTPS/WSS requires a matching PEM certificate/key trusted by your browser." = "Mặc định bật trong cấu hình mới. HTTP/WS truyền ảnh và thao tác không mã hóa, chỉ dùng trên LAN tin cậy. Hai dịch vụ dùng Địa chỉ lắng nghe đã chọn. Áp dụng sẽ kết nối lại phiên. HTTPS/WSS cần chứng chỉ PEM và khóa tương ứng được trình duyệt tin cậy.";
 "Default off. When enabled, anyone who can reach this private LAN listener can view/control the phone without a password. Requires Trusted LAN consent and Reverse Mode off. Saved passwords are retained but ignored; use global View-only or disable Remote Control to restrict input." = "Mặc định bật trong cấu hình mới. Bất kỳ ai truy cập được máy qua LAN đều có thể xem và điều khiển mà không cần mật khẩu. Cần bật LAN tin cậy và tắt kết nối ngược. Mật khẩu đã lưu được giữ lại nhưng không dùng trong chế độ này. Bật Chỉ xem hoặc tắt Cho phép điều khiển để chặn thao tác.";
-"Default: loopback 127.0.0.1. For LAN access enter this iPhone’s private Wi-Fi IPv4 address. Wildcard, public and IPv6 binds are disabled." = "Mặc định: 127.0.0.1 (chỉ trên máy). Để truy cập qua LAN, nhập địa chỉ IPv4 Wi-Fi nội bộ của iPhone. Không dùng địa chỉ đại diện, IP công cộng hoặc IPv6.";
+"Default: loopback 127.0.0.1. For LAN access enter this iPhone’s private Wi-Fi IPv4 address. Wildcard, public and IPv6 binds are disabled." = "Mặc định auto: tự dùng địa chỉ IPv4 LAN hiện tại của iPhone, cập nhật khi mạng thay đổi. Để trống cũng dùng tự động. Có thể nhập IPv4 LAN cố định hoặc 127.0.0.1. Không dùng địa chỉ đại diện, IP công cộng hoặc IPv6.";
 "Desktop Name" = "Tên thiết bị hiển thị";
 "Disabled" = "Tắt";
 "Disconnect" = "Ngắt kết nối";
@@ -56,7 +56,8 @@
 "Enable Auto-Discovery" = "Cho phép tự tìm thiết bị";
 "Enable LAN Web Viewer" = "Bật trình xem Web LAN";
 "Enable Remote Control" = "Cho phép điều khiển từ xa";
-"Enable Trusted LAN, choose this iPhone's private LAN IPv4 or loopback Bind Address, and turn Reverse Mode off. Anyone who can reach this listener can view/control the phone. Saved passwords are ignored while this mode is on." = "Bật LAN tin cậy, chọn IPv4 LAN nội bộ của iPhone hoặc 127.0.0.1 và tắt kết nối ngược. Bất kỳ ai truy cập được máy đều có thể xem/điều khiển. Mật khẩu đã lưu không được dùng trong chế độ này.";
+"Enable Trusted LAN, choose this iPhone's private LAN IPv4 or loopback Bind Address, and turn Reverse Mode off. Anyone who can reach this listener can view/control the phone. Saved passwords are ignored while this mode is on." = "Bật LAN tin cậy, dùng auto, IPv4 LAN nội bộ của iPhone hoặc 127.0.0.1 và tắt kết nối ngược. Bất kỳ ai truy cập được máy đều có thể xem/điều khiển. Mật khẩu đã lưu không được dùng trong chế độ này.";
+"Enable Trusted LAN, use auto, this iPhone's private LAN IPv4 or loopback Bind Address, and turn Reverse Mode off. Anyone who can reach this listener can view/control the phone. Saved passwords are ignored while this mode is on." = "Bật LAN tin cậy, dùng auto, IPv4 LAN nội bộ của iPhone hoặc 127.0.0.1 và tắt kết nối ngược. Bất kỳ ai truy cập được máy đều có thể xem/điều khiển. Mật khẩu đã lưu không được dùng trong chế độ này.";
 "Enabled" = "Bật máy chủ";
 "Establish a reverse connection to a listening VNC viewer or repeater without opening a server port. This is useful for bypassing firewalls or NAT." = "Kết nối đến trình xem VNC hoặc máy chuyển tiếp đang lắng nghe mà không mở cổng máy chủ. Dùng khi cần đi qua NAT/tường lửa. Chế độ không mật khẩu không hỗ trợ kết nối ngược.";
 "Export Certificate…" = "Xuất chứng chỉ…";
@@ -81,6 +82,7 @@
 "Later" = "Để sau";
 "Launching" = "Đang khởi động";
 "Local IP Address" = "Địa chỉ IP nội bộ";
+"LAN IPv4 unavailable" = "Chưa có IPv4 LAN";
 "Log Keyboard Events" = "Ghi thao tác bàn phím";
 "Low Latency" = "Độ trễ";
 "Made with ♥ by OwnGoal Studio" = "Phát triển bởi OwnGoal Studio ♥";
@@ -92,6 +94,7 @@
 "New Version Available" = "Đã có phiên bản mới";
 "No Password on Trusted LAN" = "Không mật khẩu trên LAN tin cậy";
 "No clients connected" = "Chưa có thiết bị kết nối";
+"No LAN IPv4 available; connect Wi-Fi or Ethernet" = "Chưa có IPv4 LAN; hãy kết nối Wi-Fi hoặc Ethernet";
 "None" = "Tắt";
 "OK" = "Đồng ý";
 "Optional: exactly 8 visible ASCII characters with uppercase, lowercase, digit and symbol, different from the full-access password. View-only clients cannot send input or change the clipboard." = "Không bắt buộc: đúng 8 ký tự ASCII hiển thị, gồm chữ hoa, chữ thường, số và ký hiệu; phải khác mật khẩu điều khiển. Người dùng mật khẩu chỉ xem không thể thao tác hoặc thay đổi bộ nhớ tạm.";
@@ -123,10 +126,10 @@
 "Set Bind Address to the iPhone Wi-Fi IPv4" = "Đặt Địa chỉ lắng nghe bằng IPv4 Wi-Fi của iPhone";
 "Set HTTP Port to 5801" = "Đặt cổng Web thành 5801";
 "Set a unique random full-access password: exactly 8 visible ASCII characters including uppercase, lowercase, digit and symbol. The optional view-only password must meet the same rules and be different. Classic VNC uses only 8 bytes; use an encrypted tunnel on untrusted networks." = "Đặt mật khẩu điều khiển riêng: đúng 8 ký tự ASCII hiển thị gồm chữ hoa, chữ thường, số và ký hiệu. Mật khẩu chỉ xem, nếu có, cũng phải đủ điều kiện và khác mật khẩu điều khiển. VNC cổ điển chỉ dùng 8 byte; hãy dùng kết nối mã hóa trên mạng không tin cậy.";
-"Show notifications when clients connect or disconnect." = "Thông báo chỉ được lưu ẩn trong Trung tâm thông báo, không hiện biểu ngữ và không phát âm thanh.";
+"Show notifications when clients connect or disconnect." = "Mặc định tắt thông báo trạng thái và kết nối. Nếu bật, thông báo chỉ được lưu ẩn trong Trung tâm thông báo, không hiện biểu ngữ và không phát âm thanh.";
 "Shown to VNC clients" = "Tên hiển thị cho người xem";
 "Silence Notifications" = "Thông báo trạng thái ẩn";
-"Single fps (e.g. 60), range min-max (e.g. 30-60), or full spec min:pref:max (e.g. 30:60:120). iOS 15+ uses range; iOS 14 uses preferred/max." = "Nhập một mức FPS (60), khoảng tối thiểu–tối đa (30-60), hoặc tối thiểu:ưu tiên:tối đa (30:60:120). iOS 15 trở lên dùng khoảng FPS. Để trống để dùng mặc định 30:60:120.";
+"Single fps (e.g. 60), range min-max (e.g. 30-60), or full spec min:pref:max (e.g. 30:60:120). iOS 15+ uses range; iOS 14 uses preferred/max." = "Mặc định 30:30:30 để giữ nhịp 30 FPS và giảm tải khi xem nhiều máy. Nhập một mức FPS (30 hoặc 60), khoảng tối thiểu–tối đa (30-60), hoặc tối thiểu:ưu tiên:tối đa (30:60:120). Để trống dùng mặc định. FPS thực tế phụ thuộc thiết bị, nội dung và đường truyền.";
 "Skip This Version" = "Bỏ qua phiên bản này";
 "Standard" = "Tiêu chuẩn";
 "Standard: Alt as Option, Super as Command. On macOS clients, Alt as Command (altcmd) is recommended." = "Tiêu chuẩn: Alt thành Option, Super thành Command. Với máy Mac, nên chọn Dùng Alt làm Command.";
@@ -144,7 +147,9 @@
 "UltraVNC Repeater" = "Máy chuyển tiếp UltraVNC";
 "Upgrade Now" = "Nâng cấp ngay";
 "Use HTTPS / WSS" = "Dùng HTTPS / WSS";
-"Use loopback or this iPhone’s private LAN IPv4 address. Empty means 127.0.0.1. Wildcard, public and IPv6 binds are disabled." = "Dùng 127.0.0.1 hoặc IPv4 LAN nội bộ của iPhone. Để trống tương đương 127.0.0.1. Không dùng địa chỉ đại diện, IP công cộng hoặc IPv6.";
+"Use auto or a LAN IPv4 Bind Address" = "Chọn Địa chỉ lắng nghe auto hoặc IPv4 LAN để xem từ máy khác";
+"Use loopback or this iPhone’s private LAN IPv4 address. Empty means 127.0.0.1. Wildcard, public and IPv6 binds are disabled." = "Dùng auto hoặc để trống để tự dùng IPv4 LAN hiện tại của iPhone. Cũng có thể dùng IPv4 LAN cố định hoặc 127.0.0.1. Không dùng địa chỉ đại diện, IP công cộng hoặc IPv6.";
+"Use auto (or leave empty) to follow this iPhone's current LAN IPv4. A fixed private LAN IPv4 or loopback is also supported. Wildcard, public and IPv6 binds are disabled." = "Dùng auto hoặc để trống để tự dùng IPv4 LAN hiện tại của iPhone. Cũng có thể dùng IPv4 LAN cố định hoặc 127.0.0.1. Không dùng địa chỉ đại diện, IP công cộng hoặc IPv6.";
 "VNC TCP port. Default 5901. Valid range 1024–65535." = "Cổng TCP của VNC. Mặc định 5901; phạm vi hợp lệ 1024–65535.";
 "View Logs" = "Xem nhật ký";
 "View Source Code" = "Xem mã nguồn";
@@ -159,7 +164,7 @@
 "While viewers are connected, keep capture at the preferred FPS and reduce update batching from 5 ms to 1 ms. Higher minimum FPS may use more battery. Image scale and touch coordinates are unchanged. Apply to restart the server." = "Khi có người xem, giữ nhịp capture ở FPS ưu tiên và giảm thời gian chờ gộp ảnh từ 5 ms xuống 1 ms. FPS tối thiểu cao hơn có thể tốn pin hơn. Giữ nguyên tỷ lệ ảnh và tọa độ chạm. Nhấn Áp dụng để khởi động lại máy chủ.";
 "Wi-Fi unavailable" = "Wi-Fi chưa kết nối";
 "You need to generate a self-signed CA certificate first before exporting it." = "Cần tạo chứng chỉ CA tự ký trước khi xuất.";
-"e.g. 60 or 30-60 or 30:60:120" = "Ví dụ: 60 hoặc 30:60:120";
+"e.g. 60 or 30-60 or 30:60:120" = "30:30:30 (mặc định) hoặc 60";
 "server:port" = "maychu:cong";
 "unavailable" = "không khả dụng";
 "ĐK ViewPhone" = "ĐK ViewPhone";

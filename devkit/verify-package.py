@@ -205,7 +205,7 @@ def validate(path):
         require(info.get('CFBundleDisplayName') == 'ĐK ViewPhone', f'Bundle display name mismatch: {bundle}')
     root = plistlib.loads(payload['Library/PreferenceBundles/TrollVNCPrefs.bundle/Root.plist'][1])
     defaults = {item['key']:item.get('default') for item in root['items'] if 'key' in item}
-    require(defaults.get('Enabled') is False and defaults.get('BindHost') == '127.0.0.1', 'Unsafe startup defaults')
+    require(defaults.get('Enabled') is False and defaults.get('BindHost') == 'auto', 'Unexpected startup/bind defaults')
     require(not defaults.get('FullPassword') and not defaults.get('ViewOnlyPassword'), 'Bundled password in Settings')
     require(defaults.get('AllowUnauthenticatedLAN') is True and defaults.get('WebViewerTrustedLAN') is True,
             'Trusted passwordless LAN defaults do not match the release profile')
@@ -213,8 +213,10 @@ def validate(path):
     require(defaults.get('LANWebViewerEnabled') is True and defaults.get('WebViewerTLS') is False,
             'LAN Web Viewer defaults do not match the release profile')
     require(defaults.get('HttpPort') == 5801 and defaults.get('RemoteControlEnabled') is True and
-            defaults.get('Scale') == 0.40 and defaults.get('FrameRateSpec') == '30:60:120',
+            defaults.get('Scale') == 0.40 and defaults.get('FrameRateSpec') == '30:30:30',
             'Unexpected performance/web defaults')
+    require(defaults.get('SingleNotifEnabled') is False and defaults.get('ClientNotifsEnabled') is False,
+            'Status notifications must default to off')
     web = 'usr/share/trollvnc/webclients/'
     source_root = Path(__file__).resolve().parents[1]
     vi = 'Library/PreferenceBundles/TrollVNCPrefs.bundle/vi.lproj/Localizable.strings'

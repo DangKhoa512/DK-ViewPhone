@@ -56,7 +56,7 @@ function createWindow() {
         height: 960,
         minWidth: 1000,
         minHeight: 680,
-        backgroundColor: '#eef3f9',
+        backgroundColor: '#141619',
         show: !smokeResultPath && !previewPath,
         icon: app.isPackaged
             ? path.join(process.resourcesPath, 'icon.png')

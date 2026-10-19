@@ -3,10 +3,24 @@
 Ứng dụng Windows bọc dashboard noVNC 1.3.0 hiện tại bằng Electron. Giao diện
 không có quyền Node.js; preload chỉ cung cấp một lệnh quét LAN giới hạn.
 
-Bản 1.0.2 dùng bố cục console phone-farm gọn: lưới thiết bị đánh số ở bên trái,
-màn hình điều khiển lớn ở giữa và rail thao tác bên phải. Card hiển thị IP, trạng thái
-kết nối và viền màu để có thể theo dõi nhiều máy trên màn hình desktop rộng. Khung
-preview/focus tự bám tỷ lệ framebuffer khi xoay máy nên không giữ dải trắng hoặc đen thừa.
+Bản 1.0.3 dùng giao diện xám tối với thanh công cụ trên cùng để thêm thiết bị,
+quét LAN và tìm kiếm. Bảng **Hiển thị** bên phải chứa kích thước khung preview,
+số cột và giới hạn phiên live. Tên thiết bị nằm bên trái, trạng thái kết nối nằm
+bên phải ngay trên ảnh preview. Bấm đúp vào khung thiết bị để mở màn hình điều
+khiển lớn với thanh công cụ phía dưới. Khi xem toàn màn hình, mở menu **☰** rồi
+chọn biểu tượng bút chì để sửa thông tin thiết bị. Khung preview/focus tự bám tỷ lệ
+framebuffer khi xoay máy. Lưới mặc định có năm cột, giới hạn mặc định và tối đa
+là 10 phiên live.
+
+Mỗi thiết bị dùng chung một phiên kết nối cho preview và màn hình điều khiển.
+Khi mở điều khiển, ảnh nhỏ của cùng thiết bị là bản sao cục bộ, cập nhật tối đa
+10 lượt/giây và tạm dừng khi xem toàn màn hình. Chuyển hoặc đóng màn hình điều
+khiển giữ phiên đang kết nối; thao tác **Ngắt** vẫn dừng phiên đó.
+
+Thanh **Scale khung hình** điều chỉnh kích thước preview từ 50% đến 150%, mỗi bước
+5%, mặc định 100%. Khung giữ nguyên tỷ lệ ảnh của thiết bị khi phóng to, thu nhỏ
+hoặc xoay màn hình. Thiết lập được lưu trên máy tính; độ phân giải ảnh từ iPhone
+và kết nối LAN/USB giữ nguyên.
 
 ## Chạy phát triển
 
@@ -38,9 +52,12 @@ cảnh báo nhà phát hành không xác định.
 1. Bật server và **LAN Web Viewer** trên từng iPhone; cổng mặc định là
    HTTP 5801 và VNC 5901.
 2. Nối PC và iPhone vào cùng LAN, mở app rồi nhấn **Quét LAN**.
-3. Nhấn **Kết nối** trên card để xem preview; double-click card hoặc nhấn
-   **Mở điều khiển** để chuyển máy đó sang panel focus.
-4. Dùng **Chỉ xem**, **Tự co giãn** và **Toàn màn hình** trong thanh công cụ.
+3. Bấm vào khung thiết bị để xem preview; bấm đúp để mở màn hình điều khiển lớn.
+   Biểu tượng ở góc dưới bên phải khung mở thiết bị ở chế độ toàn màn hình.
+4. Menu **☰** chứa **Chỉ xem**, **Tự co giãn** và thao tác kết nối lại/ngắt kết nối.
+   Chỉnh **Scale khung hình**, số cột và giới hạn live trong bảng **Hiển thị** bên phải.
+5. Trong chế độ toàn màn hình, mở menu **☰** và chọn biểu tượng bút chì để
+   đổi tên hoặc thông tin kết nối của thiết bị.
 
 Scanner chỉ chấp nhận IPv4 riêng và giới hạn mỗi card mạng ở /24, tối đa
 bốn subnet. Mật khẩu VNC không được lưu xuống ổ đĩa. Một số router bật AP/client

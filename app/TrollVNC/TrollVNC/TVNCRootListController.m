@@ -16,15 +16,12 @@
 */
 
 #import "DKSettingsLocalization.h"
+#include "../../../src/DKNetworkAddress.h"
 #import <Foundation/Foundation.h>
 #import <Network/Network.h>
 #import <Preferences/PSSpecifier.h>
-#import <SystemConfiguration/SystemConfiguration.h>
 #import <UIKit/UIKit.h>
 #import <arpa/inet.h>
-#import <dlfcn.h>
-#import <ifaddrs.h>
-#import <net/if.h>
 #import <notify.h>
 #import <signal.h>
 #import <stdlib.h>
@@ -40,91 +37,14 @@
 #import "GitHubReleaseUpdater.h"
 #endif
 
-NS_INLINE NSString *GetDefaultRouteInterface(void) {
-    static SCDynamicStoreRef (*_SCDynamicStoreCreate)(CFAllocatorRef, CFStringRef, SCDynamicStoreCallBack,
-                                                      SCDynamicStoreContext *) = NULL;
-    static CFPropertyListRef (*_SCDynamicStoreCopyValue)(SCDynamicStoreRef, CFStringRef) = NULL;
-
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        void *handle =
-            dlopen("/System/Library/Frameworks/SystemConfiguration.framework/SystemConfiguration", RTLD_LAZY);
-        if (handle) {
-            _SCDynamicStoreCreate =
-                (SCDynamicStoreRef (*)(CFAllocatorRef, CFStringRef, SCDynamicStoreCallBack,
-                                       SCDynamicStoreContext *))dlsym(handle, "SCDynamicStoreCreate");
-            _SCDynamicStoreCopyValue =
-                (CFPropertyListRef (*)(SCDynamicStoreRef, CFStringRef))dlsym(handle, "SCDynamicStoreCopyValue");
-        }
-    });
-
-    if (!_SCDynamicStoreCreate || !_SCDynamicStoreCopyValue) {
-        return nil;
-    }
-
-    SCDynamicStoreRef store = _SCDynamicStoreCreate(NULL, CFSTR("RouteInfo"), NULL, NULL);
-    if (!store)
-        return nil;
-
-    NSDictionary *dict =
-        (NSDictionary *)CFBridgingRelease(_SCDynamicStoreCopyValue(store, CFSTR("State:/Network/Global/IPv4")));
-    if (!dict[@"PrimaryInterface"])
-        dict = (NSDictionary *)CFBridgingRelease(_SCDynamicStoreCopyValue(store, CFSTR("State:/Network/Global/IPv6")));
-    CFRelease(store);
-
-    return dict[@"PrimaryInterface"];
-}
-
-// Resolve current IPv4/IPv6 address of interface en0 (Wi‑Fi). Prefer IPv4 if available.
-NS_INLINE NSString *TVNCGetEn0IPAddress(void) {
-    struct ifaddrs *ifaList = NULL;
-    if (getifaddrs(&ifaList) != 0 || !ifaList)
-        return nil;
-
-    NSString *defaultRouteInterface = GetDefaultRouteInterface();
-    const char *defaultRouteIfName = defaultRouteInterface ? [defaultRouteInterface UTF8String] : "en0";
-
-    NSString *ipv4 = nil;
-    NSString *ipv6 = nil;
-    for (struct ifaddrs *ifa = ifaList; ifa; ifa = ifa->ifa_next) {
-        if (!ifa->ifa_addr || !ifa->ifa_name)
-            continue;
-        if (strcmp(ifa->ifa_name, defaultRouteIfName) != 0)
-            continue;
-        if (!(ifa->ifa_flags & IFF_UP) || (ifa->ifa_flags & IFF_LOOPBACK))
-            continue;
-
-        sa_family_t fam = ifa->ifa_addr->sa_family;
-        char buf[INET6_ADDRSTRLEN] = {0};
-        if (fam == AF_INET) {
-            const struct sockaddr_in *sin = (const struct sockaddr_in *)ifa->ifa_addr;
-            if (inet_ntop(AF_INET, &sin->sin_addr, buf, sizeof(buf))) {
-                ipv4 = [NSString stringWithUTF8String:buf];
-            }
-        } else if (fam == AF_INET6) {
-            const struct sockaddr_in6 *sin6 = (const struct sockaddr_in6 *)ifa->ifa_addr;
-            // Skip link-local addresses (fe80::) if possible
-            if (IN6_IS_ADDR_LINKLOCAL(&sin6->sin6_addr)) {
-                char tmp[INET6_ADDRSTRLEN] = {0};
-                if (inet_ntop(AF_INET6, &sin6->sin6_addr, tmp, sizeof(tmp))) {
-                    // Keep as fallback only if no other IPv6 found later
-                    if (!ipv6)
-                        ipv6 = [NSString stringWithUTF8String:tmp];
-                }
-            } else {
-                char tmp[INET6_ADDRSTRLEN] = {0};
-                if (inet_ntop(AF_INET6, &sin6->sin6_addr, tmp, sizeof(tmp))) {
-                    ipv6 = [NSString stringWithUTF8String:tmp];
-                }
-            }
-        }
-    }
-    freeifaddrs(ifaList);
-    return ipv4 ?: ipv6; // prefer IPv4
+NS_INLINE NSString *TVNCGetCurrentLANIPv4(void) {
+    char address[INET_ADDRSTRLEN];
+    return DKAutomaticLANIPv4(address) ? [NSString stringWithUTF8String:address] : nil;
 }
 
 NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
-    if (!host.length) return YES; // runtime uses loopback for an empty field
+    host = [host stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if (DKBindHostIsAutomatic(host.UTF8String)) return YES;
     struct in_addr v4;
     if (inet_pton(AF_INET, host.UTF8String, &v4) != 1) return NO;
     uint32_t address = ntohl(v4.s_addr);
@@ -381,8 +301,8 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
         }
         text = [NSString stringWithFormat:modeFormat, revMode];
     } else {
-        // Append current en0 IP on a second line, if available
-        NSString *ip = TVNCGetEn0IPAddress();
+        // Use the same concrete IPv4 selection as the listener and watchdog.
+        NSString *ip = TVNCGetCurrentLANIPv4();
         NSString *ipUnavailable = DKSettingsLocalizedString(@"unavailable", @"Localizable", self.bundle, nil);
         NSString *ipFormat =
             DKSettingsLocalizedString(@"Current IP Address: %@", @"Localizable", self.bundle, nil);
@@ -416,15 +336,19 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 #pragma mark - Actions
 
 - (NSString *)dkLocalIPAddress:(PSSpecifier *)specifier {
-    return TVNCGetEn0IPAddress() ?: DKSettingsLocalizedString(@"Wi-Fi unavailable", @"Localizable", self.bundle, nil);
+    return TVNCGetCurrentLANIPv4() ?: DKSettingsLocalizedString(@"LAN IPv4 unavailable", @"Localizable", self.bundle, nil);
 }
 
 - (NSString *)dkWebViewerURL:(PSSpecifier *)specifier {
     if (![[self dkPreferenceValueForKey:@"LANWebViewerEnabled"] boolValue]) return DKSettingsLocalizedString(@"Web Viewer is off", @"Localizable", self.bundle, nil);
-    NSString *bind = [self dkPreferenceValueForKey:@"BindHost"];
-    NSString *ip = TVNCGetEn0IPAddress();
-    if (!bind.length || [bind hasPrefix:@"127."] || !ip || !TVNCIsValidBindHostLiteral(ip))
-        return DKSettingsLocalizedString(@"Set Bind Address to the iPhone Wi-Fi IPv4", @"Localizable", self.bundle, nil);
+    NSString *bind = [[self dkPreferenceValueForKey:@"BindHost"]
+        stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    BOOL automatic = DKBindHostIsAutomatic(bind.UTF8String);
+    NSString *ip = automatic ? TVNCGetCurrentLANIPv4() : bind;
+    if ([ip hasPrefix:@"127."] || (!automatic && !TVNCIsValidBindHostLiteral(ip)))
+        return DKSettingsLocalizedString(@"Use auto or a LAN IPv4 Bind Address", @"Localizable", self.bundle, nil);
+    if (!ip.length)
+        return DKSettingsLocalizedString(@"No LAN IPv4 available; connect Wi-Fi or Ethernet", @"Localizable", self.bundle, nil);
     int port = [[self dkPreferenceValueForKey:@"HttpPort"] intValue];
     if (port < 1024 || port > 65535) return DKSettingsLocalizedString(@"Set HTTP Port to 5801", @"Localizable", self.bundle, nil);
     BOOL tls = [[self dkPreferenceValueForKey:@"WebViewerTLS"] boolValue];
@@ -461,7 +385,7 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
         if ([[self dkPreferenceValueForKey:@"WebViewerTrustedLAN"] boolValue] && reverseOff &&
             TVNCIsValidBindHostLiteral([self dkPreferenceValueForKey:@"BindHost"])) return YES;
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:DKSettingsLocalizedString(@"Passwordless LAN", @"Localizable", self.bundle, nil)
-            message:DKSettingsLocalizedString(@"Enable Trusted LAN, choose this iPhone's private LAN IPv4 or loopback Bind Address, and turn Reverse Mode off. Anyone who can reach this listener can view/control the phone. Saved passwords are ignored while this mode is on.", @"Localizable", self.bundle, nil)
+            message:DKSettingsLocalizedString(@"Enable Trusted LAN, use auto, this iPhone's private LAN IPv4 or loopback Bind Address, and turn Reverse Mode off. Anyone who can reach this listener can view/control the phone. Saved passwords are ignored while this mode is on.", @"Localizable", self.bundle, nil)
             preferredStyle:UIAlertControllerStyleAlert];
         [alert addAction:[UIAlertAction actionWithTitle:DKSettingsLocalizedString(@"OK", @"Localizable", self.bundle, nil) style:UIAlertActionStyleCancel handler:nil]];
         [self presentViewController:alert animated:YES completion:nil]; return NO;
@@ -569,7 +493,7 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
     if (!TVNCIsValidBindHostLiteral(bindHost)) {
         NSString *t = DKSettingsLocalizedString(@"Invalid Bind Address", @"Localizable", self.bundle, nil);
         NSString *msg = DKSettingsLocalizedString(
-            @"Use loopback or this iPhone’s private LAN IPv4 address. Empty means 127.0.0.1. Wildcard, public and IPv6 binds are disabled.",
+            @"Use auto (or leave empty) to follow this iPhone's current LAN IPv4. A fixed private LAN IPv4 or loopback is also supported. Wildcard, public and IPv6 binds are disabled.",
             @"Localizable", self.bundle, nil);
         NSString *ok = DKSettingsLocalizedString(@"OK", @"Localizable", self.bundle, nil);
 

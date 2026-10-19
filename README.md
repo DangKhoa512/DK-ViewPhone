@@ -17,9 +17,16 @@ riêng đang kết nối, thêm máy có cổng VNC 5901 vào grid, sau đó cho
 một máy để điều khiển trong panel lớn. Kết quả quét không tự kết nối; preview
 và focus tiếp tục tuân theo giới hạn stream của dashboard.
 
+Mã nguồn đang tối ưu dùng chung luồng ảnh giữa preview và điều khiển; xem
+[thay đổi hiệu năng và đường truyền USB](docs/PERFORMANCE-USB.md) cùng
+[kết quả kiểm tra loopback](docs/PERFORMANCE-OFFLINE-2026-10-19.md).
+
+Bản DEB đang được chỉnh để tự chọn IPv4 LAN, mặc định tắt thông báo và dùng nhịp
+30 FPS cho nhiều máy. Xem [thay đổi DEB và giới hạn kiểm chứng](docs/DEB-FARM-TUNING.md).
+
 Build thủ công bằng `cd desktop`, `npm ci`, `npm test`, `npm run build:win`, hoặc chạy
 workflow **Build DK ViewPhone Desktop**. File portable là
-`DKViewPhone_Desktop_1.0.2_x64.exe`; máy sử dụng không cần cài Node.js. Xem
+`DKViewPhone_Desktop_1.0.3_x64.exe`; máy sử dụng không cần cài Node.js. Xem
 [hướng dẫn Desktop](desktop/README.md).
 
 ## Build và tải DEB
@@ -44,7 +51,7 @@ Metadata `iphoneos-arm64e` là quy ước **package scheme roothide**, không c�
 1. Tải artifact từ một run thành công, giải nén và đối chiếu SHA256SUMS.
 2. Chuyển DEB sang iPhone, mở/chia sẻ bằng Sileo hoặc trình quản lý gói hỗ trợ cài DEB cục bộ. Nếu Sileo hiện tại không hỗ trợ mở file trực tiếp, dùng trình quản lý DEB tương thích trên máy; không đổi đuôi thành IPA.
 3. Xem transaction: gói `com.dk.viewphone` sẽ **thay thế** `com.82flex.trollvnc`. Không cài song song hai gói.
-4. Vào **Settings → ĐK ViewPhone**. Cấu hình mật khẩu và địa chỉ bind trước khi bật.
+4. Vào **Settings → ĐK ViewPhone**, kiểm tra chế độ LAN và địa chỉ lắng nghe rồi bật máy chủ.
 
 Nếu TrollVNC được cài riêng bằng TrollStore, hãy dừng server/manager của app đó
 trước khi dùng DEB này. Không chạy đồng thời vì vẫn dùng chung preference domain
@@ -52,10 +59,10 @@ và tài nguyên dịch vụ; quan hệ thay thế gói không áp dụng cho ap
 
 ## Kết nối máy tính
 
-Mặc định mới cài: server tắt; bind `127.0.0.1`; VNC `5901`; Web `5801`; scale `0.40`; FPS `30:60:120`; ưu tiên độ trễ thấp, Web Viewer, LAN tin cậy, không mật khẩu LAN và điều khiển từ xa đều bật. Clipboard và xoay màn hình bật; Bonjour và HTTPS/WSS tắt. Trước khi bật server để dùng LAN, chọn IPv4 Wi-Fi riêng của iPhone làm Bind Address.
+Mặc định mới cài: server tắt; bind `auto` tự chọn IPv4 LAN riêng của iPhone, ưu tiên Wi-Fi; VNC `5901`; Web `5801`; scale `0.40`; FPS `30:30:30`; ưu tiên độ trễ thấp, Web Viewer, LAN tin cậy, không mật khẩu LAN và điều khiển từ xa đều bật. Clipboard và xoay màn hình bật; thông báo trạng thái/kết nối, Bonjour và HTTPS/WSS tắt. Khi không có IPv4 LAN phù hợp, `auto` dùng `127.0.0.1`.
 
 - Mật khẩu full-access phải có đúng **8 ký tự ASCII nhìn thấy**, gồm chữ hoa, chữ thường, số và ký hiệu. Dùng mật khẩu ngẫu nhiên riêng. Không có mật khẩu mặc định. Mật khẩu view-only là tùy chọn và phải khác full-access, cùng quy tắc.
-- Để dùng LAN, nhập **địa chỉ IPv4 Wi-Fi riêng của iPhone** vào Bind Address, ví dụ địa chỉ đang hiển thị trong Settings của máy. Bật Enabled, nhấn Apply khi sửa các thiết lập khác. Máy tính phải kết nối được tới cùng LAN.
+- Để dùng LAN, giữ Bind Address là `auto` (hoặc để trống); cũng có thể nhập **địa chỉ IPv4 Wi-Fi riêng của iPhone** nếu muốn chọn thủ công. Dịch vụ tự chọn lại IP sau khi Wi-Fi đổi địa chỉ. Bật Enabled, nhấn Apply khi sửa các thiết lập khác. Máy tính phải kết nối được tới cùng LAN; danh sách thiết bị trên PC cần dùng IP mới khi DHCP thay đổi.
 - Trong VNC viewer, nhập host và port riêng `5901`. Với viewer dùng cú pháp cổng tuyệt đối, dùng `<IP-iPhone>::5901`; với macOS dùng `vnc://<IP-iPhone>:5901`. Nhập mật khẩu khi được hỏi.
 - Nếu dùng SSH tunnel, giữ bind loopback và chuyển tiếp `ssh -N -L 5901:127.0.0.1:5901 mobile@<IP-iPhone>` rồi kết nối viewer tới `127.0.0.1:5901`. Cần SSH trên iPhone đã được cấu hình riêng.
 - Classic VNC chỉ dùng 8 byte và không mã hóa hình ảnh/input. Dùng LAN tin cậy; trên mạng không tin cậy phải dùng tunnel mã hóa. Không forward cổng VNC ra Internet. IPv6, wildcard và bind IP công khai bị từ chối trong bản này.

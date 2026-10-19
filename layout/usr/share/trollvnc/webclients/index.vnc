@@ -20,58 +20,63 @@ dialog{border:1px solid var(--line);border-radius:17px;padding:24px;max-width:48
 </style><link rel="stylesheet" href="viewer-farm.css"><script defer src="viewer.bundle.js"></script>
 </head><body data-rfb-port="$PORT">
 <header class="topbar">
-  <div class="brand-block"><span class="logo" aria-hidden="true">ĐK</span><div><strong>ĐK ViewPhone</strong><span>LAN Device Console</span></div></div>
-  <div class="top-mode"><span class="eyebrow">Kết nối</span><strong id="modeSummary">LAN</strong></div>
-  <div class="top-stat online-stat"><span class="stat-icon"></span><div><strong id="onlineCount">0</strong><span>thiết bị online</span></div></div>
-  <div class="top-stat"><div><strong id="liveCount">0 / 6</strong><span>phiên live</span></div></div>
-  <button id="disconnectAll" class="danger-button" disabled>Ngắt tất cả</button>
-</header>
-
-<section class="controlbar" aria-label="Công cụ dashboard">
-  <div class="control-actions">
-    <button class="primary" id="addDevice">+ Thêm thiết bị</button>
-    <button class="scan-button" id="scanLan" hidden>Quét LAN</button>
-    <button id="connectSelected">Kết nối đã chọn</button>
-    <button id="disconnectSelected">Ngắt đã chọn</button>
-    <button id="loadDemo" title="Tạo các card offline để kiểm tra bố cục">Thêm dữ liệu mẫu</button>
+  <div class="brand-block"><span class="logo" aria-hidden="true">ĐK</span><div><strong>ĐK ViewPhone</strong><span>Không gian thiết bị</span></div></div>
+  <div class="connection-summary"><div class="top-stat online-stat"><span class="stat-icon"></span><strong id="onlineCount">0</strong><span>online</span></div><div class="live-summary" title="Số phiên đang kết nối / giới hạn"><strong id="liveCount">0 / 10</strong><span>phiên live</span></div></div>
+  <div class="header-actions"><button class="primary scan-button" id="scanLan" hidden>Quét LAN</button><button id="addDevice">+ Thêm thiết bị</button>
+    <details id="dashboardOptions" class="dashboard-options"><summary class="settings-toggle">Tùy chọn <span aria-hidden="true">⌄</span></summary><div class="options-panel">
+      <div class="options-heading">Thiết bị</div><button id="loadDemo" class="menu-action">Thêm thiết bị mẫu</button><button id="disconnectAll" class="menu-action danger-button" disabled>Ngắt tất cả kết nối</button>
+      <div class="connection-info"><strong id="modeSummary">LAN / USB</strong><p class="trust-notice" id="transportNotice">HTTP/WS không mã hóa. Chỉ dùng trong LAN tin cậy, không mở cổng ra Internet.</p></div>
+    </div></details>
   </div>
-  <label class="search-field"><span class="sr-only">Tìm thiết bị</span><input id="deviceSearch" type="search" placeholder="Tìm tên hoặc địa chỉ IP…"></label>
-  <label class="compact-field">Trạng thái<select id="deviceFilter"><option value="all">Tất cả</option><option value="online">Online</option><option value="offline">Offline</option></select></label>
-  <label class="compact-field">Số cột<select id="gridColumns"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></label>
-  <label class="compact-field">Live tối đa<input id="liveLimit" class="number-input" type="number" min="1" max="12" value="6"></label>
-</section>
-
-<div class="trust-notice" id="transportNotice">HTTP/WS không mã hóa. Chỉ sử dụng trong mạng LAN tin cậy và không mở cổng ra Internet.</div>
-<div id="dashboardMessage" class="dashboard-message" role="status">Chọn một card để đánh dấu; bấm đúp để mở bảng điều khiển lớn.</div>
+</header>
 
 <main id="dashboard" class="dashboard-shell">
   <section class="fleet-area" aria-label="Danh sách thiết bị">
-    <div class="section-heading"><div><span class="eyebrow">Thiết bị</span><h1>Danh sách màn hình</h1></div><span id="visibleCount" class="count-pill">0 máy</span></div>
-    <div id="deviceGrid" class="device-grid columns-3" aria-live="polite"></div>
+    <div class="section-heading"><div class="fleet-title"><h1>Thiết bị</h1><span id="visibleCount" class="count-pill">0 máy</span></div><div class="fleet-filters"><label class="search-field"><span class="sr-only">Tìm thiết bị</span><input id="deviceSearch" type="search" placeholder="Tìm tên hoặc IP"></label><label><span class="sr-only">Lọc trạng thái</span><select id="deviceFilter"><option value="all">Tất cả</option><option value="online">Online</option><option value="offline">Offline</option></select></label></div></div>
+    <div id="selectionBar" class="selection-bar" hidden><span id="selectionCount">Đã chọn 0 thiết bị</span><button id="connectSelected">Kết nối</button><button id="disconnectSelected">Ngắt kết nối</button><button id="clearSelection" class="text-button">Bỏ chọn</button></div>
+    <div id="deviceGrid" class="device-grid columns-5" aria-live="polite"></div>
     <div id="noDevices" class="empty-fleet" hidden>
       <div class="empty-phone" aria-hidden="true"></div><h2>Chưa có thiết bị</h2>
-      <p>Thêm iPhone bằng IPv4 LAN hoặc cổng USB forward riêng.</p><button class="primary" id="emptyAddDevice">Thêm thiết bị đầu tiên</button>
+      <p id="emptyDescription">Quét LAN hoặc thêm iPhone để bắt đầu.</p><button class="primary" id="emptyAddDevice">+ Thêm thiết bị</button>
     </div>
   </section>
 
   <aside id="focusPanel" class="focus-panel" aria-label="Bảng điều khiển thiết bị" hidden>
     <div class="focus-header">
-      <div class="focus-title"><span class="eyebrow">Đang điều khiển</span><strong id="focusName">iPhone</strong><span id="focusAddress"></span></div>
-      <div id="focusStatus" class="session-status"><i></i><span>Chưa kết nối</span></div>
+      <strong class="focus-heading">Điều khiển</strong>
       <button id="closeFocus" class="icon-button" title="Đóng bảng điều khiển" aria-label="Đóng bảng điều khiển">×</button>
     </div>
-    <div class="focus-switcher"><label>Chuyển nhanh<select id="focusDevice"></select></label><button id="previousDevice" title="Máy trước">←</button><button id="nextDevice" title="Máy tiếp theo">→</button></div>
+    <div class="focus-switcher"><label><span class="sr-only">Chuyển thiết bị</span><select id="focusDevice"></select></label><button id="previousDevice" title="Máy trước" aria-label="Thiết bị trước">←</button><button id="nextDevice" title="Máy tiếp theo" aria-label="Thiết bị tiếp theo">→</button></div>
     <div id="focusWorkspace" class="focus-workspace">
       <div id="focusScreen" class="focus-screen"></div>
-      <div id="focusPlaceholder" class="focus-placeholder"><div class="empty-phone"></div><strong>Đang chuẩn bị Live View</strong><span>Phiên điều khiển được ưu tiên hơn các preview.</span></div>
+      <div id="focusPlaceholder" class="focus-placeholder"><div class="empty-phone"></div><strong>Đang kết nối thiết bị</strong><span>Màn hình sẽ hiển thị tại đây.</span></div>
+      <button id="focusMenuDismiss" class="focus-menu-dismiss" type="button" aria-label="Thu gọn menu điều khiển" hidden></button>
+      <div class="focus-frame-label"><button id="focusMenuToggle" class="focus-menu-toggle" type="button" aria-label="Mở menu điều khiển" aria-expanded="false" aria-controls="focusMenu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><strong id="focusName">iPhone</strong></div>
+      <div id="focusStatus" class="session-status focus-frame-status"><i></i><span>Chưa kết nối</span></div>
+      <div id="focusMenu" class="focus-menu" aria-label="Menu điều khiển thiết bị" hidden>
+        <strong id="focusMenuName" class="focus-menu-name">iPhone</strong>
+        <button id="focusEditDevice" class="focus-menu-action" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15z"/></svg>Sửa thiết bị</button>
+        <div class="focus-menu-options"><label><input id="focusViewOnly" type="checkbox"> Chỉ xem</label><label><input id="focusAutoScale" type="checkbox" checked> Tự co giãn</label></div>
+        <button class="focus-menu-action" id="focusConnect" type="button">Kết nối lại</button><button class="focus-menu-action" id="focusDisconnect" type="button" disabled>Ngắt kết nối</button>
+        <button id="focusExitFullscreen" class="focus-menu-action" type="button" hidden>Thoát toàn màn hình</button>
+        <button id="focusDeleteDevice" class="focus-menu-action danger-button" type="button">Xóa khỏi danh sách</button>
+      </div>
     </div>
-    <div class="focus-toolbar"><div class="focus-tools-title"><span class="eyebrow">Thao tác nhanh</span><strong>Điều khiển thiết bị</strong></div>
-      <button class="primary" id="focusConnect">Kết nối</button><button id="focusDisconnect" disabled>Ngắt</button><button id="focusFullscreen">Toàn màn hình</button>
-      <label><input id="focusViewOnly" type="checkbox"> Chỉ xem</label><label><input id="focusAutoScale" type="checkbox" checked> Tự co giãn</label>
+    <div class="focus-toolbar">
+      <button id="focusFullscreen">Toàn màn hình</button><span class="focus-menu-hint">☰ Tùy chọn và sửa thiết bị</span>
     </div>
-    <div class="focus-footer"><span id="focusMessage">Tap, swipe và bàn phím được gửi qua noVNC.</span><span class="metrics" title="noVNC không cung cấp số đo chính xác trong bản tích hợp này">FPS — · Latency —</span></div>
+    <div class="focus-footer"><span id="focusMessage">Chạm, vuốt và nhập bàn phím để điều khiển.</span></div>
+  </aside>
+  <aside id="displayPanel" class="display-panel" aria-labelledby="displayHeading">
+    <div class="display-heading"><h2 id="displayHeading">Hiển thị</h2><button id="resetPreviewScale" class="text-button" type="button" disabled>Đặt lại</button></div>
+    <div class="scale-heading"><label for="previewScale">Scale khung hình</label><output id="previewScaleValue" for="previewScale">100%</output></div>
+    <input id="previewScale" type="range" min="50" max="150" step="5" value="100" aria-describedby="previewScaleHelp">
+    <div class="scale-ticks" aria-hidden="true"><span>50%</span><span>100%</span><span>150%</span></div>
+    <p id="previewScaleHelp" class="display-help">Thu phóng các khung iPhone, giữ đúng tỷ lệ màn hình.</p>
+    <div class="display-layout"><label class="compact-field">Số cột ở 100%<select id="gridColumns"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select></label><label class="compact-field">Phiên live tối đa<input id="liveLimit" class="number-input" type="number" min="1" max="10" value="10"></label></div>
   </aside>
 </main>
+<div id="dashboardMessage" class="dashboard-message" role="status">Bấm đúp vào màn hình để điều khiển thiết bị.</div>
 
 <dialog id="deviceEditor"><form id="deviceForm">
   <div class="dialog-heading"><div><span class="eyebrow">Cấu hình</span><h2 id="deviceEditorTitle">Thêm thiết bị</h2></div><button type="button" id="cancelDeviceTop" class="icon-button" aria-label="Đóng">×</button></div>
@@ -79,9 +84,7 @@ dialog{border:1px solid var(--line);border-radius:17px;padding:24px;max-width:48
   <label>Tên thiết bị<input id="deviceLabel" required maxlength="60" placeholder="iPhone 01"></label>
   <div class="form-grid"><label>Chế độ<select id="deviceMode"><option value="lan">LAN</option><option value="usb">USB</option></select></label><label>Cổng VNC / forward<input id="deviceVncPort" required type="number" min="1" max="65535" value="5901"></label></div>
   <label>IPv4 iPhone<input id="deviceHost" required inputmode="decimal" placeholder="192.168.1.158"></label>
-  <label>WebSocket URL tùy chọn<input id="deviceWebsocket" type="url" placeholder="ws://192.168.1.158:5901/websockify"></label>
-  <label class="check-row"><input id="deviceReconnect" type="checkbox" checked> Tự kết nối lại khi mất mạng</label>
-  <p class="form-help">Preview luôn ở chế độ chỉ xem. Mỗi iPhone USB cần một cổng forward riêng. URL không được chứa tài khoản hoặc mật khẩu.</p>
+  <details class="advanced-options"><summary>Nâng cao</summary><label>WebSocket URL tùy chọn<input id="deviceWebsocket" type="url" placeholder="ws://192.168.1.158:5901/websockify"></label><label class="check-row"><input id="deviceReconnect" type="checkbox" checked> Tự kết nối lại khi mất mạng</label><p class="form-help">Mỗi iPhone USB cần một cổng forward riêng. URL không được chứa tài khoản hoặc mật khẩu.</p></details>
   <div id="deviceFormError" class="form-error" role="alert"></div>
   <div class="dialog-actions"><button type="button" id="cancelDevice">Hủy</button><button type="submit" class="primary">Lưu thiết bị</button></div>
 </form></dialog>

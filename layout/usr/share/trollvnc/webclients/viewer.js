@@ -8,6 +8,12 @@ const secure = location.protocol === 'https:';
 const loopbackPage = ['127.0.0.1', 'localhost', '::1'].includes(pageHost);
 const retryDelay = attempt => Math.min(2 ** attempt, 16) * 1000;
 
+function normalizeFrameScale(value) {
+    if (value === null || value === '' || typeof value === 'boolean') return 100;
+    const scale = Number(value);
+    return Number.isFinite(scale) ? Math.min(150, Math.max(50, Math.round(scale / 5) * 5)) : 100;
+}
+
 function privateIPv4(host) {
     const parts = String(host).trim().split('.').map(Number);
     if (parts.length !== 4 || parts.some((value, index) =>
@@ -24,47 +30,66 @@ function socketURL(device) {
 }
 
 function trackScreenAspect(target, surface) {
-    if (typeof MutationObserver !== 'function' || !target || !surface) return;
-    target.__dkAspectObserver?.disconnect();
-    if (target.__dkAspectResize && typeof window !== 'undefined')
-        window.removeEventListener('resize', target.__dkAspectResize);
+    if (!target || !surface) return;
+    target.__dkAspectCleanup?.();
+    const focus = surface.classList.contains('focus-workspace');
     let ratio = 9 / 16;
     const fitFocusSurface = () => {
-        if (!surface.classList.contains('focus-workspace')) return;
-        const panel = surface.parentElement;
-        const rail = panel?.querySelector('.focus-toolbar');
-        const header = panel?.querySelector('.focus-header');
-        if (!panel || !rail || !header) return;
-        const maxWidth = Math.max(180, panel.clientWidth - rail.offsetWidth - 18);
-        const maxHeight = Math.max(260, panel.clientHeight - header.offsetHeight - 18);
+        if (!focus) return;
+        // The CSS stage owns the available space. Sizing only its screen avoids
+        // feeding the phone width back into panel/toolbar layout calculations.
+        const style = typeof getComputedStyle === 'function' ? getComputedStyle(surface) : null;
+        const padding = property => Number.parseFloat(style?.[property]) || 0;
+        const maxWidth = surface.clientWidth - padding('paddingLeft') - padding('paddingRight');
+        const maxHeight = surface.clientHeight - padding('paddingTop') - padding('paddingBottom');
+        if (maxWidth <= 0 || maxHeight <= 0) return;
         const width = Math.min(maxWidth, maxHeight * ratio);
         const height = width / ratio;
-        panel.style.setProperty('--focus-screen-width', `${Math.floor(width)}px`);
-        surface.style.width = `${Math.floor(width)}px`;
-        surface.style.height = `${Math.floor(height)}px`;
+        target.style.width = `${Math.floor(width)}px`;
+        target.style.height = `${Math.floor(height)}px`;
     };
     const update = () => {
         const canvas = target.querySelector('canvas');
-        const width = Number(canvas?.width) || 0;
-        const height = Number(canvas?.height) || 0;
+        const width = Number(canvas?.dataset?.framebufferWidth) || Number(canvas?.width) || 0;
+        const height = Number(canvas?.dataset?.framebufferHeight) || Number(canvas?.height) || 0;
         if (width > 0 && height > 0) {
             ratio = width / height;
             surface.style.setProperty('--screen-ratio', `${width} / ${height}`);
             surface.classList.add('screen-ready');
         } else {
+            ratio = 9 / 16;
             surface.style.removeProperty('--screen-ratio');
             surface.classList.remove('screen-ready');
         }
         fitFocusSurface();
     };
-    const observer = new MutationObserver(update);
-    observer.observe(target, {
-        childList: true, subtree: true, attributes: true, attributeFilter: ['width', 'height'],
+    const observer = typeof MutationObserver === 'function' ? new MutationObserver(update) : null;
+    observer?.observe(target, {
+        childList: true, subtree: true, attributes: true,
+        attributeFilter: ['width', 'height', 'data-framebuffer-width', 'data-framebuffer-height'],
     });
     target.__dkAspectObserver = observer;
-    target.__dkAspectResize = surface.classList.contains('focus-workspace') ? fitFocusSurface : null;
-    if (target.__dkAspectResize && typeof window !== 'undefined')
-        window.addEventListener('resize', target.__dkAspectResize);
+    const resizeObserver = focus && typeof ResizeObserver === 'function' ?
+        new ResizeObserver(fitFocusSurface) : null;
+    resizeObserver?.observe(surface);
+    if (focus) {
+        window.addEventListener('resize', fitFocusSurface);
+        document.addEventListener('fullscreenchange', fitFocusSurface);
+    }
+    target.__dkAspectCleanup = () => {
+        observer?.disconnect();
+        resizeObserver?.disconnect();
+        if (focus) {
+            window.removeEventListener('resize', fitFocusSurface);
+            document.removeEventListener('fullscreenchange', fitFocusSurface);
+            target.style.removeProperty('width');
+            target.style.removeProperty('height');
+        }
+        surface.style.removeProperty('--screen-ratio');
+        surface.classList.remove('screen-ready');
+        delete target.__dkAspectObserver;
+        delete target.__dkAspectCleanup;
+    };
     update();
 }
 
@@ -97,12 +122,7 @@ class ManagedRfbSession {
             shared: true,
         });
         this.rfb = current;
-        current.viewOnly = this.viewOnly;
-        current.scaleViewport = this.scaleViewport;
-        current.resizeSession = false;
-        current.background = this.role === 'focus' ? '#111c2c' : '#dfe7f1';
-        if ('qualityLevel' in current) current.qualityLevel = this.role === 'focus' ? 8 : 3;
-        if ('compressionLevel' in current) current.compressionLevel = this.role === 'focus' ? 2 : 6;
+        this.applyProfile(current);
         this.connectTimer = setTimeout(() => {
             if (current !== this.rfb) return;
             this.rfb = null;
@@ -214,22 +234,42 @@ class ManagedRfbSession {
         this.scaleViewport = !!value;
         if (this.rfb) this.rfb.scaleViewport = this.scaleViewport;
     }
+    applyProfile(current = this.rfb) {
+        if (!current) return;
+        current.viewOnly = this.viewOnly;
+        current.scaleViewport = this.scaleViewport;
+        current.resizeSession = false;
+        current.background = this.role === 'focus' ? '#111c2c' : '#dfe7f1';
+        if ('qualityLevel' in current) current.qualityLevel = this.role === 'focus' ? 8 : 3;
+        if ('compressionLevel' in current) current.compressionLevel = this.role === 'focus' ? 2 : 6;
+    }
+    setPresentation(role, {viewOnly = true, scaleViewport = true} = {}) {
+        this.role = role;
+        this.viewOnly = role === 'preview' || !!viewOnly;
+        this.scaleViewport = role === 'preview' || !!scaleViewport;
+        if (role === 'preview') this.rfb?.blur?.();
+        this.applyProfile();
+        if (role === 'focus' && this.state === 'online') this.rfb?.focus({preventScroll: true});
+    }
     clearTimers() {
         clearTimeout(this.retryTimer);
         clearTimeout(this.connectTimer);
         this.retryTimer = this.connectTimer = null;
     }
-    dispose() { this.disconnect(); }
+    dispose() {
+        this.target.__dkAspectCleanup?.();
+        this.disconnect();
+    }
 }
 
 // Exposes deterministic helpers to the repository's no-DOM contract test.
 if (typeof window !== 'undefined') {
-    window.__DK_VIEWPHONE_TEST__ = {ManagedRfbSession, privateIPv4, retryDelay, socketURL};
+    window.__DK_VIEWPHONE_TEST__ = {ManagedRfbSession, privateIPv4, retryDelay, socketURL, normalizeFrameScale};
 }
 
 function initDashboard() {
     const STORAGE_KEY = 'dk-viewphone-devices-v1';
-    const PREFS_KEY = 'dk-viewphone-multi-prefs-v1';
+    const PREFS_KEY = 'dk-viewphone-multi-prefs-v2';
     const STATES = {
         idle: 'Chưa kết nối', waiting: 'Đang chờ', connecting: 'Đang kết nối',
         online: 'Online', retry: 'Chờ kết nối lại', auth: 'Cần mật khẩu',
@@ -262,10 +302,11 @@ function initDashboard() {
         devices = [currentDevice];
         seededCurrent = true;
     }
-    let prefs = {columns: 3, limit: 6};
+    let prefs = {columns: 5, limit: 10, previewScale: 100};
     try { prefs = {...prefs, ...JSON.parse(localStorage.getItem(PREFS_KEY) || '{}')}; } catch {}
-    prefs.columns = [2, 3, 4, 5].includes(Number(prefs.columns)) ? Number(prefs.columns) : 3;
-    prefs.limit = Math.min(12, Math.max(1, Number(prefs.limit) || 6));
+    prefs.columns = [2, 3, 4, 5].includes(Number(prefs.columns)) ? Number(prefs.columns) : 5;
+    prefs.limit = Math.min(10, Math.max(1, Number(prefs.limit) || 10));
+    prefs.previewScale = normalizeFrameScale(prefs.previewScale);
 
     let pendingLogin = null;
     const loginQueue = [];
@@ -279,6 +320,24 @@ function initDashboard() {
     }
     function savePrefs() {
         try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch {}
+    }
+    function fitPreviewGrid() {
+        const grid = $('deviceGrid');
+        const available = grid.clientWidth;
+        if (!available) return;
+        const baseline = Math.max(172, (available - 14 * (prefs.columns - 1)) / prefs.columns);
+        const width = Math.min(available, Math.floor(baseline * prefs.previewScale / 100));
+        grid.style.setProperty('--frame-width', `${width}px`);
+        grid.classList.toggle('compact-cards', width < 165);
+    }
+    function setPreviewScale(value, persist = true) {
+        prefs.previewScale = normalizeFrameScale(value);
+        $('previewScale').value = String(prefs.previewScale);
+        $('previewScale').setAttribute('aria-valuetext', `${prefs.previewScale}%`);
+        $('previewScaleValue').value = `${prefs.previewScale}%`;
+        $('resetPreviewScale').disabled = prefs.previewScale === 100;
+        fitPreviewGrid();
+        if (persist) savePrefs();
     }
     function validateDevice(device, editingId = '') {
         if (!device.name.trim()) throw new Error('Tên thiết bị không được để trống.');
@@ -311,6 +370,7 @@ function initDashboard() {
         if (pendingLogin || !loginQueue.length) return;
         pendingLogin = loginQueue.shift();
         $('loginTitle').textContent = `Kết nối ${pendingLogin.title}`;
+        placeDialog($('login'));
         $('login').showModal();
         $('password').focus();
     }
@@ -327,18 +387,28 @@ function initDashboard() {
     class PreviewSession extends ManagedRfbSession {
         constructor(manager, device, card) {
             const screen = card.querySelector('.card-screen');
+            // Keep noVNC's target stable when the stream moves between surfaces.
+            // Moving this mount preserves its socket, decoder, canvas and auth.
+            const mount = document.createElement('div');
+            mount.className = 'rfb-mount';
+            mount.style.width = mount.style.height = '100%';
+            screen.appendChild(mount);
             super({
-                role: 'preview', target: screen, url: () => socketURL(device),
+                role: 'preview', target: mount, url: () => socketURL(device),
                 viewOnly: true, autoReconnect: device.auto_reconnect,
             });
             this.manager = manager;
             this.device = device;
             this.card = card;
+            this.screen = screen;
+            this.mirror = null;
+            this.mirrorTimer = null;
             this.placeholder = card.querySelector('.card-placeholder');
             trackScreenAspect(screen, card.querySelector('.card-preview'));
             this.requestSlot = () => manager.requestPreview(this);
             this.onCredentials = request => requestCredentials(device, request);
             this.onRelease = () => manager.release(this);
+            this.onDesktopName = () => updateDeviceLabels(device);
             this.onState = (state, detail) => {
                 device.connection_status = state;
                 card.dataset.state = state;
@@ -347,6 +417,11 @@ function initDashboard() {
                 layer.querySelector('span').textContent = detail || STATES[state] || state;
                 this.placeholder.hidden = state === 'online';
                 syncCardButtons(card, this);
+                if (manager.focusSession === this) {
+                    if (state === 'online' && !this.mirror) this.startMirror();
+                    else if (state !== 'online') this.stopMirror();
+                    setFocusState(state, detail);
+                }
                 manager.updateSummary();
                 applyFilter();
             };
@@ -355,6 +430,70 @@ function initDashboard() {
             this.desired = true;
             this.paused = false;
             this.manager.requestPreview(this);
+        }
+        promote(surface, options) {
+            surface.replaceChildren(this.target);
+            this.setPresentation('focus', options);
+            this.startMirror();
+        }
+        demote() {
+            this.stopMirror();
+            this.screen.replaceChildren(this.target);
+            this.setPresentation('preview');
+        }
+        startMirror() {
+            this.stopMirror();
+            if (this.role !== 'focus' || this.state !== 'online') return;
+            this.mirror = document.createElement('canvas');
+            this.mirror.className = 'preview-mirror';
+            this.mirror.dataset.previewMirror = 'true';
+            const source = this.target.querySelector('canvas');
+            const ratio = source?.width && source.height ? source.width / source.height : 9 / 16;
+            this.mirror.dataset.framebufferWidth = String(source?.width || 9);
+            this.mirror.dataset.framebufferHeight = String(source?.height || 16);
+            this.mirror.width = Math.max(1, Math.min(480, Math.floor(this.screen.clientWidth) || 9));
+            this.mirror.height = Math.max(1, Math.floor(this.mirror.width / ratio));
+            this.screen.appendChild(this.mirror);
+            const copy = () => {
+                this.mirrorTimer = null;
+                if (!this.mirror || this.role !== 'focus') return;
+                if (!document.hidden && !document.fullscreenElement && this.state === 'online') {
+                    const source = this.target.querySelector('canvas');
+                    const rect = this.card.getBoundingClientRect();
+                    const fleet = this.card.closest('.fleet-area')?.getBoundingClientRect();
+                    const top = Math.max(0, fleet?.top || 0);
+                    const bottom = Math.min(window.innerHeight, fleet?.bottom ?? window.innerHeight);
+                    const visible = rect.bottom > top && rect.top < bottom && rect.right > 0 &&
+                        rect.left < window.innerWidth && !this.card.classList.contains('hidden-card');
+                    if (visible && source?.width && source.height && this.screen.clientWidth && this.screen.clientHeight) {
+                        if (Number(this.mirror.dataset.framebufferWidth) !== source.width)
+                            this.mirror.dataset.framebufferWidth = String(source.width);
+                        if (Number(this.mirror.dataset.framebufferHeight) !== source.height)
+                            this.mirror.dataset.framebufferHeight = String(source.height);
+                        const scale = Math.min(1, 480 / source.width,
+                            this.screen.clientWidth / source.width, this.screen.clientHeight / source.height);
+                        const width = Math.max(1, Math.floor(source.width * scale));
+                        const height = Math.max(1, Math.floor(source.height * scale));
+                        if (this.mirror.width !== width) this.mirror.width = width;
+                        if (this.mirror.height !== height) this.mirror.height = height;
+                        this.mirror.getContext('2d').drawImage(source, 0, 0, width, height);
+                    }
+                }
+                // Only the focused card needs a copy; never decode or encode again.
+                this.mirrorTimer = setTimeout(copy, 100);
+            };
+            copy();
+        }
+        stopMirror() {
+            clearTimeout(this.mirrorTimer);
+            this.mirrorTimer = null;
+            this.mirror?.remove();
+            this.mirror = null;
+        }
+        dispose() {
+            this.stopMirror();
+            this.screen.__dkAspectCleanup?.();
+            super.dispose();
         }
     }
 
@@ -367,22 +506,16 @@ function initDashboard() {
             this.observer = null;
             this.focusSession = null;
             this.focusDeviceId = '';
-            this.focusPaused = null;
         }
         limit() { return prefs.limit; }
         activeCount() {
-            let count = [...this.sessions.values()].filter(session => !!session.rfb).length;
-            if (this.focusSession?.rfb) count++;
-            return count;
+            return [...this.sessions.values()].filter(session => !!session.rfb).length;
         }
         liveCount() {
-            let count = [...this.sessions.values()].filter(session => session.state === 'online').length;
-            if (this.focusSession?.state === 'online') count++;
-            return count;
+            return [...this.sessions.values()].filter(session => session.state === 'online').length;
         }
         isDeviceOnline(id) {
-            return this.sessions.get(id)?.state === 'online' ||
-                (this.focusDeviceId === id && this.focusSession?.state === 'online');
+            return this.sessions.get(id)?.state === 'online';
         }
         isVisible(id) {
             if (this.visible.has(id)) return true;
@@ -394,6 +527,16 @@ function initDashboard() {
         requestPreview(session) {
             if (!session.desired || session.paused) return;
             const id = session.device.device_id;
+            if (session.rfb) {
+                this.pending.delete(id);
+                return;
+            }
+            if (session === this.focusSession) {
+                this.reserveFocusSlot(id);
+                this.pending.delete(id);
+                session.start();
+                return;
+            }
             if (!this.isVisible(id)) {
                 this.pending.add(id);
                 session.setState('waiting', 'Chờ card vào vùng nhìn');
@@ -408,17 +551,18 @@ function initDashboard() {
             session.start();
         }
         reserveFocusSlot(deviceId) {
+            if (this.sessions.get(deviceId)?.rfb) return;
             if (this.activeCount() < this.limit()) return;
-            const preferred = this.sessions.get(deviceId);
-            const candidate = preferred?.rfb ? preferred :
-                [...this.sessions.values()].find(session => session.rfb);
+            const candidate = [...this.sessions.values()].find(session =>
+                session.device.device_id !== deviceId && session.rfb);
             if (candidate) {
-                this.focusPaused = candidate;
+                this.pending.add(candidate.device.device_id);
                 candidate.pause('Nhường tài nguyên cho điều khiển');
             }
         }
         enforceLimit() {
-            const candidates = [...this.sessions.values()].filter(session => session.rfb);
+            const candidates = [...this.sessions.values()].filter(session =>
+                session.rfb && session !== this.focusSession);
             while (this.activeCount() > this.limit() && candidates.length) {
                 const session = candidates.pop();
                 this.pending.add(session.device.device_id);
@@ -437,8 +581,9 @@ function initDashboard() {
                     continue;
                 }
                 if (this.activeCount() >= this.limit()) break;
-                if (this.isVisible(id) && !session.paused) {
+                if (this.isVisible(id) && !session.retryTimer) {
                     this.pending.delete(id);
+                    session.paused = false;
                     session.start();
                 }
             }
@@ -456,11 +601,13 @@ function initDashboard() {
                         const session = this.sessions.get(key);
                         if (entry.isIntersecting) {
                             this.visible.add(key);
-                            if (session?.desired && session.paused && session !== this.focusPaused) session.resume();
+                            if (session?.desired && session.paused) session.resume();
                         } else {
                             this.visible.delete(key);
-                            if (session?.desired && session.rfb && key !== this.focusDeviceId)
+                            if (session?.desired && session.rfb && key !== this.focusDeviceId) {
+                                this.pending.add(key);
                                 session.pause('Ngoài vùng nhìn');
+                            }
                         }
                     }
                     this.pump();
@@ -470,15 +617,17 @@ function initDashboard() {
         }
         closeFocus(resumePreview = true) {
             const previousId = this.focusDeviceId;
-            if (this.focusSession) this.focusSession.dispose();
+            const previous = this.focusSession;
             this.focusSession = null;
             this.focusDeviceId = '';
-            if (resumePreview && this.focusPaused) {
-                const paused = this.focusPaused;
-                this.focusPaused = null;
-                if (paused.desired && this.isVisible(paused.device.device_id)) paused.resume();
-            } else this.focusPaused = null;
-            if (previousId) this.cards.get(previousId)?.classList.remove('controlling');
+            $('focusScreen').__dkAspectCleanup?.();
+            previous?.demote();
+            if (previousId) {
+                const card = this.cards.get(previousId);
+                card?.classList.remove('controlling');
+                if (card) card.querySelector('.focus-badge').hidden = true;
+            }
+            if (resumePreview) this.pump();
             this.updateSummary();
         }
         disconnectAll() {
@@ -517,8 +666,13 @@ function initDashboard() {
     let manager = new DashboardManager();
 
     function syncCardButtons(card, session) {
-        card.querySelector('.connect-device').disabled = session.desired;
-        card.querySelector('.disconnect-device').disabled = !session.desired;
+        card.querySelector('.preview-open').setAttribute('aria-label',
+            `${session.desired ? 'Chọn' : 'Xem màn hình'} ${session.device.name}`);
+    }
+    function updateSelection() {
+        const count = selectedSessions().length;
+        $('selectionBar').hidden = count === 0;
+        $('selectionCount').textContent = `Đã chọn ${count} thiết bị`;
     }
     function selectDevice(id) {
         selectedDeviceId = id;
@@ -529,36 +683,51 @@ function initDashboard() {
         const host = device.connection_mode === 'usb' ? '127.0.0.1' : device.host;
         return `${host}:${device.vnc_port}`;
     }
+    function updateDeviceLabels(device) {
+        const card = manager.cards.get(device.device_id);
+        if (card) {
+            card.querySelector('.card-name').textContent = device.name;
+            card.querySelector('.card-name').title = device.name;
+            card.querySelector('.card-select').setAttribute('aria-label', `Chọn ${device.name}`);
+            card.querySelector('.open-device').setAttribute('aria-label', `Toàn màn hình ${device.name}`);
+            syncCardButtons(card, manager.sessions.get(device.device_id));
+        }
+        if (manager.focusDeviceId === device.device_id) {
+            $('focusName').textContent = device.name;
+            $('focusMenuName').textContent = device.name;
+        }
+    }
     function cardFor(device) {
         const card = document.createElement('article');
         card.className = 'device-card';
         card.dataset.id = device.device_id;
-        card.innerHTML = '<div class="card-top"><span class="device-slot" aria-hidden="true"></span><input class="card-select" type="checkbox" aria-label="Chọn thiết bị"><div class="card-title"><strong></strong><span></span></div><div class="card-menu"><button class="edit-device" title="Sửa thiết bị">Sửa</button><button class="delete-device" title="Xóa thiết bị">Xóa</button></div></div><button class="card-preview" title="Bấm đúp để điều khiển"><div class="card-screen"></div><div class="card-placeholder"><div><div class="empty-phone"></div><strong>Chưa có Live View</strong><span>Nhấn Kết nối để bắt đầu preview</span></div></div><div class="card-state-layer idle"><i></i><span>Chưa kết nối</span></div><span class="focus-badge" hidden>ĐANG ĐIỀU KHIỂN</span></button><div class="card-bottom"><span class="transport-chip"></span><button class="connect-device">Kết nối</button><button class="disconnect-device" disabled>Ngắt</button><button class="open-device">Điều khiển</button></div>';
-        card.querySelector('.card-title strong').textContent = device.name;
-        card.querySelector('.card-title span').textContent = endpointLabel(device);
-        card.querySelector('.transport-chip').textContent = device.connection_mode.toUpperCase();
+        card.innerHTML = '<div class="card-preview"><div class="card-screen"></div><div class="card-placeholder"><div><div class="empty-phone"></div><strong>Chưa kết nối</strong><span>Bấm vào khung để xem màn hình</span></div></div><button class="preview-open" type="button" title="Bấm để xem, bấm đúp để điều khiển"></button><label class="card-name-chip"><input class="card-select" type="checkbox"><span class="card-name"></span></label><div class="card-state-layer idle"><i></i><span>Chưa kết nối</span></div><span class="focus-badge" hidden>Đang điều khiển</span><button class="open-device" type="button" title="Toàn màn hình"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button></div>';
+        card.querySelector('.card-name').textContent = device.name;
+        card.querySelector('.card-name').title = device.name;
+        card.querySelector('.card-select').setAttribute('aria-label', `Chọn ${device.name}`);
+        card.querySelector('.open-device').setAttribute('aria-label', `Toàn màn hình ${device.name}`);
         const session = new PreviewSession(manager, device, card);
         manager.sessions.set(device.device_id, session);
         card.addEventListener('click', event => {
-            if (!event.target.closest('button,input')) selectDevice(device.device_id);
+            if (!event.target.closest('button,input,details')) selectDevice(device.device_id);
         });
-        card.querySelector('.card-preview').addEventListener('click', () => selectDevice(device.device_id));
-        card.querySelector('.card-preview').addEventListener('dblclick', () => openFocus(device.device_id));
-        card.querySelector('.connect-device').addEventListener('click', () => session.requestConnect());
-        card.querySelector('.disconnect-device').addEventListener('click', () => session.disconnect());
-        card.querySelector('.open-device').addEventListener('click', () => openFocus(device.device_id));
-        card.querySelector('.edit-device').addEventListener('click', () => openEditor(device.device_id));
-        card.querySelector('.delete-device').addEventListener('click', () => {
-            if (manager.focusDeviceId === device.device_id) closeFocus();
-            session.dispose();
-            devices = devices.filter(item => item.device_id !== device.device_id);
-            saveDevices();
-            renderAll();
+        card.querySelector('.card-select').addEventListener('change', updateSelection);
+        card.querySelector('.preview-open').addEventListener('click', () => {
+            selectDevice(device.device_id);
+            if (!session.desired) session.requestConnect();
         });
+        card.querySelector('.preview-open').addEventListener('dblclick', () => openFocus(device.device_id));
+        card.querySelector('.open-device').addEventListener('click', () => {
+            openFocus(device.device_id);
+            toggleFullscreen();
+        });
+        syncCardButtons(card, session);
         return card;
     }
     function renderAll(resumeIds = []) {
         manager.disposeAll();
+        $('focusPanel').hidden = true;
+        $('dashboard').classList.remove('focus-open');
         manager = new DashboardManager();
         $('deviceGrid').replaceChildren();
         for (const device of devices) {
@@ -590,7 +759,12 @@ function initDashboard() {
             if (matches) shown++;
         }
         $('noDevices').hidden = shown !== 0;
+        $('noDevices').querySelector('h2').textContent = devices.length ? 'Không tìm thấy thiết bị' : 'Chưa có thiết bị';
+        $('emptyDescription').textContent = devices.length ?
+            'Thử đổi từ khóa hoặc bộ lọc trạng thái.' : 'Quét LAN hoặc thêm iPhone để bắt đầu.';
+        $('emptyAddDevice').hidden = devices.length > 0;
         $('visibleCount').textContent = `${shown} máy`;
+        updateSelection();
     }
     function selectedSessions() {
         return [...manager.cards.values()]
@@ -598,6 +772,24 @@ function initDashboard() {
                 !card.classList.contains('hidden-card'))
             .map(card => manager.sessions.get(card.dataset.id))
             .filter(Boolean);
+    }
+    function placeDialog(dialog) {
+        const fullscreen = document.fullscreenElement;
+        if (fullscreen && !fullscreen.contains(dialog)) fullscreen.appendChild(dialog);
+    }
+    function setFocusMenu(open, restoreFocus = false) {
+        $('focusMenu').hidden = !open;
+        $('focusMenuDismiss').hidden = !open;
+        $('focusMenuToggle').setAttribute('aria-expanded', String(open));
+        $('focusMenuToggle').setAttribute('aria-label', open ? 'Thu gọn menu điều khiển' : 'Mở menu điều khiển');
+        if (restoreFocus) $('focusMenuToggle').focus();
+    }
+    async function toggleFullscreen() {
+        setFocusMenu(false);
+        try {
+            if (document.fullscreenElement) await document.exitFullscreen();
+            else await $('focusWorkspace').requestFullscreen();
+        } catch { $('focusMessage').textContent = 'Trình duyệt không cho phép toàn màn hình.'; }
     }
     function openEditor(id = '') {
         const device = devices.find(item => item.device_id === id);
@@ -609,28 +801,73 @@ function initDashboard() {
         $('deviceVncPort').value = String(device?.vnc_port || 5901);
         $('deviceWebsocket').value = device?.websocket_url || '';
         $('deviceReconnect').checked = device?.auto_reconnect !== false;
+        $('deviceEditor').querySelector('.advanced-options').open = !!device?.websocket_url || device?.auto_reconnect === false;
         $('deviceFormError').textContent = '';
+        placeDialog($('deviceEditor'));
         $('deviceEditor').showModal();
+    }
+    function saveDeviceChanges(next) {
+        let device = devices.find(item => item.device_id === next.device_id);
+        if (device) {
+            const endpointChanged = ['host', 'vnc_port', 'connection_mode', 'websocket_url']
+                .some(key => device[key] !== next[key]);
+            // Session URL callbacks retain this object; preserve its identity and
+            // runtime status when changing saved metadata.
+            const {connection_status, ...changes} = next;
+            Object.assign(device, changes);
+            const session = manager.sessions.get(device.device_id);
+            if (session) session.autoReconnect = device.auto_reconnect;
+            if (endpointChanged) {
+                const desired = session?.desired;
+                const paused = session?.paused;
+                manager.pending.delete(device.device_id);
+                session?.disconnect();
+                // Focus is the same session; reconnect the changed endpoint once
+                // and retain its mount so fullscreen and observers survive.
+                if (desired) {
+                    if (paused && session !== manager.focusSession) {
+                        session.desired = true;
+                        session.paused = true;
+                        manager.pending.add(device.device_id);
+                        session.setState('waiting', 'Đang tạm dừng');
+                    } else session.requestConnect();
+                }
+            }
+        } else {
+            device = next;
+            devices.push(device);
+            const card = cardFor(device);
+            $('deviceGrid').append(card);
+            manager.observe(card, device.device_id);
+        }
+        saveDevices();
+        $('deviceEditor').close();
+        updateDeviceLabels(device);
+        populateFocusSwitcher();
+        applyFilter();
+        manager.updateSummary();
     }
     function populateFocusSwitcher() {
         const value = manager.focusDeviceId;
         $('focusDevice').replaceChildren(...devices.map(device => {
             const option = document.createElement('option');
             option.value = device.device_id;
-            option.textContent = `${device.name} · ${endpointLabel(device)}`;
+            option.textContent = device.name;
             return option;
         }));
         if (value) $('focusDevice').value = value;
     }
     function setFocusState(state, detail = '') {
         const status = $('focusStatus');
-        status.className = `session-status ${state}`;
+        status.className = `session-status focus-frame-status ${state}`;
         status.querySelector('span').textContent = detail || STATES[state] || state;
         $('focusPlaceholder').hidden = state === 'online';
         $('focusConnect').disabled = ['connecting', 'online', 'auth', 'retry'].includes(state);
         $('focusDisconnect').disabled = ['idle', 'offline', 'error'].includes(state);
+        $('focusConnect').hidden = !$('focusDisconnect').disabled;
+        $('focusDisconnect').hidden = $('focusDisconnect').disabled;
         if (state === 'online') $('focusMessage').textContent =
-            $('focusViewOnly').checked ? 'Chế độ chỉ xem đang bật.' : 'Sẵn sàng tap, swipe và nhập bàn phím.';
+            $('focusViewOnly').checked ? 'Chế độ chỉ xem đang bật.' : 'Chạm, vuốt và nhập bàn phím để điều khiển.';
         manager.updateSummary();
         applyFilter();
     }
@@ -643,12 +880,14 @@ function initDashboard() {
         }
         manager.closeFocus(true);
         manager.focusDeviceId = id;
-        manager.reserveFocusSlot(id);
+        const session = manager.sessions.get(id);
+        manager.focusSession = session;
         selectDevice(id);
         $('focusPanel').hidden = false;
         $('dashboard').classList.add('focus-open');
         $('focusName').textContent = device.name;
-        $('focusAddress').textContent = `${device.connection_mode.toUpperCase()} · ${endpointLabel(device)}`;
+        $('focusMenuName').textContent = device.name;
+        setFocusMenu(false);
         populateFocusSwitcher();
         $('focusDevice').value = id;
         for (const [cardId, card] of manager.cards) {
@@ -656,28 +895,24 @@ function initDashboard() {
             card.classList.toggle('controlling', active);
             card.querySelector('.focus-badge').hidden = !active;
         }
-        const session = new ManagedRfbSession({
-            role: 'focus', target: $('focusScreen'), url: () => socketURL(device),
-            viewOnly: $('focusViewOnly').checked, autoReconnect: device.auto_reconnect,
+        session.promote($('focusScreen'), {
+            viewOnly: $('focusViewOnly').checked,
             scaleViewport: $('focusAutoScale').checked,
-            onState: setFocusState,
-            onCredentials: request => requestCredentials(device, request),
-            onRelease: () => manager.release(),
-            onDesktopName: name => { if (name) $('focusName').textContent = name; },
         });
         trackScreenAspect($('focusScreen'), $('focusWorkspace'));
-        manager.focusSession = session;
         manager.updateSummary();
-        setFocusState('connecting');
-        session.requestStart();
+        setFocusState(session.state);
+        session.requestConnect();
     }
     function closeFocus() {
+        setFocusMenu(false);
+        if (document.fullscreenElement === $('focusWorkspace')) document.exitFullscreen().catch(() => {});
         manager.closeFocus(true);
         $('focusPanel').hidden = true;
         $('dashboard').classList.remove('focus-open');
         $('focusScreen').replaceChildren();
         $('focusPlaceholder').hidden = false;
-        setMessage('Đã đóng bảng điều khiển. Các preview tiếp tục theo giới hạn live.');
+        setMessage('Đã đóng điều khiển. Các màn hình khác vẫn tiếp tục kết nối.');
     }
     function moveFocus(step) {
         if (!devices.length) return;
@@ -748,6 +983,12 @@ function initDashboard() {
     $('gridColumns').value = String(prefs.columns);
     $('liveLimit').value = String(prefs.limit);
     $('deviceGrid').className = `device-grid columns-${prefs.columns}`;
+    setPreviewScale(prefs.previewScale, false);
+    const gridResizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(fitPreviewGrid) : null;
+    gridResizeObserver?.observe($('deviceGrid'));
+    window.addEventListener('resize', fitPreviewGrid);
+    $('previewScale').addEventListener('input', () => setPreviewScale($('previewScale').value));
+    $('resetPreviewScale').addEventListener('click', () => setPreviewScale(100));
     $('transportNotice').textContent = secure
         ? 'HTTPS/WSS đang bật. Chứng chỉ phải được trình duyệt tin cậy cho từng iPhone.'
         : 'HTTP/WS không mã hóa. Chỉ sử dụng trong mạng LAN tin cậy và không mở cổng ra Internet.';
@@ -755,13 +996,76 @@ function initDashboard() {
 
     $('addDevice').addEventListener('click', () => openEditor());
     $('emptyAddDevice').addEventListener('click', () => openEditor());
-    $('loadDemo').addEventListener('click', addDemoDevices);
+    $('loadDemo').addEventListener('click', () => {
+        $('dashboardOptions').open = false;
+        addDemoDevices();
+    });
+    document.addEventListener('click', event => {
+        for (const menu of document.querySelectorAll('.dashboard-options[open], .card-menu[open]'))
+            if (!menu.contains(event.target)) menu.open = false;
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape') return;
+        if (!$('focusMenu').hidden && !$('deviceEditor').open && !$('login').open) {
+            setFocusMenu(false, true);
+            event.preventDefault();
+            return;
+        }
+        const menus = document.querySelectorAll('.dashboard-options[open], .card-menu[open]');
+        if (menus.length) {
+            for (const menu of menus) {
+                menu.open = false;
+                menu.querySelector('summary').focus();
+            }
+            event.preventDefault();
+        } else if (!$('deviceEditor').open && !$('login').open && !$('focusPanel').hidden && !document.fullscreenElement) {
+            closeFocus();
+        }
+    });
     if (window.dkDesktop?.scanLAN) {
         $('scanLan').hidden = false;
         $('scanLan').addEventListener('click', scanLAN);
     }
     $('cancelDevice').addEventListener('click', () => $('deviceEditor').close());
     $('cancelDeviceTop').addEventListener('click', () => $('deviceEditor').close());
+    for (const id of ['deviceEditor', 'login']) {
+        const dialog = $(id);
+        const home = dialog.parentElement;
+        dialog.addEventListener('close', () => {
+            if (!dialog.open && dialog.parentElement !== home) home.appendChild(dialog);
+        });
+    }
+    $('focusMenuToggle').addEventListener('click', () => setFocusMenu($('focusMenu').hidden));
+    $('focusMenuDismiss').addEventListener('click', () => setFocusMenu(false, true));
+    $('focusEditDevice').addEventListener('click', () => {
+        if (!manager.focusDeviceId) return;
+        setFocusMenu(false);
+        openEditor(manager.focusDeviceId);
+    });
+    $('focusDeleteDevice').addEventListener('click', () => {
+        const id = manager.focusDeviceId;
+        if (!id) return;
+        closeFocus();
+        const card = manager.cards.get(id);
+        manager.sessions.get(id)?.dispose();
+        if (card) manager.observer?.unobserve(card);
+        manager.sessions.delete(id);
+        manager.cards.delete(id);
+        manager.visible.delete(id);
+        manager.pending.delete(id);
+        card?.remove();
+        devices = devices.filter(device => device.device_id !== id);
+        saveDevices();
+        populateFocusSwitcher();
+        applyFilter();
+        manager.updateSummary();
+    });
+    document.addEventListener('fullscreenchange', () => {
+        setFocusMenu(false);
+        const fullscreen = document.fullscreenElement === $('focusWorkspace');
+        $('focusExitFullscreen').hidden = !fullscreen;
+        $('focusFullscreen').textContent = fullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình';
+    });
     $('deviceForm').addEventListener('submit', event => {
         event.preventDefault();
         try {
@@ -773,13 +1077,7 @@ function initDashboard() {
                 websocket_url: $('deviceWebsocket').value.trim(),
                 auto_reconnect: $('deviceReconnect').checked,
             }), id);
-            const resume = manager.desiredIds();
-            const index = devices.findIndex(item => item.device_id === id);
-            if (index >= 0) devices[index] = device;
-            else devices.push(device);
-            saveDevices();
-            $('deviceEditor').close();
-            renderAll(resume);
+            saveDeviceChanges(device);
         } catch (error) { $('deviceFormError').textContent = error.message; }
     });
     $('deviceMode').addEventListener('change', () => {
@@ -798,6 +1096,7 @@ function initDashboard() {
         for (const session of sessions) session.disconnect();
     });
     $('disconnectAll').addEventListener('click', () => {
+        $('dashboardOptions').open = false;
         manager.disconnectAll();
         $('focusPanel').hidden = true;
         $('dashboard').classList.remove('focus-open');
@@ -805,14 +1104,19 @@ function initDashboard() {
     });
     $('deviceSearch').addEventListener('input', applyFilter);
     $('deviceFilter').addEventListener('change', applyFilter);
+    $('clearSelection').addEventListener('click', () => {
+        for (const card of manager.cards.values()) card.querySelector('.card-select').checked = false;
+        updateSelection();
+    });
     $('gridColumns').addEventListener('change', () => {
         prefs.columns = [2, 3, 4, 5].includes(Number($('gridColumns').value)) ?
-            Number($('gridColumns').value) : 3;
+            Number($('gridColumns').value) : 5;
         $('deviceGrid').className = `device-grid columns-${prefs.columns}`;
+        fitPreviewGrid();
         savePrefs();
     });
     $('liveLimit').addEventListener('change', () => {
-        prefs.limit = Math.min(12, Math.max(1, Number($('liveLimit').value) || 6));
+        prefs.limit = Math.min(10, Math.max(1, Number($('liveLimit').value) || 10));
         $('liveLimit').value = String(prefs.limit);
         savePrefs();
         manager.enforceLimit();
@@ -825,20 +1129,17 @@ function initDashboard() {
     $('nextDevice').addEventListener('click', () => moveFocus(1));
     $('focusConnect').addEventListener('click', () => {
         if (!manager.focusSession) return;
-        manager.reserveFocusSlot(manager.focusDeviceId);
-        manager.focusSession.requestStart();
+        manager.focusSession.requestConnect();
     });
     $('focusDisconnect').addEventListener('click', () => manager.focusSession?.disconnect());
-    $('focusViewOnly').addEventListener('change', () =>
-        manager.focusSession?.setViewOnly($('focusViewOnly').checked));
+    $('focusViewOnly').addEventListener('change', () => {
+        manager.focusSession?.setViewOnly($('focusViewOnly').checked);
+        if (manager.focusSession?.state === 'online') setFocusState('online');
+    });
     $('focusAutoScale').addEventListener('change', () =>
         manager.focusSession?.setScale($('focusAutoScale').checked));
-    $('focusFullscreen').addEventListener('click', async () => {
-        try {
-            if (document.fullscreenElement) await document.exitFullscreen();
-            else await $('focusWorkspace').requestFullscreen();
-        } catch { $('focusMessage').textContent = 'Trình duyệt không cho phép toàn màn hình.'; }
-    });
+    $('focusFullscreen').addEventListener('click', toggleFullscreen);
+    $('focusExitFullscreen').addEventListener('click', toggleFullscreen);
     $('loginForm').addEventListener('submit', event => {
         event.preventDefault();
         finishLogin(false);
@@ -853,6 +1154,8 @@ function initDashboard() {
     saveDevices();
     if (seededCurrent) setTimeout(() => manager.sessions.get('current-iphone')?.requestConnect(), 0);
     window.addEventListener('pagehide', () => {
+        gridResizeObserver?.disconnect();
+        window.removeEventListener('resize', fitPreviewGrid);
         manager.disposeAll();
         loginQueue.length = 0;
         pendingLogin = null;

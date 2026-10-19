@@ -7,11 +7,14 @@ runtime diagnostics remain in place. No Node/Python server is installed on iPhon
 ## Enable from Settings
 
 1. Install the 1.3.0 Dopamine roothide DEB. Open Settings → ĐK ViewPhone.
-2. Keep VNC Port at 5901. Set Bind Address to the concrete private Wi-Fi IPv4
-   shown under Local IP Address; loopback remains the safe initial default.
+2. Keep VNC Port at 5901. Current source defaults Bind Address to `auto`, which
+   selects the iPhone's private LAN IPv4, preferring Wi-Fi; no LAN falls back to
+   loopback. A saved concrete address still takes precedence.
 3. The 1.3.0 new-install profile enables passwordless trusted LAN, Low Latency,
    Web Viewer and Remote Control by default. HTTP is 5801, VNC is 5901, scale is
-   0.40 and FPS is 30:60:120. Saved values from an upgrade take precedence.
+   0.40 and the updated source defaults FPS to 30:30:30 with status/client
+   notifications off. Saved values from an upgrade take precedence. These DEB
+   changes still require an iOS build/device check; see [DEB tuning](DEB-FARM-TUNING.md).
 4. Passwordless HTTP/WS exposes screen and input to anyone who can reach the
    private listener. Use only on a trusted LAN and never forward these ports to
    the Internet. You can disable passwordless mode and configure the existing
@@ -33,19 +36,20 @@ An IP change requires opening the new URL shown in Settings.
 Web Viewer không còn tab Single View/Multi View. Thêm từng iPhone bằng tên,
 IPv4 nội bộ và cổng VNC. Danh sách tiếp tục dùng storage key của 1.2.0 nên không
 mất thiết bị khi nâng cấp; mật khẩu không bao giờ được ghi vào localStorage.
-Mỗi card có RFB preview, timeout và reconnect budget riêng. Preview luôn ở chế
-độ chỉ xem. Chọn checkbox để kết nối/ngắt theo nhóm hoặc dùng nút riêng trên card.
+Mỗi thiết bị có một phiên RFB, timeout và reconnect budget riêng. Bấm vào khung
+để xem preview chỉ đọc; checkbox dùng để kết nối/ngắt theo nhóm.
 
-Click một card để chọn. Double-click preview hoặc bấm **Điều khiển** để mở Focus
-Panel mà không rời lưới. Focus Panel có RFB riêng, quyền tap/swipe/keyboard,
-fullscreen, View Only, Auto Scale, chuyển nhanh và máy trước/sau. Chỉ một focus
-session tồn tại trong mỗi tab; khi đổi máy, các preview khác vẫn tiếp tục. Nếu đã
-đạt giới hạn live, một preview tạm nhường slot cho focus rồi được xếp lại khi panel
-đóng. Server chưa phân xử quyền điều khiển giữa các trình duyệt hoặc PC khác nhau.
+Double-click preview để mở Focus Panel; biểu tượng góc dưới bên phải mở toàn màn
+hình. Focus dùng lại kết nối và canvas của thiết bị, chuyển quyền tap/swipe/keyboard
+bằng API noVNC. Khung nhỏ của máy đang điều khiển lấy ảnh cục bộ từ focus, tối đa
+10 lần/giây; không tạo thêm luồng VNC. Khi đóng/chuyển focus, phiên được trả về
+preview chỉ đọc. Các máy khác tiếp tục chạy trong giới hạn live. Menu ☰ có sửa
+thiết bị, View Only và Auto Scale. Server chưa phân xử quyền điều khiển giữa các
+trình duyệt hoặc PC khác nhau.
 
 Chọn lưới hai, ba, bốn hoặc năm cột. Search và bộ lọc Online/Offline không tạo
 kết nối. Card ngoài viewport tạm dừng hoặc chờ; khi quay lại vùng nhìn, session
-được xếp vào hàng đợi. Giới hạn mặc định là sáu và chỉnh được từ 1 đến 12. Nút
+được xếp vào hàng đợi. Giới hạn mặc định là 10 và chỉnh được từ 1 đến 10. Nút
 **Thêm dữ liệu mẫu** tạo sáu card offline để kiểm tra layout, không tự kết nối.
 Preview đặt quality thấp hơn focus khi encoding noVNC hỗ trợ các mức này; server
 vẫn quyết định tốc độ khung hình thực tế.

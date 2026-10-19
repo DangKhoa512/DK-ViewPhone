@@ -32,7 +32,8 @@ class SourceTests(unittest.TestCase):
         def settings(p):
             return {i['key']:{k:v for k,v in i.items() if k not in display} for i in p['items'] if 'key' in i}
         original,translated = settings(before),settings(after)
-        changed_defaults = {'Scale','FrameRateSpec','AllowUnauthenticatedLAN','LANWebViewerEnabled','WebViewerTrustedLAN'}
+        changed_defaults = {'Scale','FrameRateSpec','AllowUnauthenticatedLAN','LANWebViewerEnabled','WebViewerTrustedLAN',
+                            'BindHost','SingleNotifEnabled','ClientNotifsEnabled'}
         for key,value in original.items():
             if key in changed_defaults:
                 self.assertEqual({k:v for k,v in value.items() if k != 'default'},
@@ -52,9 +53,9 @@ class SourceTests(unittest.TestCase):
         self.assertEqual(root['title'], 'ĐK ViewPhone')
         items = {item['key']: item for item in root['items'] if 'key' in item}
         expected = {'Enabled':False, 'DesktopName':'ĐK ViewPhone', 'Port':5901,
-                    'BindHost':'127.0.0.1', 'Scale':0.40, 'FrameRateSpec':'30:60:120',
+                    'BindHost':'auto', 'Scale':0.40, 'FrameRateSpec':'30:30:30',
                     'ClipboardEnabled':True, 'OrientationSync':True, 'ViewOnly':False,
-                    'BonjourEnabled':False}
+                    'BonjourEnabled':False, 'SingleNotifEnabled':False, 'ClientNotifsEnabled':False}
         expected.update(LANWebViewerEnabled=True, WebViewerTrustedLAN=True,
                         WebViewerTLS=False, HttpPort=5801, RemoteControlEnabled=True,
                         AllowUnauthenticatedLAN=True)
@@ -91,24 +92,42 @@ class SourceTests(unittest.TestCase):
         from html.parser import HTMLParser
         class Parser(HTMLParser):
             def __init__(self):
-                super().__init__(); self.scripts = []
+                super().__init__()
+                self.scripts, self.inline_scripts, self.unsafe_attributes, self.ids = [], [], [], []
+                self.in_script, self.live_limit = False, None
             def handle_starttag(self, tag, attrs):
                 attrs = dict(attrs)
-                if tag == 'script': self.scripts.append(attrs.get('src'))
+                if tag == 'script':
+                    self.scripts.append(attrs.get('src'))
+                    self.in_script = True
+                if 'id' in attrs: self.ids.append(attrs['id'])
+                if attrs.get('id') == 'liveLimit': self.live_limit = attrs
+                for key, value in attrs.items():
+                    if key.startswith('on') or (value or '').strip().lower().startswith('javascript:'):
+                        self.unsafe_attributes.append((tag, key))
+            def handle_endtag(self, tag):
+                if tag == 'script': self.in_script = False
+            def handle_data(self, data):
+                if self.in_script and data.strip(): self.inline_scripts.append(data)
         web = ROOT / 'layout/usr/share/trollvnc/webclients'
-        html = (web / 'index.vnc').read_text(encoding='utf-8')
-        self.assertIn('<title>ĐK ViewPhone · Device Farm</title>', html)
-        self.assertIn('id="dashboard"', html)
-        self.assertIn('id="deviceGrid"', html)
-        self.assertIn('id="focusPanel"', html)
-        self.assertNotIn('id="singleTab"', html)
-        self.assertNotIn('id="multiTab"', html)
-        self.assertNotIn('\ufffd', html)
-        self.assertLess(len(html.encode()), 32768)
-        parser = Parser(); parser.feed(html)
-        self.assertEqual(parser.scripts, ['viewer.bundle.js'])
-        for name in parser.scripts:
-            self.assertGreater((web / name).stat().st_size, 10000)
+        for path in (ROOT / 'devkit/webviewer-index.html', web / 'index.vnc'):
+            with self.subTest(path=path):
+                html = path.read_text(encoding='utf-8')
+                self.assertIn('<title>ĐK ViewPhone · Device Farm</title>', html)
+                self.assertNotIn('\ufffd', html)
+                self.assertLess(len(html.encode('utf-8')), 32768,
+                                'LibVNCServer template substitution uses a 32 KiB buffer')
+                parser = Parser(); parser.feed(html)
+                self.assertTrue({'dashboard', 'deviceGrid', 'focusPanel'}.issubset(parser.ids))
+                self.assertTrue({'singleTab', 'multiTab'}.isdisjoint(parser.ids))
+                self.assertEqual(len(parser.ids), len(set(parser.ids)), 'Duplicate element IDs')
+                self.assertEqual(parser.scripts, ['viewer.bundle.js'])
+                self.assertEqual(parser.inline_scripts, [])
+                self.assertEqual(parser.unsafe_attributes, [])
+                self.assertIsNotNone(parser.live_limit)
+                self.assertEqual({key: parser.live_limit.get(key) for key in ('min', 'max', 'value')},
+                                 {'min': '1', 'max': '10', 'value': '10'})
+        self.assertGreater((web / 'viewer.bundle.js').stat().st_size, 10000)
 
     def test_notifications_are_passive_and_status_bar_build_is_disabled(self):
         bulletins = (ROOT / 'src/BulletinManager.mm').read_text(encoding='utf-8')
@@ -128,9 +147,33 @@ class SourceTests(unittest.TestCase):
         storage_lines = [line for line in source.splitlines() if 'localStorage.setItem' in line]
         self.assertTrue(storage_lines)
         self.assertTrue(all('password' not in line.lower() for line in storage_lines))
-        self.assertIn('prefs.limit = Math.min(12, Math.max(1, Number(prefs.limit) || 6))', source)
-        self.assertIn("role: 'focus'", source)
-        self.assertIn("role: 'preview'", source)
+        # Presentation roles and their input restrictions are exercised by the
+        # Node behavioral suite; a focus no longer constructs a second session.
+
+    def test_live_limit_is_bounded(self):
+        source = (ROOT / 'layout/usr/share/trollvnc/webclients/viewer.js').read_text(encoding='utf-8')
+        # Exercise the actual saved-preference and input normalization expressions,
+        # allowing formatting changes without weakening the session-budget check.
+        script = r"""
+const assert = require('node:assert/strict');
+const {readFileSync} = require('node:fs');
+const {runInNewContext} = require('node:vm');
+const source = readFileSync(0, 'utf8');
+const expressions = [...source.matchAll(/\bprefs\.limit\s*=\s*([^;\n]+);/g)]
+    .map(match => match[1]);
+assert.ok(expressions.length, 'Missing live-session limit normalization');
+const cases = [[-100, 1], [1, 1], [5, 5], [10, 10], [11, 10], [1000, 10],
+    ['6', 6], [undefined, 10], [null, 10], ['', 10], ['invalid', 10]];
+for (const expression of expressions) {
+    for (const [input, expected] of cases) {
+        const actual = runInNewContext(expression, {
+            prefs: {limit: input}, $: () => ({value: input}),
+        });
+        assert.equal(actual, expected, `Live limit input ${String(input)}`);
+    }
+}
+"""
+        subprocess.run(['node', '-e', script], input=source, encoding='utf-8', check=True, cwd=ROOT)
 
     def test_archive_parser_rejects_fake_deb(self):
         for raw in (b'', b'pretend deb', b'!<arch>\ntruncated'):

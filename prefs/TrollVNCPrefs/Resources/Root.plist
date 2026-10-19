@@ -32,7 +32,7 @@
         <dict>
             <key>cell</key><string>PSGroupCell</string>
             <key>label</key><string>Độ trễ</string>
-            <key>footerText</key><string>Khi có người xem, giữ nhịp capture ở FPS ưu tiên và giảm thời gian chờ gộp ảnh từ 5 ms xuống 1 ms. FPS tối thiểu cao hơn có thể tốn pin hơn. Giữ nguyên tỷ lệ ảnh và tọa độ chạm. Nhấn Áp dụng để khởi động lại máy chủ.</string>
+            <key>footerText</key><string>Khi có người xem, giữ nhịp capture ở FPS ưu tiên và giảm thời gian chờ gộp ảnh từ 5 ms xuống 1 ms. Bộ lọc thu nhỏ ưu tiên tốc độ, có thể giảm nhẹ độ nét so với khi tắt. FPS tối thiểu cao hơn có thể tốn pin hơn. Giữ nguyên tỷ lệ ảnh và tọa độ chạm. Nhấn Áp dụng để khởi động lại máy chủ.</string>
         </dict>
         <dict>
             <key>cell</key><string>PSSwitchCell</string>
@@ -75,7 +75,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Mặc định: 127.0.0.1 (chỉ trên máy). Để truy cập qua LAN, nhập địa chỉ IPv4 Wi-Fi nội bộ của iPhone. Không dùng địa chỉ đại diện, IP công cộng hoặc IPv6.</string>
+			<string>Mặc định auto: tự dùng địa chỉ IPv4 LAN hiện tại của iPhone, cập nhật khi mạng thay đổi. Để trống cũng dùng tự động. Có thể nhập IPv4 LAN cố định hoặc 127.0.0.1. Không dùng địa chỉ đại diện, IP công cộng hoặc IPv6.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -87,11 +87,11 @@
 			<key>label</key>
 			<string>Địa chỉ lắng nghe</string>
 			<key>placeholder</key>
-			<string>127.0.0.1 hoặc IPv4 Wi-Fi nội bộ</string>
+			<string>auto hoặc IPv4 LAN nội bộ</string>
 			<key>noAutoCorrect</key>
 			<true/>
 			<key>default</key>
-			<string>127.0.0.1</string>
+			<string>auto</string>
 		</dict>
 
 		<!-- TCP Port -->
@@ -232,7 +232,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Thông báo chỉ được lưu ẩn trong Trung tâm thông báo, không hiện biểu ngữ và không phát âm thanh.</string>
+			<string>Mặc định tắt thông báo trạng thái và kết nối. Nếu bật, thông báo chỉ được lưu ẩn trong Trung tâm thông báo, không hiện biểu ngữ và không phát âm thanh.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -244,7 +244,7 @@
 			<key>label</key>
 			<string>Thông báo trạng thái ẩn</string>
 			<key>default</key>
-			<true/>
+			<false/>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -256,7 +256,7 @@
 			<key>label</key>
 			<string>Lưu lịch sử kết nối ẩn</string>
 			<key>default</key>
-			<true/>
+			<false/>
 		</dict>
 
 		<!-- Keep-Alive (sec) -->
@@ -322,7 +322,7 @@
 			<key>label</key>
 			<string></string>
 			<key>footerText</key>
-			<string>Nhập một mức FPS (60), khoảng tối thiểu–tối đa (30-60), hoặc tối thiểu:ưu tiên:tối đa (30:60:120). iOS 15 trở lên dùng khoảng FPS. Để trống để dùng mặc định 30:60:120.</string>
+			<string>Mặc định 30:30:30 để giữ nhịp 30 FPS và giảm tải khi xem nhiều máy. Nhập một mức FPS (30 hoặc 60), khoảng tối thiểu–tối đa (30-60), hoặc tối thiểu:ưu tiên:tối đa (30:60:120). Để trống dùng mặc định. FPS thực tế phụ thuộc thiết bị, nội dung và đường truyền.</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -334,11 +334,11 @@
 			<key>label</key>
 			<string>Tốc độ khung hình (FPS)</string>
 			<key>placeholder</key>
-			<string>Ví dụ: 60 hoặc 30:60:120</string>
+			<string>30:30:30 (mặc định) hoặc 60</string>
 			<key>noAutoCorrect</key>
 			<true/>
 			<key>default</key>
-			<string>30:60:120</string>
+			<string>30:30:30</string>
 		</dict>
 
 		<!-- Sync Orientation -->

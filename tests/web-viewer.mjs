@@ -28,20 +28,40 @@ class RFB extends EventTarget {
 }
 
 const window = new EventTarget();
-const document = {
+const document = Object.assign(new EventTarget(), {
     body: {dataset: {rfbPort: '5901'}},
     getElementById() { return null; },
-};
+});
+class Observer {
+    static instances = [];
+    constructor(callback) {
+        this.callback = callback;
+        this.disconnected = false;
+        Observer.instances.push(this);
+    }
+    observe(target) { this.target = target; }
+    disconnect() { this.disconnected = true; }
+}
 const source = readFileSync(new URL('../layout/usr/share/trollvnc/webclients/viewer.js', import.meta.url), 'utf8')
     .replace(/^import RFB from [^\n]+\n/m, '');
-runInNewContext(source, {
+const sandbox = {
     RFB, window, document,
+    MutationObserver: Observer, ResizeObserver: Observer,
+    getComputedStyle: element => element.padding || {},
     location: {hostname: '192.168.50.2', port: '5801', protocol: 'http:'},
     setTimeout: (fn, ms) => { timers.set(++timerId, {fn, ms}); return timerId; },
     clearTimeout: id => timers.delete(id),
-});
+};
+runInNewContext(source, sandbox);
 
-const {ManagedRfbSession, privateIPv4, retryDelay, socketURL} = window.__DK_VIEWPHONE_TEST__;
+const {ManagedRfbSession, privateIPv4, retryDelay, socketURL, normalizeFrameScale} = window.__DK_VIEWPHONE_TEST__;
+for (const [input, expected] of [
+    [undefined, 100], [null, 100], ['', 100], [true, 100], ['invalid', 100],
+    [NaN, 100], [Infinity, 100], [-20, 50], [0, 50], [50, 50], ['75', 75],
+    [99, 100], [103, 105], [150, 150], [999, 150],
+]) {
+    assert.equal(normalizeFrameScale(input), expected, `Frame scale: ${String(input)}`);
+}
 const target = {children: [], replaceChildren() { this.children = []; }};
 let state = '';
 let credentialRequest = null;
@@ -102,6 +122,24 @@ credentialRequest.cancel();
 assert.equal(state, 'offline');
 assert.equal(timers.size, 0);
 
+// Promotion during an authentication challenge keeps the same request and RFB.
+session = makeSession({role: 'preview'});
+session.requestStart();
+latest().emit('credentialsrequired');
+const authenticatingRfb = latest();
+const authRequest = credentialRequest;
+const authenticatingCount = connections.length;
+session.setPresentation('focus', {viewOnly: false});
+assert.equal(session.state, 'auth');
+assert.equal(session.rfb, authenticatingRfb);
+assert.equal(credentialRequest, authRequest);
+assert.equal(connections.length, authenticatingCount);
+authRequest.submit('same-challenge');
+assert.equal(authenticatingRfb.credentials.password, 'same-challenge');
+authenticatingRfb.emit('connect');
+assert.equal(state, 'online');
+session.disconnect();
+
 // Both clean and unclean server disconnects consume the bounded exponential budget.
 session = makeSession();
 session.requestStart();
@@ -115,16 +153,39 @@ latest().emit('disconnect', {clean: false});
 assert.equal(state, 'offline');
 assert.equal(timers.size, 0);
 
-// Preview and focus tune separate noVNC instances; view-only can change live.
+// A live transport changes presentation without recreating its RFB or credentials.
 session = makeSession({role: 'preview'});
 session.requestStart();
 assert.equal(latest().qualityLevel, 3);
 assert.equal(latest().compressionLevel, 6);
+latest().emit('connect');
+const sharedRfb = latest();
+const countBeforePresentation = connections.length;
+session.password = 'temporary-presentation-test';
+session.setPresentation('focus', {viewOnly: false, scaleViewport: false});
+assert.equal(session.rfb, sharedRfb);
+assert.equal(connections.length, countBeforePresentation);
+assert.equal(sharedRfb.qualityLevel, 8);
+assert.equal(sharedRfb.compressionLevel, 2);
+assert.equal(sharedRfb.viewOnly, false);
+assert.equal(sharedRfb.scaleViewport, false);
+assert.equal(session.password, 'temporary-presentation-test');
+session.setPresentation('preview', {viewOnly: false, scaleViewport: false});
+assert.equal(session.rfb, sharedRfb);
+assert.equal(connections.length, countBeforePresentation);
+assert.equal(sharedRfb.qualityLevel, 3);
+assert.equal(sharedRfb.compressionLevel, 6);
+assert.equal(sharedRfb.viewOnly, true);
+assert.equal(sharedRfb.scaleViewport, true);
 session.setViewOnly(false);
 assert.equal(latest().viewOnly, false);
 session.setScale(false);
 assert.equal(latest().scaleViewport, false);
 session.disconnect();
+session.setPresentation('focus', {viewOnly: false});
+assert.equal(session.desired, false);
+assert.equal(session.rfb, null);
+assert.equal(connections.length, countBeforePresentation);
 
 // Authentication failure clears the in-memory password and never retries.
 session = makeSession();
@@ -135,4 +196,87 @@ assert.equal(session.password, null);
 assert.equal(state, 'error');
 assert.equal(timers.size, 0);
 
-console.log('Dashboard session authentication, reconnect, LAN/USB and focus/preview checks passed');
+// Fit the phone into the CSS stage, including stage-only layout changes and
+// rotation/fullscreen, without feeding dimensions back into the parent layout.
+function aspectElement(classes = []) {
+    const values = new Set(classes);
+    return {
+        style: {
+            setProperty(name, value) { this[name] = value; },
+            removeProperty(name) { delete this[name]; },
+        },
+        classList: {
+            contains: name => values.has(name),
+            add: name => values.add(name),
+            remove: name => values.delete(name),
+        },
+        querySelector() { return this.canvas || null; },
+        replaceChildren() { this.canvas = null; },
+    };
+}
+const screen = aspectElement();
+screen.canvas = {width: 600, height: 1000};
+const stage = aspectElement(['focus-workspace']);
+stage.clientWidth = 600;
+stage.clientHeight = 800;
+sandbox.trackScreenAspect(screen, stage);
+const [canvasObserver, stageObserver] = Observer.instances.slice(-2);
+assert.equal(screen.style.width, '480px');
+assert.equal(screen.style.height, '800px');
+assert.equal(stage.style.width, undefined);
+assert.equal(stage.style.height, undefined);
+assert.equal(stage.style['--focus-screen-width'], undefined);
+stage.clientWidth = 500;
+stage.clientHeight = 600;
+stageObserver.callback();
+assert.equal(screen.style.width, '360px');
+assert.equal(screen.style.height, '600px');
+screen.canvas = {width: 1000, height: 600};
+canvasObserver.callback();
+assert.equal(screen.style.width, '500px');
+assert.equal(screen.style.height, '300px');
+stage.clientWidth = 1920;
+stage.clientHeight = 1080;
+document.dispatchEvent(new Event('fullscreenchange'));
+assert.equal(screen.style.width, '1800px');
+assert.equal(screen.style.height, '1080px');
+stage.padding = {paddingLeft: '10px', paddingRight: '10px', paddingTop: '10px', paddingBottom: '10px'};
+stage.clientWidth = 520;
+stage.clientHeight = 620;
+stageObserver.callback();
+assert.equal(screen.style.width, '500px');
+assert.equal(screen.style.height, '300px');
+
+// Replacing tracking and disposing the session release all observers/listeners.
+sandbox.trackScreenAspect(screen, stage);
+assert.equal(canvasObserver.disconnected, true);
+assert.equal(stageObserver.disconnected, true);
+const activeObservers = Observer.instances.slice(-2);
+makeSession({target: screen}).dispose();
+assert.ok(activeObservers.every(observer => observer.disconnected));
+assert.equal(screen.__dkAspectCleanup, undefined);
+assert.equal(screen.style.width, undefined);
+assert.equal(screen.style.height, undefined);
+stage.clientWidth = 900;
+window.dispatchEvent(new Event('resize'));
+document.dispatchEvent(new Event('fullscreenchange'));
+assert.equal(screen.style.width, undefined);
+assert.equal(stage.classList.contains('screen-ready'), false);
+
+// Preview cards retain their own aspect ratio without focus sizing/listeners.
+const preview = aspectElement();
+preview.canvas = {width: 1000, height: 600};
+const card = aspectElement(['card-preview']);
+const previousObservers = Observer.instances.length;
+sandbox.trackScreenAspect(preview, card);
+assert.equal(Observer.instances.length, previousObservers + 1);
+assert.equal(card.style['--screen-ratio'], '1000 / 600');
+assert.equal(preview.style.width, undefined);
+// A downscaled mirror keeps the original framebuffer ratio, avoiding feedback
+// between rounded thumbnail pixels and the card's CSS dimensions.
+preview.canvas = {width: 169, height: 302, dataset: {framebufferWidth: '180', framebufferHeight: '320'}};
+Observer.instances.at(-1).callback();
+assert.equal(card.style['--screen-ratio'], '180 / 320');
+preview.__dkAspectCleanup();
+
+console.log('Dashboard session, aspect fitting and observer lifecycle checks passed');

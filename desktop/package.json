@@ -1,6 +1,6 @@
 {
   "name": "dk-viewphone-desktop",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Desktop device-farm viewer for ĐK ViewPhone",
   "main": "main.cjs",
   "author": "DangKhoa512",

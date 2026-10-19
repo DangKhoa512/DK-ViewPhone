@@ -19,6 +19,7 @@
 #import <string>
 #import "DKRecoveryPolicy.h"
 #import "DKViewPhonePolicy.h"
+#import "DKNetworkAddress.h"
 
 extern char **environ;
 static NSString *directory = @"/var/mobile/Library/Logs/DKViewPhone";
@@ -243,15 +244,25 @@ int main(int argc, char **argv) {
                     usleep(500000); continue;
                 }
                 wasEnabled = true;
-                NSString *bind = [prefs[@"BindHost"] isKindOfClass:NSString.class] && [prefs[@"BindHost"] length] ? prefs[@"BindHost"] : @"127.0.0.1";
-                NSDictionary *addresses = interfaces();
+                NSString *bind = [prefs[@"BindHost"] isKindOfClass:NSString.class]
+                    ? [prefs[@"BindHost"] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet]
+                    : @"auto";
                 if (![selectedBind isEqualToString:bind]) { selectedBind = bind; interface = nil; }
-                // Remember the interface that owned the user's concrete address. Follow
-                // only this interface, never wildcard/public IPv4 or a different adapter.
-                if (!interface.length) for (NSString *name in addresses) if ([addresses[name] isEqualToString:bind]) { interface = name; break; }
-                NSString *candidate = interface.length ? addresses[interface] : nil;
-                struct in_addr numeric = {};
-                if (inet_pton(AF_INET, bind.UTF8String, &numeric) == 1 && (ntohl(numeric.s_addr) >> 24) == 127) candidate = bind;
+                NSString *candidate = nil;
+                if (DKBindHostIsAutomatic(bind.UTF8String)) {
+                    char address[INET_ADDRSTRLEN];
+                    DKAutomaticLANIPv4(address);
+                    candidate = [NSString stringWithUTF8String:address];
+                } else {
+                    NSDictionary *addresses = interfaces();
+                    // A concrete address keeps its selected adapter across DHCP;
+                    // auto alone may choose a different LAN adapter.
+                    if (!interface.length) for (NSString *name in addresses)
+                        if ([addresses[name] isEqualToString:bind]) { interface = name; break; }
+                    candidate = interface.length ? addresses[interface] : nil;
+                    struct in_addr numeric = {};
+                    if (inet_pton(AF_INET, bind.UTF8String, &numeric) == 1 && (ntohl(numeric.s_addr) >> 24) == 127) candidate = bind;
+                }
                 if (![observedBind isEqualToString:candidate] && (observedBind || candidate)) {
                     observedBind = candidate; changedAt = monotonicTime();
                     logEvent(@"network_changed", @{@"available":@(candidate != nil)});
