@@ -1,7 +1,8 @@
 # Điều chỉnh DEB cho nhiều iPhone — 19/10/2026
 
-Các thay đổi này nằm trong mã nguồn, chưa phải DEB hoặc EXE mới. Chưa đo FPS,
-độ trễ, nhiệt độ hoặc tải nhiều iPhone thật trong đợt này.
+Các thay đổi này đã được build thành DEB và qua kiểm tra GitHub Actions; xem
+[kết quả build và tải artifact](DEB-BUILD-2026-10-19.md). Chưa build EXE hoặc đo FPS,
+độ trễ, nhiệt độ hay tải nhiều iPhone thật trong đợt này.
 
 ## Mặc định và địa chỉ lắng nghe
 
@@ -44,12 +45,11 @@ từ đợt tối ưu trước tiếp tục được sử dụng.
 ## Kiểm tra cần có trên thiết bị
 
 Kiểm tra tại workspace Windows: 12/12 bài Python cho source/plist/defaults đạt;
-bài Node kiểm tra phiên dashboard và `git diff --check` đạt. Đã thêm bài C/C++
-cho chọn IPv4 và vùng pixel, nối vào CI Linux (sanitizer) và macOS. Các bài này
-chưa chạy tại máy hiện tại vì không có compiler C/C++ khả dụng. Chưa chạy CI
-hoặc build package trong đợt chỉnh sửa này.
+bài Node kiểm tra phiên dashboard và `git diff --check` đạt. Các bài C/C++ cho
+chọn IPv4 và vùng pixel đã chạy đạt trên CI Linux (sanitizer) và macOS. Build iOS,
+kiểm tra DEB và đối chiếu checksum sau khi tải về cũng đạt; xem báo cáo build trên.
 
-Kiểm tra build iOS, tự chọn IP khi mở máy/chưa có Wi-Fi, DHCP/đổi mạng, USB với
+Kiểm tra trên iPhone: tự chọn IP khi mở máy/chưa có Wi-Fi, DHCP/đổi mạng, USB với
 bind loopback, xoay màn hình, pixel ở mép ảnh, cập nhật cuối sau khi client nghẽn,
 full/view-only và việc tắt thông báo. Đo cùng một nội dung chuyển động ở 1/5/10
 máy, giữ nguyên scale, encoding và chất lượng; theo dõi FPS thực, CPU/RAM và nhiệt.

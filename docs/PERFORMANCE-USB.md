@@ -1,7 +1,7 @@
 # Tối ưu luồng xem và USB — 19/10/2026
 
-Các thay đổi dưới đây mới nằm trong mã nguồn. Chưa build EXE/DEB, cài lên iPhone
-hoặc đo FPS và độ trễ trên điện thoại trong đợt này.
+Các thay đổi dưới đây đã được build vào DEB; xem [báo cáo CI](DEB-BUILD-2026-10-19.md).
+Chưa build EXE, cài lên iPhone hoặc đo FPS và độ trễ trên điện thoại trong đợt này.
 
 ## Luồng ảnh trên Desktop
 
@@ -26,10 +26,10 @@ nhẹ hơn có thể giảm nhẹ độ nét khi thu nhỏ. Kích thước xuấ
 không đổi. [Apple mô tả hai chế độ bộ lọc](https://developer.apple.com/documentation/accelerate/kvimagehighqualityresampling).
 
 Debug hooks nay giữ cả runtime deadline/metrics như Release để lần benchmark
-tiếp theo không vô tình bỏ cơ chế bảo vệ client gửi chậm. Không thay cadence FPS,
-retry publication 33 ms, thuật toán capture hoặc HID. Thay đổi native chưa được
-biên dịch/chạy vImage trên iOS trong môi trường Windows này; chưa có mức tăng FPS
-thực tế để công bố.
+tiếp theo không vô tình bỏ cơ chế bảo vệ client gửi chậm. Các tối ưu scale giữ
+retry publication 33 ms, thuật toán capture và HID. Thay đổi native đã được
+biên dịch trên CI macOS cho iOS, chưa chạy trên iPhone; chưa có mức tăng FPS thực tế
+để công bố. Cấu hình FPS mới cho nhiều máy được mô tả riêng trong báo cáo DEB tuning.
 
 ## USB có nhanh hơn không?
 

@@ -21,8 +21,9 @@ Mã nguồn đang tối ưu dùng chung luồng ảnh giữa preview và điều
 [thay đổi hiệu năng và đường truyền USB](docs/PERFORMANCE-USB.md) cùng
 [kết quả kiểm tra loopback](docs/PERFORMANCE-OFFLINE-2026-10-19.md).
 
-Bản DEB đang được chỉnh để tự chọn IPv4 LAN, mặc định tắt thông báo và dùng nhịp
-30 FPS cho nhiều máy. Xem [thay đổi DEB và giới hạn kiểm chứng](docs/DEB-FARM-TUNING.md).
+Bản DEB đã được chỉnh để tự chọn IPv4 LAN, mặc định tắt thông báo và dùng nhịp
+30 FPS cho nhiều máy. Xem [thay đổi DEB và giới hạn kiểm chứng](docs/DEB-FARM-TUNING.md)
+cùng [kết quả build mới và artifact](docs/DEB-BUILD-2026-10-19.md).
 
 Build thủ công bằng `cd desktop`, `npm ci`, `npm test`, `npm run build:win`, hoặc chạy
 workflow **Build DK ViewPhone Desktop**. File portable là
