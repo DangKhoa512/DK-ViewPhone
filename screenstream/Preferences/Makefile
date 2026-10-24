@@ -3,6 +3,7 @@ TARGET := iphone:clang:16.5:15.0
 include $(THEOS)/makefiles/common.mk
 BUNDLE_NAME := DKScreenStreamPrefs
 DKScreenStreamPrefs_FILES := SSPrefs.mm
+DKScreenStreamPrefs_USE_MODULES := 0
 DKScreenStreamPrefs_CFLAGS := -fobjc-arc
 DKScreenStreamPrefs_CCFLAGS := -std=c++20
 DKScreenStreamPrefs_FRAMEWORKS := UIKit Security

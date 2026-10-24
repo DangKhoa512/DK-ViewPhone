@@ -13,6 +13,7 @@ GO_EASY_ON_ME := 1
 include $(THEOS)/makefiles/common.mk
 TOOL_NAME := dkss-server dkss-supervisor
 dkss-server_FILES := Daemon/main.mm Daemon/Controller.mm Capture/NativeCapture.mm Capture/FrameScaler.mm Encoder/JPEGEncoder.mm Streaming/StreamServer.mm
+dkss-server_USE_MODULES := 0
 dkss-server_CFLAGS := -fobjc-arc -Wno-deprecated-declarations
 dkss-server_CCFLAGS := -std=c++20
 dkss-server_FRAMEWORKS := Foundation UIKit IOSurface IOKit QuartzCore Accelerate CoreGraphics ImageIO
@@ -20,6 +21,7 @@ dkss-server_PRIVATE_FRAMEWORKS := FrontBoardServices
 dkss-server_LDFLAGS := -lroothide
 dkss-server_CODESIGN_FLAGS := -SDaemon/worker.entitlements
 dkss-supervisor_FILES := Daemon/supervisor.mm Common/Log.mm
+dkss-supervisor_USE_MODULES := 0
 dkss-supervisor_CFLAGS := -fobjc-arc
 dkss-supervisor_CCFLAGS := -std=c++20
 dkss-supervisor_FRAMEWORKS := Foundation
