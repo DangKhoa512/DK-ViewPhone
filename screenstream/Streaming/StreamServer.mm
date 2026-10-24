@@ -142,7 +142,7 @@ struct StreamServer::Impl {
         NSData *asset=[NSData dataWithContentsOfFile:filename];
         if(!asset || asset.length>1024*1024) { respond(404,"text/plain",{}); return; }
         respond(200,path=="/viewer.js"?"text/javascript; charset=utf-8":path=="/style.css"?"text/css; charset=utf-8":"text/html; charset=utf-8",
-            std::span(static_cast<const uint8_t *>(asset.bytes),asset.length));
+            std::span<const uint8_t>(static_cast<const uint8_t *>(asset.bytes),static_cast<size_t>(asset.length)));
     }
     void consume(Connection &connection,std::span<const uint8_t> bytes) {
         if(!connection.parser.append(bytes)) { closeWebSocket(connection,connection.parser.error()); return; }
