@@ -4,7 +4,6 @@
 #import "NativeCapture.h"
 #include "FrameScaler.h"
 #import <UIKit/UIKit.h>
-#import <IOSurface/IOSurface.h>
 #import <mach/mach_time.h>
 #include <cmath>
 
@@ -14,15 +13,11 @@
 extern "C" {
     CFIndex CARenderServerGetDirtyFrameCount(void *);
     void CARenderServerRenderDisplay(kern_return_t,CFStringRef,IOSurfaceRef,int,int);
-    typedef struct __IOSurfaceAccelerator *DKSSAcceleratorRef;
-    kern_return_t IOSurfaceAcceleratorCreate(CFAllocatorRef,CFDictionaryRef,DKSSAcceleratorRef *);
-    CFRunLoopSourceRef IOSurfaceAcceleratorGetRunLoopSource(DKSSAcceleratorRef);
-    kern_return_t IOSurfaceAcceleratorTransferSurface(DKSSAcceleratorRef,IOSurfaceRef,IOSurfaceRef,void *,void *,void *,void *);
 }
 
 @implementation DKSSNativeCapture {
     IOSurfaceRef _render,_surface;
-    DKSSAcceleratorRef _accelerator;
+    IOSurfaceAcceleratorRef _accelerator;
     CFRunLoopSourceRef _runLoopSource;
     CFIndex _dirty;
     BOOL _hasFrame;

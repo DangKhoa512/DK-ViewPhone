@@ -17,9 +17,10 @@ bool dkss::FrameScaler::copy(IOSurfaceRef surface,double scale,uint32_t maximum,
     out.height=static_cast<uint32_t>((rotation==90 || rotation==270)?dw:dh);
     out.orientation=rotation; out.pixels.resize(dw*dh*4);
     if(rotation) scratch.resize(out.pixels.size());
-    if(IOSurfaceLock(surface,kIOSurfaceLockReadOnly,nullptr)!=0) return false;
+    constexpr uint32_t readOnlyLock=1;
+    if(IOSurfaceLock(surface,readOnlyLock,nullptr)!=0) return false;
     auto *source=static_cast<uint8_t *>(IOSurfaceGetBaseAddress(surface));
-    if(!source) { IOSurfaceUnlock(surface,kIOSurfaceLockReadOnly,nullptr); return false; }
+    if(!source) { IOSurfaceUnlock(surface,readOnlyLock,nullptr); return false; }
     uint8_t *destination=rotation?scratch.data():out.pixels.data();
     vImage_Buffer input{source,h,w,stride},output{destination,dh,dw,dw*4};
     bool ok=true;
@@ -36,7 +37,7 @@ bool dkss::FrameScaler::copy(IOSurfaceRef surface,double scale,uint32_t maximum,
         }
         if(ok) ok=vImageScale_ARGB8888(&input,&output,workspace.data(),kvImageNoFlags)==kvImageNoError;
     }
-    IOSurfaceUnlock(surface,kIOSurfaceLockReadOnly,nullptr);
+    IOSurfaceUnlock(surface,readOnlyLock,nullptr);
     if(ok && rotation) {
         vImage_Buffer rotated{out.pixels.data(),out.height,out.width,size_t(out.width)*4};
         uint8_t fill[4]={0,0,0,255};

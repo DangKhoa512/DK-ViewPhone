@@ -34,3 +34,4 @@ before-package::
 	@mkdir -p "$(THEOS_STAGING_DIR)/usr/share/dk-screenstream/web" "$(THEOS_STAGING_DIR)/usr/share/doc/com.dk.screenstream"
 	@cp Web/index.html Web/viewer.js Web/style.css "$(THEOS_STAGING_DIR)/usr/share/dk-screenstream/web/"
 	@cp COPYING ATTRIBUTION.md "$(THEOS_STAGING_DIR)/usr/share/doc/com.dk.screenstream/"
+	@cp Capture/IOSurfaceSPI.h "$(THEOS_STAGING_DIR)/usr/share/doc/com.dk.screenstream/IOSurfaceSPI-notice.h"

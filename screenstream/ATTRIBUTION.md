@@ -10,6 +10,9 @@ transport. Network address/recovery policy code is reused from DK ViewPhone
 under GPL-2.0-only, retaining source notices.
 
 Apple SDK frameworks are platform dependencies, not copied into the package.
+`Capture/IOSurfaceSPI.h` is the existing project's Apple BSD interface header
+(Copyright 2015 Apple Inc.). Its full notice and disclaimer are retained in the
+header, which is also installed in the package documentation.
 Private API declarations describe system interfaces and require a compatible
 jailbreak; binary compatibility must be tested on the target device.
 
