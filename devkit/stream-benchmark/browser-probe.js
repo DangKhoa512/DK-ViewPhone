@@ -19,8 +19,10 @@
     CanvasRenderingContext2D.prototype.drawImage=function(...args){
         const result=draw.apply(this,args);
         // Count only presentation to the connected canvas, not offscreen blits.
-        if(this.canvas.isConnected&&this.canvas.width>100&&this.canvas.height>100)dkProbe.paints++;
+        if(this.canvas.isConnected&&this.canvas.width>100&&this.canvas.height>100&&
+            this.canvas.matches('#screen,.rfb-mount canvas,#mount canvas'))dkProbe.paints++;
         return result;
     };
     window.addEventListener('error',event=>dkProbe.errors.push(String(event.message).slice(0,160)));
+    window.addEventListener('unhandledrejection',event=>dkProbe.errors.push(String(event.reason).slice(0,160)));
 })();
