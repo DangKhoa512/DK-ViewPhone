@@ -1,0 +1,113 @@
+name: Build DK ScreenStream (native roothide)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev/roothide, 'build/dual-engine-*']
+    paths: ['screenstream/**', '.github/workflows/build-screenstream.yml']
+
+permissions:
+  contents: read
+concurrency:
+  group: screenstream-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  FINALPACKAGE: 1
+  THEOS_PACKAGE_SCHEME: roothide
+  THEOS: ${{ github.workspace }}/theos-roothide
+  HOMEBREW_NO_AUTO_UPDATE: 1
+  HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
+
+jobs:
+  protocol-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Protocol, queue, malformed input and viewer tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/screenstream-tests
+          g++ -std=c++20 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer screenstream/Tests/core.cpp -pthread -o "$RUNNER_TEMP/dkss-core"
+          "$RUNNER_TEMP/dkss-core" | tee artifacts/screenstream-tests/core.log
+          g++ -std=c++20 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer screenstream/Tests/websocket.cpp -pthread -o "$RUNNER_TEMP/dkss-websocket"
+          "$RUNNER_TEMP/dkss-websocket" | tee artifacts/screenstream-tests/websocket.log
+          python3 -m unittest discover -s screenstream/Tests -v 2>&1 | tee artifacts/screenstream-tests/package.log
+          node screenstream/Tests/viewer.mjs | tee artifacts/screenstream-tests/viewer.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: DKScreenStream-protocol-tests
+          path: artifacts/screenstream-tests/
+  build:
+    needs: protocol-tests
+    runs-on: macos-15
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - run: mkdir -p artifacts/screenstream/logs artifacts/screenstream/packages
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.2'
+      - name: Native host integration tests
+        run: |
+          set -euo pipefail
+          xcrun clang++ -std=c++20 -g -Wall -Wextra -Werror -Wno-deprecated-declarations -fobjc-arc screenstream/Streaming/StreamServer.mm screenstream/Tests/server.mm -framework Foundation -pthread -o "$RUNNER_TEMP/dkss-server-test"
+          "$RUNNER_TEMP/dkss-server-test" | tee artifacts/screenstream/logs/server-test.log
+          xcrun clang++ -std=c++20 -g -Wall -Wextra -Werror -fobjc-arc screenstream/Encoder/JPEGEncoder.mm screenstream/Tests/jpeg.mm -framework Foundation -framework ImageIO -framework CoreGraphics -o "$RUNNER_TEMP/dkss-jpeg-test"
+          "$RUNNER_TEMP/dkss-jpeg-test" | tee artifacts/screenstream/logs/jpeg-test.log
+      - name: Build dependencies
+        run: brew install ldid-procursus make dpkg 2>&1 | tee artifacts/screenstream/logs/dependencies.log
+      - uses: actions/checkout@v4
+        with:
+          repository: roothide/theos
+          ref: cfba89a53a05b4a1b822121158acc3669c20602f
+          path: theos-roothide
+          submodules: recursive
+          persist-credentials: false
+      - name: Install iOS SDK
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          "$THEOS/bin/install-sdk" iPhoneOS16.5 2>&1 | tee artifacts/screenstream/logs/sdk.log
+          xcodebuild -version > artifacts/screenstream/logs/toolchain.txt
+          git -C "$THEOS" rev-parse HEAD >> artifacts/screenstream/logs/toolchain.txt
+      - name: Build independent native roothide DEB
+        run: |
+          set -euo pipefail
+          source devkit/roothide.sh
+          gmake -C screenstream clean package FINALPACKAGE=1 2>&1 | tee artifacts/screenstream/logs/build.log
+      - name: Validate package and create checksums
+        run: |
+          set -euo pipefail
+          package=screenstream/packages/com.dk.screenstream_0.1.0_iphoneos-arm64e.deb
+          test -s "$package"
+          python3 screenstream/devkit/verify-package.py "$package" --report artifacts/screenstream/package-validation.json | tee artifacts/screenstream/logs/validation.log
+          cp "$package" artifacts/screenstream/packages/DKScreenStream_roothide.deb
+          shasum -a 256 artifacts/screenstream/packages/*.deb > artifacts/screenstream/packages/SHA256SUMS
+          git archive --format=tar.gz --output=artifacts/screenstream/packages/DKScreenStream_source.tar.gz HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DKScreenStream_0.1.0_roothide
+          path: |
+            artifacts/screenstream/packages/
+            artifacts/screenstream/package-validation.json
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: DKScreenStream-build-logs-${{ github.run_attempt }}
+          path: artifacts/screenstream/logs/
+          if-no-files-found: warn
+          retention-days: 30

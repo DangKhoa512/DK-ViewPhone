@@ -1,0 +1,9 @@
+Package: com.dk.screenstream
+Name: ĐK ScreenStream
+Version: 0.1.0
+Architecture: iphoneos-arm64e
+Description: Independent authenticated JPEG/WebSocket screen viewer for Dopamine roothide.
+Maintainer: DangKhoa512 <DangKhoa512@users.noreply.github.com>
+Author: DK ViewPhone contributors
+Section: Tweaks
+Depends: firmware (>= 15.0), preferenceloader

@@ -162,6 +162,7 @@ jobs:
           test "${#packages[@]}" -eq 1
           python3 devkit/verify-package.py "${packages[0]}" --report artifacts/package-validation.json 2>&1 | tee artifacts/logs/package-validation.log
           cp "${packages[0]}" artifacts/packages/DKViewPhone_1.3.0_roothide.deb
+          cp "${packages[0]}" artifacts/packages/DKViewPhone_roothide.deb
           shasum -a 256 artifacts/packages/*.deb > artifacts/packages/SHA256SUMS
           git archive --format=tar.gz --output=artifacts/packages/DKViewPhone_1.3.0_source.tar.gz HEAD
 

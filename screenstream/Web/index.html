@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ĐK ScreenStream</title><link rel="stylesheet" href="style.css"><script type="module" src="viewer.js"></script></head>
+<body><header><div class="brand"><b>ĐK ScreenStream</b><span>JPEG Live Viewer</span></div>
+<span id="status" role="status">Chưa kết nối</span><span class="badge">Chỉ xem</span></header>
+<main><form id="connection"><label for="token">Mã kết nối</label><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Sao chép mã trong Settings → ĐK ScreenStream" maxlength="64" required>
+<button id="connect" type="submit">Kết nối</button><button id="disconnect" type="button" disabled>Ngắt</button></form>
+<section id="screenArea"><div class="screen-tools"><label><input id="autoScale" type="checkbox" checked> Tự co giãn</label><button id="fullscreen" type="button" aria-label="Toàn màn hình">⛶</button></div>
+<div id="stage" class="fit"><canvas id="screen" aria-label="Màn hình iPhone"></canvas><p id="empty">Bật ScreenStream trên iPhone rồi nhập mã kết nối.</p></div></section>
+<footer><span>FPS <b id="fps">—</b></span><span>Giải mã <b id="decode">—</b></span><span title="Thời gian khứ hồi; không phải độ trễ hiển thị">RTT <b id="rtt">—</b></span><span>Khung bỏ <b id="dropped">0</b></span><span>Ảnh <b id="geometry">—</b></span><span>Nhận <b id="throughput">—</b></span></footer>
+<p class="hint">Mã kết nối nằm trong Settings → ĐK ScreenStream. Dùng LAN tin cậy hoặc tunnel SSH.</p>
+</main></body></html>

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -eu
+case "${1:-}" in remove|upgrade|deconfigure) ;; *) exit 0 ;; esac
+plist=/Library/LaunchDaemons/com.dk.screenstream.plist
+if [ -f "$plist" ]; then
+    launchctl unload "$plist" >/dev/null 2>&1 || launchctl remove com.dk.screenstream >/dev/null 2>&1 || true
+fi

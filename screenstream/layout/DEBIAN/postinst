@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -eu
+case "${1:-}" in configure|abort-upgrade|abort-remove|abort-deconfigure) ;; *) exit 0 ;; esac
+if [ "${DPKG_MAINTSCRIPT_ARCH:-}" != iphoneos-arm64e ]; then
+    echo 'DK ScreenStream requires Dopamine roothide.' >&2
+    exit 1
+fi
+plist=/Library/LaunchDaemons/com.dk.screenstream.plist
+test -f "$plist"
+launchctl unload "$plist" >/dev/null 2>&1 || true
+launchctl load -w -F "$plist"

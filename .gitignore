@@ -98,6 +98,8 @@ playground.xcworkspace
 # Windows desktop build outputs
 desktop/node_modules/
 desktop/dist/
+screenstream/packages/
+screenstream/artifacts/
 !desktop/build/
 !desktop/build/icon.ico
 !desktop/build/icon.png
