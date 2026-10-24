@@ -114,6 +114,21 @@ int main() {
                 stopChild(child,channel); persist(); DKSSLog(@"configuration_reload",@{});
             }
             if(child) {
+                // Drain the final metrics datagram before reaping/closing a
+                // worker that has already exited after a capture failure.
+                char buffer[8192]; ssize_t received;
+                while((received=recv(channel,buffer,sizeof(buffer),MSG_DONTWAIT))>0) {
+                    id packet=[NSJSONSerialization JSONObjectWithData:[NSData dataWithBytes:buffer length:static_cast<NSUInteger>(received)] options:0 error:nil];
+                    if(![packet isKindOfClass:NSDictionary.class] || [packet[@"pid"] intValue]!=child) continue;
+                    lastHeartbeat=now;
+                    if([packet[@"event"] isEqual:@"metrics"]) {
+                        NSMutableDictionary *safe=[NSMutableDictionary dictionary];
+                        for(NSString *key in @[@"framesCaptured",@"framesEncoded",@"framesSkipped",@"framesDropped",@"encodeErrors",@"captureErrors",
+                            @"captureFailureCode",@"captureSystemStatus",@"captureTotalMs",@"encodeTotalMs",@"outputBytes",@"socketBytes",@"viewers",@"cpuTotalSeconds",@"rssBytes"])
+                            if([packet[key] isKindOfClass:NSNumber.class]) safe[key]=packet[key];
+                        DKSSLog(@"metrics",safe);
+                    }
+                }
                 int status=0; pid_t exited=waitpid(child,&status,WNOHANG);
                 if(exited==child) {
                     DKSSLog(@"worker_exit",@{@"exitCode":@(WIFEXITED(status)?WEXITSTATUS(status):-1),
@@ -121,19 +136,6 @@ int main() {
                     child=0; close(channel); channel=-1; failure(@"worker_exit");
                 }
                 else {
-                    char buffer[8192]; ssize_t received;
-                    while((received=recv(channel,buffer,sizeof(buffer),MSG_DONTWAIT))>0) {
-                        id packet=[NSJSONSerialization JSONObjectWithData:[NSData dataWithBytes:buffer length:static_cast<NSUInteger>(received)] options:0 error:nil];
-                        if(![packet isKindOfClass:NSDictionary.class] || [packet[@"pid"] intValue]!=child) continue;
-                        lastHeartbeat=now;
-                        if([packet[@"event"] isEqual:@"metrics"]) {
-                            NSMutableDictionary *safe=[NSMutableDictionary dictionary];
-                            for(NSString *key in @[@"framesCaptured",@"framesEncoded",@"framesSkipped",@"framesDropped",@"encodeErrors",@"captureErrors",
-                                @"captureFailureCode",@"captureSystemStatus",@"captureTotalMs",@"encodeTotalMs",@"outputBytes",@"socketBytes",@"viewers",@"cpuTotalSeconds",@"rssBytes"])
-                                if([packet[key] isKindOfClass:NSNumber.class]) safe[key]=packet[key];
-                            DKSSLog(@"metrics",safe);
-                        }
-                    }
                     if(now-lastHeartbeat>15) { stopChild(child,channel); failure(@"heartbeat_timeout"); }
                 }
             }
