@@ -13,8 +13,10 @@ std::vector<uint8_t> dkss::encodeJPEG(const RawFrame &frame,double quality) {
     // through CGImageDestinationFinalize and releases the image before returning.
     CGDataProviderRef provider=CGDataProviderCreateWithData(nullptr,frame.pixels.data(),frame.pixels.size(),nullptr);
     CGColorSpaceRef color=CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+    CGBitmapInfo format=static_cast<CGBitmapInfo>(static_cast<uint32_t>(kCGBitmapByteOrder32Little)|
+        static_cast<uint32_t>(kCGImageAlphaNoneSkipFirst));
     CGImageRef image=provider&&color?CGImageCreate(frame.width,frame.height,8,32,size_t(frame.width)*4,color,
-        kCGBitmapByteOrder32Little|kCGImageAlphaNoneSkipFirst,provider,nullptr,false,kCGRenderingIntentDefault):nullptr;
+        format,provider,nullptr,false,kCGRenderingIntentDefault):nullptr;
     if(provider) CGDataProviderRelease(provider);
     if(color) CGColorSpaceRelease(color);
     if(!image) return {};
