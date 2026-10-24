@@ -65,6 +65,8 @@ jobs:
           "$RUNNER_TEMP/dkss-server-test" | tee artifacts/screenstream/logs/server-test.log
           xcrun clang++ -std=c++20 -g -Wall -Wextra -Werror -fobjc-arc screenstream/Encoder/JPEGEncoder.mm screenstream/Tests/jpeg.mm -framework Foundation -framework ImageIO -framework CoreGraphics -o "$RUNNER_TEMP/dkss-jpeg-test"
           "$RUNNER_TEMP/dkss-jpeg-test" | tee artifacts/screenstream/logs/jpeg-test.log
+          xcrun clang++ -std=c++20 -g -Wall -Wextra -Werror -fobjc-arc screenstream/Capture/FrameScaler.mm screenstream/Tests/scaler.mm -framework Foundation -framework IOSurface -framework Accelerate -o "$RUNNER_TEMP/dkss-scaler-test"
+          "$RUNNER_TEMP/dkss-scaler-test" | tee artifacts/screenstream/logs/scaler-test.log
       - name: Build dependencies
         run: brew install ldid-procursus make dpkg 2>&1 | tee artifacts/screenstream/logs/dependencies.log
       - uses: actions/checkout@v4

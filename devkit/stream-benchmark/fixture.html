@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>DK streaming benchmark</title>
+<style>html,body{margin:0;background:#101820;color:#fff;font:16px system-ui;overflow:hidden}canvas{display:block;width:100vw;height:100vh}aside{position:fixed;top:12px;left:12px;padding:10px;background:#000b;border-radius:8px}button{font:inherit;padding:8px}</style>
+<canvas id="pattern"></canvas><aside>DK synthetic screen · <span id="mode"></span><br><button id="toggle">Pause / resume</button></aside>
+<script>
+// Independent synthetic content. No account, network dependencies or device input.
+const canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d',{alpha:false});
+let paused=false,frames=0;
+document.querySelector('#toggle').onclick=()=>paused=!paused;
+function draw(t){
+  const w=innerWidth,h=innerHeight,phase=Math.floor(t/20000)%3;
+  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
+  if(!paused&&(phase!==0||frames===0)){
+    ctx.fillStyle='#101820';ctx.fillRect(0,0,w,h);
+    const colors=['#ff3030','#30ff30','#3030ff','#ffffff'];
+    for(let i=0;i<4;i++){ctx.fillStyle=colors[i];ctx.fillRect(i*w/4,h*.15,w/4,h*.12);}
+    if(phase===1){ctx.fillStyle='#00e5cc';ctx.fillRect((Math.sin(t/650)+1)*(w-70)/2,h*.45,70,90);}
+    if(phase===2){for(let y=0;y<h;y+=24)for(let x=0;x<w;x+=24){ctx.fillStyle=`hsl(${(x+y+t/15)%360},80%,55%)`;ctx.fillRect(x,y,24,24);}}
+    ctx.fillStyle='#fff';ctx.font='20px monospace';ctx.fillText('DK '+String(frames).padStart(8,'0'),12,h-40);
+    frames++;
+  }
+  document.querySelector('#mode').textContent=paused?'paused':['static','local motion','full motion'][phase];
+  window.dkBenchmark={phase,frames,paused,width:w,height:h};requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+</script></html>
