@@ -28,6 +28,8 @@
     std::array<std::shared_ptr<dkss::RawFrame>,3> _pool;
     std::atomic<bool> _force,_forceEncode;
     std::atomic<uint64_t> _sequence;
+    unsigned _consecutiveCaptureErrors;
+    std::atomic<unsigned> _consecutiveEncodeErrors;
     DKSSNativeCapture *_capture;
     FBSOrientationObserver *_orientation;
     dispatch_source_t _captureTimer;
@@ -76,7 +78,8 @@
                 uint64_t started=dkss::nowMicros();
                 auto jpeg=dkss::encodeJPEG(*frame,owner->_config.quality);
                 owner->_metrics.encodeMicros.fetch_add(dkss::nowMicros()-started);
-                if(jpeg.empty()) { ++owner->_metrics.encodeErrors; owner->_force=true; owner->_forceEncode=true; continue; }
+                if(jpeg.empty()) { ++owner->_metrics.encodeErrors; ++owner->_consecutiveEncodeErrors; owner->_force=true; owner->_forceEncode=true; continue; }
+                owner->_consecutiveEncodeErrors=0;
                 comparator.commit(*frame);
                 ++owner->_metrics.encoded; owner->_metrics.outputBytes.fetch_add(jpeg.size());
                 dkss::FrameInfo info{++owner->_sequence,frame->capturedMicros,frame->width,frame->height,
@@ -105,10 +108,11 @@
     if(!frame) { ++_metrics.dropped; return; }
     uint64_t began=dkss::nowMicros(); bool force=_force.exchange(false);
     if(![_capture capture:*frame scale:_config.scale maximum:_config.maxDimension rotation:_rotation force:force]) {
-        if(_capture.failed) { ++_metrics.captureErrors; _force=true; }
+        if(_capture.failed) { ++_metrics.captureErrors; ++_consecutiveCaptureErrors; _force=true; }
         else ++_metrics.skipped;
         return;
     }
+    _consecutiveCaptureErrors=0;
     frame->capturedMicros=began; frame->captureMs=double(dkss::nowMicros()-began)/1000;
     ++_metrics.captured; _metrics.captureMicros.fetch_add(static_cast<uint64_t>(frame->captureMs*1000));
     auto result=_queue->push(frame);
@@ -122,6 +126,7 @@
     _queue.reset();
     for(auto &frame:_pool) frame.reset();
     [_capture close]; _capture=nil;
+    _consecutiveCaptureErrors=0; _consecutiveEncodeErrors=0;
 }
 - (NSDictionary *)metrics {
     NSDictionary *value=@{@"type":@"metrics",@"framesCaptured":@(_metrics.captured.load()),
@@ -145,8 +150,8 @@
     if(_server) _server->stop();
 }
 - (BOOL)healthy {
-    return _server->healthy() && !(_metrics.captureErrors.load()>=5 && !_metrics.captured.load()) &&
-        !(_metrics.encodeErrors.load()>=5 && !_metrics.encoded.load() && _server->viewers());
+    return _server->healthy() && !(_server->viewers() &&
+        (_consecutiveCaptureErrors>=5 || _consecutiveEncodeErrors.load()>=5));
 }
 - (void)dealloc { [self stop]; }
 @end
