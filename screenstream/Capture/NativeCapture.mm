@@ -22,6 +22,8 @@ extern "C" {
     CFIndex _dirty;
     BOOL _hasFrame;
     BOOL _failed;
+    NSInteger _failureCode;
+    int _systemStatus;
     dkss::FrameScaler _scaler;
 }
 - (BOOL)prepare {
@@ -29,7 +31,7 @@ extern "C" {
     CGRect bounds=UIScreen.mainScreen._unjailedReferenceBoundsInPixels;
     size_t width=static_cast<size_t>(std::lround(bounds.size.width));
     size_t height=static_cast<size_t>(std::lround(bounds.size.height));
-    if(!width || !height || width>4096 || height>4096) return NO;
+    if(!width || !height || width>4096 || height>4096) { _failureCode=1; return NO; }
     size_t row=IOSurfaceAlignProperty(kIOSurfaceBytesPerRow,width*4);
     CGColorSpaceRef color=CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
     CFPropertyListRef colorData=CGColorSpaceCopyPropertyList(color); CGColorSpaceRelease(color);
@@ -40,7 +42,10 @@ extern "C" {
         (__bridge NSString *)kIOSurfaceColorSpace:CFBridgingRelease(colorData)};
     _render=IOSurfaceCreate((__bridge CFDictionaryRef)properties);
     _surface=IOSurfaceCreate((__bridge CFDictionaryRef)properties);
-    if(!_render || !_surface || IOSurfaceAcceleratorCreate(kCFAllocatorDefault,nullptr,&_accelerator)!=0 || !_accelerator) {
+    if(!_render || !_surface) { _failureCode=2; [self close]; return NO; }
+    _systemStatus=IOSurfaceAcceleratorCreate(kCFAllocatorDefault,nullptr,&_accelerator);
+    if(_systemStatus!=0 || !_accelerator) {
+        _failureCode=3;
         [self close]; return NO;
     }
     _runLoopSource=IOSurfaceAcceleratorGetRunLoopSource(_accelerator);
@@ -49,13 +54,14 @@ extern "C" {
 }
 - (BOOL)capture:(dkss::RawFrame &)frame scale:(double)scale maximum:(uint32_t)maximum rotation:(uint16_t)rotation force:(BOOL)force {
     NSAssert(NSThread.isMainThread,@"capture must run on main thread");
-    _failed=NO;
+    _failed=NO; _failureCode=0; _systemStatus=0;
     if(![self prepare]) { _failed=YES; return NO; }
     CFIndex dirty=CARenderServerGetDirtyFrameCount(nullptr);
     if(_hasFrame && !force && dirty==_dirty) return NO;
     CARenderServerRenderDisplay(0,CFSTR("LCD"),_render,0,0);
-    if(IOSurfaceAcceleratorTransferSurface(_accelerator,_render,_surface,nullptr,nullptr,nullptr,nullptr)!=0) { _failed=YES; return NO; }
-    if(!_scaler.copy(_surface,scale,maximum,rotation,frame)) { _failed=YES; return NO; }
+    _systemStatus=IOSurfaceAcceleratorTransferSurface(_accelerator,_render,_surface,nullptr,nullptr,nullptr,nullptr);
+    if(_systemStatus!=0) { _failed=YES; _failureCode=4; return NO; }
+    if(!_scaler.copy(_surface,scale,maximum,rotation,frame)) { _failed=YES; _failureCode=5; return NO; }
     _dirty=dirty; _hasFrame=YES; return YES;
 }
 - (void)close {
@@ -67,4 +73,6 @@ extern "C" {
 }
 - (void)dealloc { [self close]; }
 - (BOOL)failed { return _failed; }
+- (NSInteger)failureCode { return _failureCode; }
+- (int)systemStatus { return _systemStatus; }
 @end

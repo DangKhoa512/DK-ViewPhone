@@ -5,4 +5,7 @@
 <key>com.apple.QuartzCore.global-capture</key><true/><key>com.apple.QuartzCore.displayable-context</key><true/>
 <key>com.apple.QuartzCore.system-layers</key><true/><key>com.apple.private.IOSurface.protected-access</key><true/>
 <key>com.apple.backboard.client</key><true/>
+<key>com.apple.security.iokit-user-client-class</key><array>
+<string>IOSurfaceRootUserClient</string><string>IOSurfaceAcceleratorClient</string>
+</array>
 </dict></plist>

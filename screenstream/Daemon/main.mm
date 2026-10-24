@@ -34,12 +34,10 @@ int main() {
         dispatch_source_set_timer(timer,DISPATCH_TIME_NOW,2*NSEC_PER_SEC,NSEC_PER_MSEC*50);
         dispatch_source_set_event_handler(timer,^{
             @autoreleasepool {
-                if(stopping || (fd>=0 && getppid()==1) || !controller.healthy) {
-                    result=stopping?0:1; CFRunLoopStop(CFRunLoopGetMain()); return;
-                }
+                BOOL finishing=stopping || (fd>=0 && getppid()==1) || !controller.healthy;
                 NSMutableDictionary *packet=[@{@"event":@"heartbeat",@"pid":@(getpid())} mutableCopy];
                 NSDictionary *metrics=[controller metrics];
-                if(++ticks%15==0) {
+                if(++ticks%15==0 || finishing) {
                     [packet addEntriesFromDictionary:metrics]; packet[@"event"]=@"metrics";
                     struct rusage usage{}; getrusage(RUSAGE_SELF,&usage);
                     packet[@"cpuTotalSeconds"]=@(usage.ru_utime.tv_sec+usage.ru_utime.tv_usec/1e6+
@@ -50,6 +48,7 @@ int main() {
                 }
                 NSData *data=[NSJSONSerialization dataWithJSONObject:packet options:0 error:nil];
                 if(fd>=0 && data.length) (void)send(fd,data.bytes,data.length,MSG_DONTWAIT);
+                if(finishing) { result=stopping?0:1; CFRunLoopStop(CFRunLoopGetMain()); }
             }
         });
         dispatch_resume(timer); CFRunLoopRun(); dispatch_source_cancel(timer);

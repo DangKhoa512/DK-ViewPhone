@@ -115,7 +115,11 @@ int main() {
             }
             if(child) {
                 int status=0; pid_t exited=waitpid(child,&status,WNOHANG);
-                if(exited==child) { child=0; close(channel); channel=-1; failure(@"worker_exit"); }
+                if(exited==child) {
+                    DKSSLog(@"worker_exit",@{@"exitCode":@(WIFEXITED(status)?WEXITSTATUS(status):-1),
+                        @"signal":@(WIFSIGNALED(status)?WTERMSIG(status):0)});
+                    child=0; close(channel); channel=-1; failure(@"worker_exit");
+                }
                 else {
                     char buffer[8192]; ssize_t received;
                     while((received=recv(channel,buffer,sizeof(buffer),MSG_DONTWAIT))>0) {
@@ -125,7 +129,7 @@ int main() {
                         if([packet[@"event"] isEqual:@"metrics"]) {
                             NSMutableDictionary *safe=[NSMutableDictionary dictionary];
                             for(NSString *key in @[@"framesCaptured",@"framesEncoded",@"framesSkipped",@"framesDropped",@"encodeErrors",@"captureErrors",
-                                @"captureTotalMs",@"encodeTotalMs",@"outputBytes",@"socketBytes",@"viewers",@"cpuTotalSeconds",@"rssBytes"])
+                                @"captureFailureCode",@"captureSystemStatus",@"captureTotalMs",@"encodeTotalMs",@"outputBytes",@"socketBytes",@"viewers",@"cpuTotalSeconds",@"rssBytes"])
                                 if([packet[key] isKindOfClass:NSNumber.class]) safe[key]=packet[key];
                             DKSSLog(@"metrics",safe);
                         }

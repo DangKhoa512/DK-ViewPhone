@@ -128,6 +128,7 @@
         @"framesEncoded":@(_metrics.encoded.load()),@"framesSkipped":@(_metrics.skipped.load()),
         @"framesDropped":@(_metrics.dropped.load()),@"encodeErrors":@(_metrics.encodeErrors.load()),
         @"captureErrors":@(_metrics.captureErrors.load()),
+        @"captureFailureCode":@(_capture.failureCode),@"captureSystemStatus":@(_capture.systemStatus),
         @"captureTotalMs":@(double(_metrics.captureMicros.load())/1000),
         @"encodeTotalMs":@(double(_metrics.encodeMicros.load())/1000),
         @"outputBytes":@(_metrics.outputBytes.load()),@"socketBytes":@(_metrics.socketBytes.load()),

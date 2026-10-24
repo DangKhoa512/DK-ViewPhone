@@ -7,5 +7,7 @@
 // Main-thread only. Caller provides a frame not held by the encoder/pending queue.
 - (BOOL)capture:(dkss::RawFrame &)frame scale:(double)scale maximum:(uint32_t)maximum rotation:(uint16_t)rotation force:(BOOL)force;
 @property(nonatomic,readonly) BOOL failed;
+@property(nonatomic,readonly) NSInteger failureCode;
+@property(nonatomic,readonly) int systemStatus;
 - (void)close;
 @end
